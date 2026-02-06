@@ -10,28 +10,29 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 1 of 8 (Vertical Slice Foundation)
-Plan: 4 of 5 complete (01-04: tabbed-html-brief-prototype)
-Status: In progress - ready for Plan 01-05
-Last activity: 2026-02-06 — Completed 01-04-PLAN.md (tabbed HTML brief prototype)
+Plan: 5 of 5 complete (01-05: manual-trigger-endpoint)
+Status: Phase 1 COMPLETE - Ready for Phase 2
+Last activity: 2026-02-06 — Completed 01-05-PLAN.md (manual trigger endpoint)
 
-Progress: [████░░░░░░] 80% (Phase 1: 4/5 plans complete)
+Progress: [█████░░░░░] 100% (Phase 1: 5/5 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 5 minutes
-- Total execution time: 0.33 hours
+- Total plans completed: 5
+- Average duration: 5.2 minutes
+- Total execution time: 0.43 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01 | 4/5 | 20 min | 5 min |
+| 01 | 5/5 | 26 min | 5.2 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (3min), 01-02 (11min), 01-03 (2min), 01-04 (4min)
+- Last 5 plans: 01-01 (3min), 01-02 (11min), 01-03 (2min), 01-04 (4min), 01-05 (6min)
 - Trend: Consistent fast execution across service implementations
+- **Phase 1 complete**: Vertical slice operational
 
 *Updated after each plan completion*
 
@@ -54,6 +55,9 @@ Recent decisions affecting current work:
 - **JSON roles parsing** (01-04): Reporter service converts JSON string from database to Python list before passing to template - keeps filtering logic clean.
 - **CSS custom properties** (01-04): Using CSS variables for Marsh branding enables easy theming and consistent color palette across template.
 - **Premailer CSS inlining** (01-04): Transforms CSS for email compatibility (Phase 5) while maintaining modern browser support for Phase 1.
+- **Pipeline orchestrator pattern** (01-05): Collector creates Run internally (Option A) - simpler for Phase 1, orchestrator queries latest Run for coordination.
+- **Admin UI delivery** (01-05): Opens report in new window for browser-based viewing before email integration in Phase 5.
+- **Custom response headers** (01-05): X-MDInsights-* headers enable client-side run tracking without additional API calls.
 
 ### Pending Todos
 
@@ -76,5 +80,6 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Completed 01-04-PLAN.md (tabbed HTML brief prototype), ready for 01-05
+Stopped at: Completed 01-05-PLAN.md (manual trigger endpoint) - **Phase 1 complete**
 Resume file: None
+Next: Phase 2 - News Collection Scale (18+ sources)
