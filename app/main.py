@@ -17,6 +17,7 @@ from app.database import Base, engine, SessionLocal
 # Import models to register them with Base.metadata before create_all
 from app.models import news_article, source, run  # noqa: F401
 from app.config import get_settings
+from app.routers.admin import router as admin_router
 
 # Load environment variables from .env file
 load_dotenv()
@@ -51,7 +52,7 @@ app = FastAPI(
 )
 
 # Register API routers
-# TODO: Add admin router in plan 01-05
+app.include_router(admin_router)
 
 
 @app.get("/api/health", tags=["Health"])
