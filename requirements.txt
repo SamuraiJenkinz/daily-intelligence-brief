@@ -1,0 +1,31 @@
+# MDInsights Python Dependencies
+
+# Core FastAPI and web framework
+fastapi==0.115.0
+uvicorn[standard]
+python-multipart
+
+# Database ORM
+sqlalchemy
+
+# Data validation and settings
+pydantic==2.11.0
+pydantic-settings
+
+# Azure SDKs
+openai==2.16.0
+azure-identity
+
+# Web scraping
+apify-client
+httpx
+
+# HTML templating and email styling
+jinja2
+premailer
+
+# Environment and configuration
+python-dotenv
+
+# Structured logging
+structlog
