@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 1 of 8 (Vertical Slice Foundation)
-Plan: 1 of 5 complete (01-01: project-scaffolding)
-Status: In progress - ready for Plan 01-02
-Last activity: 2026-02-06 — Completed 01-01-PLAN.md (project scaffolding)
+Plan: 2 of 5 complete (01-02: single-source-apify-actor)
+Status: In progress - ready for Plan 01-03
+Last activity: 2026-02-06 — Completed 01-02-PLAN.md (single-source Apify actor)
 
-Progress: [█░░░░░░░░░] 20% (Phase 1: 1/5 plans complete)
+Progress: [██░░░░░░░░] 40% (Phase 1: 2/5 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 3 minutes
-- Total execution time: 0.05 hours
+- Total plans completed: 2
+- Average duration: 7 minutes
+- Total execution time: 0.23 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01 | 1/5 | 3 min | 3 min |
+| 01 | 2/5 | 14 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (3min)
-- Trend: First plan baseline established
+- Last 5 plans: 01-01 (3min), 01-02 (11min)
+- Trend: Collection infrastructure more complex than scaffolding
 
 *Updated after each plan completion*
 
@@ -46,6 +46,9 @@ Recent decisions affecting current work:
 - **Test source**: Reinsurance News selected for Phase 1 vertical slice (clean structured data, reliable daily updates).
 - **Multi-role article schema** (01-01): Using JSON text column for roles array instead of M2M table. Simpler for Phase 1, may need migration later.
 - **Port 8001** (01-01): MDInsights runs on 8001 to avoid conflict with BrasilIntel on 8000 during parallel development.
+- **Source interface pattern** (01-02): Abstract NewsSource base class enables polymorphic multi-source expansion in Phase 2.
+- **Error handling strategy** (01-02): Individual source failures return empty list rather than halting collection - enables fault tolerance.
+- **Classification deferral** (01-02): Classification fields left NULL until 01-03 - separates collection from classification concerns.
 
 ### Pending Todos
 
@@ -68,5 +71,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Completed 01-01-PLAN.md (project scaffolding), ready for 01-02
+Stopped at: Completed 01-02-PLAN.md (single-source Apify actor), ready for 01-03
 Resume file: None
