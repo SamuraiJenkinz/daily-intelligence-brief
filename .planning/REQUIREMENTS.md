@@ -85,40 +85,50 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| COLL-01 | — | Pending |
-| COLL-02 | — | Pending |
-| COLL-03 | — | Pending |
-| COLL-04 | — | Pending |
-| COLL-05 | — | Pending |
-| CLSF-01 | — | Pending |
-| CLSF-02 | — | Pending |
-| CLSF-03 | — | Pending |
-| CLSF-04 | — | Pending |
-| CLSF-05 | — | Pending |
-| REPT-01 | — | Pending |
-| REPT-02 | — | Pending |
-| REPT-03 | — | Pending |
-| REPT-04 | — | Pending |
-| REPT-05 | — | Pending |
-| REPT-06 | — | Pending |
-| REPT-07 | — | Pending |
-| REPT-08 | — | Pending |
-| REPT-09 | — | Pending |
-| REPT-10 | — | Pending |
-| DELV-01 | — | Pending |
-| DELV-02 | — | Pending |
-| DELV-03 | — | Pending |
-| ADMN-01 | — | Pending |
-| ADMN-02 | — | Pending |
-| ADMN-03 | — | Pending |
-| ADMN-04 | — | Pending |
-| ADMN-05 | — | Pending |
+| COLL-01 | Phase 1 (partial), Phase 2 | Pending |
+| COLL-02 | Phase 2 | Pending |
+| COLL-03 | Phase 2 | Pending |
+| COLL-04 | Phase 2, Phase 7 (enhanced) | Pending |
+| COLL-05 | Phase 1 (partial), Phase 2 | Pending |
+| CLSF-01 | Phase 3 | Pending |
+| CLSF-02 | Phase 1 | Pending |
+| CLSF-03 | Phase 3 | Pending |
+| CLSF-04 | Phase 3 | Pending |
+| CLSF-05 | Phase 1 (partial), Phase 3 | Pending |
+| REPT-01 | Phase 1 (partial), Phase 4 | Pending |
+| REPT-02 | Phase 1 (partial), Phase 4 | Pending |
+| REPT-03 | Phase 4 | Pending |
+| REPT-04 | Phase 4 | Pending |
+| REPT-05 | Phase 4 | Pending |
+| REPT-06 | Phase 4 | Pending |
+| REPT-07 | Phase 4 | Pending |
+| REPT-08 | Phase 4 | Pending |
+| REPT-09 | Phase 1 (partial), Phase 4, Phase 8 (enhanced) | Pending |
+| REPT-10 | Phase 4, Phase 8 (enhanced) | Pending |
+| DELV-01 | Phase 5 | Pending |
+| DELV-02 | Phase 5 | Pending |
+| DELV-03 | Phase 5 | Pending |
+| ADMN-01 | Phase 6 | Pending |
+| ADMN-02 | Phase 6 | Pending |
+| ADMN-03 | Phase 6 | Pending |
+| ADMN-04 | Phase 6 | Pending |
+| ADMN-05 | Phase 6 | Pending |
 
 **Coverage:**
 - v1 requirements: 23 total
-- Mapped to phases: 0
-- Unmapped: 23
+- Mapped to phases: 23 (100%)
+- Unmapped: 0
+
+**Requirement Distribution by Phase:**
+- Phase 1: 6 requirements (partial implementations for vertical slice)
+- Phase 2: 5 requirements (full news collection)
+- Phase 3: 5 requirements (advanced classification)
+- Phase 4: 10 requirements (intelligence report generation)
+- Phase 5: 3 requirements (delivery automation)
+- Phase 6: 5 requirements (admin dashboard)
+- Phase 7: 1 requirement (production hardening enhancement)
+- Phase 8: 2 requirements (polish enhancements)
 
 ---
 *Requirements defined: 2026-02-06*
-*Last updated: 2026-02-06 after initial definition*
+*Last updated: 2026-02-06 after roadmap creation*
