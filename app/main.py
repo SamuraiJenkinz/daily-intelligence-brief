@@ -1,0 +1,166 @@
+"""
+MDInsights API - Multi-role insurance intelligence briefing system.
+
+FastAPI application entry point with database initialization and health check.
+"""
+import logging
+import os
+from contextlib import asynccontextmanager
+from datetime import datetime
+
+from dotenv import load_dotenv
+from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
+from sqlalchemy import text
+
+from app.database import Base, engine, SessionLocal
+# Import models to register them with Base.metadata before create_all
+from app.models import news_article, source, run  # noqa: F401
+from app.config import get_settings
+
+# Load environment variables from .env file
+load_dotenv()
+
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Application lifespan handler.
+
+    Creates database tables on startup,
+    yields control during app lifetime, and handles cleanup on shutdown.
+    """
+    # Startup: Create data directory and database tables
+    os.makedirs("data", exist_ok=True)
+    Base.metadata.create_all(bind=engine)
+    logger.info("Database tables created successfully")
+
+    yield
+
+    # Shutdown: Clean up resources if needed
+    logger.info("Application shutdown complete")
+
+
+app = FastAPI(
+    title="MDInsights API",
+    description="Multi-role insurance intelligence briefing system",
+    version="0.1.0",
+    lifespan=lifespan
+)
+
+# Register API routers
+# TODO: Add admin router in plan 01-05
+
+
+@app.get("/api/health", tags=["Health"])
+def health_check() -> dict:
+    """
+    Health check endpoint.
+
+    Returns service status for monitoring and load balancer health checks.
+    Validates database connectivity, data directory writability, and service configuration.
+    """
+    checks = {}
+    overall_status = "healthy"
+    settings = get_settings()
+
+    # Check database connectivity
+    try:
+        with SessionLocal() as session:
+            session.execute(text("SELECT 1"))
+        checks["database"] = {
+            "status": "healthy",
+            "message": "Database connection successful"
+        }
+    except Exception as e:
+        checks["database"] = {
+            "status": "unhealthy",
+            "message": f"Database connection failed: {str(e)}"
+        }
+        overall_status = "unhealthy"
+
+    # Check data directory writability
+    data_dir = settings.data_dir
+    try:
+        os.makedirs(data_dir, exist_ok=True)
+        test_file = os.path.join(data_dir, ".health_check")
+        with open(test_file, "w") as f:
+            f.write("health_check")
+        os.remove(test_file)
+        checks["data_directory"] = {
+            "status": "healthy",
+            "message": f"Data directory writable: {os.path.abspath(data_dir)}"
+        }
+    except Exception as e:
+        checks["data_directory"] = {
+            "status": "unhealthy",
+            "message": f"Data directory not writable: {str(e)}"
+        }
+        overall_status = "unhealthy"
+
+    # Check external services configuration
+    checks["external_services"] = {}
+
+    # Azure OpenAI
+    if settings.is_azure_openai_configured():
+        checks["external_services"]["azure_openai"] = {
+            "status": "configured",
+            "message": "All configuration keys present"
+        }
+    else:
+        checks["external_services"]["azure_openai"] = {
+            "status": "warning",
+            "message": "Missing configuration: endpoint or api_key"
+        }
+        if overall_status == "healthy":
+            overall_status = "degraded"
+
+    # Microsoft Graph
+    if settings.is_graph_configured():
+        checks["external_services"]["microsoft_graph"] = {
+            "status": "configured",
+            "message": "All configuration keys present"
+        }
+    else:
+        checks["external_services"]["microsoft_graph"] = {
+            "status": "warning",
+            "message": "Missing configuration: tenant_id, client_id, client_secret, or sender_email"
+        }
+        if overall_status == "healthy":
+            overall_status = "degraded"
+
+    # Apify
+    if settings.is_apify_configured():
+        checks["external_services"]["apify"] = {
+            "status": "configured",
+            "message": "All configuration keys present"
+        }
+    else:
+        checks["external_services"]["apify"] = {
+            "status": "warning",
+            "message": "Missing configuration: token"
+        }
+        if overall_status == "healthy":
+            overall_status = "degraded"
+
+    return {
+        "status": overall_status,
+        "service": "mdinsights",
+        "timestamp": datetime.utcnow().isoformat(),
+        "checks": checks
+    }
+
+
+@app.get("/", include_in_schema=False)
+def root() -> RedirectResponse:
+    """Redirect root to API documentation."""
+    return RedirectResponse(url="/docs")
+
+
+if __name__ == "__main__":
+    import uvicorn
+
+    settings = get_settings()
+    uvicorn.run("app.main:app", host=settings.host, port=settings.port, reload=settings.debug)
