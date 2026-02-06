@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MDInsights - Manual Pipeline Trigger</title>
+    <style>
+        :root {
+            --marsh-blue: #003f6d;
+            --marsh-light-blue: #0066a4;
+            --marsh-gray: #f5f5f5;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--marsh-gray);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            color: var(--marsh-blue);
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: var(--marsh-blue);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--marsh-light-blue);
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--marsh-blue);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: var(--marsh-light-blue);
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            color: var(--marsh-blue);
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 63, 109, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--marsh-blue);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fee;
+            border-left: 4px solid #c00;
+            border-radius: 4px;
+            color: #800;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .info {
+            background-color: #e8f4fc;
+            border-left: 4px solid var(--marsh-light-blue);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>MDInsights Pipeline</h1>
+        <p class="subtitle">Manual Trigger Interface</p>
+
+        <div class="info">
+            <strong>Pipeline Steps:</strong>
+            <ol style="margin-top: 10px; padding-left: 20px;">
+                <li>Collect articles from enabled sources</li>
+                <li>Classify articles using Azure OpenAI</li>
+                <li>Generate HTML intelligence brief</li>
+            </ol>
+        </div>
+
+        <form id="triggerForm">
+            <div class="form-group">
+                <label for="role">Target Role</label>
+                <select id="role" name="role" required>
+                    <option value="Brokers" selected>Brokers</option>
+                    <option value="Leadership">Leadership</option>
+                    <option value="Compliance">Compliance</option>
+                    <option value="Underwriting">Underwriting</option>
+                </select>
+            </div>
+
+            <button type="submit" id="submitBtn">Generate Report</button>
+        </form>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px;">Running pipeline... This may take a few minutes.</p>
+        </div>
+
+        <div class="error" id="error"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('triggerForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const loading = document.getElementById('loading');
+        const errorDiv = document.getElementById('error');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const role = document.getElementById('role').value;
+
+            // Show loading state
+            submitBtn.disabled = true;
+            loading.classList.add('active');
+            errorDiv.classList.remove('active');
+
+            try {
+                const response = await fetch(`/admin/trigger-pipeline?role=${encodeURIComponent(role)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'text/html'
+                    }
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText || `HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                // Get custom headers
+                const runId = response.headers.get('X-MDInsights-Run-ID');
+                const articlesCollected = response.headers.get('X-Articles-Collected');
+                const articlesClassified = response.headers.get('X-Articles-Classified');
+
+                console.log('Pipeline completed:', {
+                    runId,
+                    articlesCollected,
+                    articlesClassified
+                });
+
+                // Get HTML report
+                const html = await response.text();
+
+                // Open report in new window
+                const reportWindow = window.open('', '_blank');
+                reportWindow.document.write(html);
+                reportWindow.document.close();
+
+                // Reset form
+                submitBtn.disabled = false;
+                loading.classList.remove('active');
+
+            } catch (error) {
+                console.error('Pipeline error:', error);
+                errorDiv.textContent = `Error: ${error.message}`;
+                errorDiv.classList.add('active');
+                submitBtn.disabled = false;
+                loading.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
