@@ -22,7 +22,8 @@ class Run(Base):
     ORM model for news collection runs.
 
     Each Run represents a single execution of the news collection process,
-    tracking when it started, finished, and how many articles were collected.
+    tracking when it started, finished, how many articles were collected,
+    and classification metrics (articles_classified, classification_errors).
     """
     __tablename__ = "runs"
 
@@ -31,6 +32,8 @@ class Run(Base):
     completed_at = Column(DateTime, nullable=True)
     status = Column(Enum(RunStatus), default=RunStatus.RUNNING, nullable=False)
     articles_collected = Column(Integer, default=0, nullable=False)
+    articles_classified = Column(Integer, default=0, nullable=False)
+    classification_errors = Column(Integer, default=0, nullable=False)
     error_message = Column(Text, nullable=True)
 
     # Relationships
