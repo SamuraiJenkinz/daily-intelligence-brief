@@ -10,31 +10,31 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 2 of 8 (News Collection Scale)
-Plan: 4 of 6 complete (02-04: semantic-deduplication)
+Plan: 5 of 6 complete (02-06: pipeline-integration)
 Status: In Progress
-Last activity: 2026-02-07 — Completed 02-04-PLAN.md (semantic deduplication)
+Last activity: 2026-02-06 — Completed 02-06-PLAN.md (pipeline integration)
 
-Progress: [█████░░░░░] 14% (Phase 1: 5/5, Phase 2: 4/6 plans complete)
+Progress: [█████░░░░░] 15% (Phase 1: 5/5, Phase 2: 5/6 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
-- Average duration: 4.11 minutes
-- Total execution time: 0.62 hours
+- Total plans completed: 10
+- Average duration: 3.90 minutes
+- Total execution time: 0.65 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01 | 5/5 | 26 min | 5.2 min |
-| 02 | 4/6 | 11 min | 2.8 min |
+| 02 | 5/6 | 14 min | 2.8 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (2min), 02-02 (1min), 02-03 (2min), 02-04 (5min)
+- Last 5 plans: 02-02 (1min), 02-03 (2min), 02-04 (5min), 02-06 (3min)
 - Trend: Fast execution for data processing implementations
 - **Phase 1 complete**: Vertical slice operational
-- **Phase 2 progressing**: Deduplication engine added, 20-source registry ready
+- **Phase 2 nearly complete**: Deduplication integrated, health monitoring active, 20-source registry ready
 
 *Updated after each plan completion*
 
@@ -75,6 +75,8 @@ Recent decisions affecting current work:
 - **Union-Find for transitive duplicates** (02-04): Handles A→B, B→C transitive relationships correctly - all three grouped as one duplicate even if A not directly similar to C.
 - **Earliest article as keeper** (02-04): Original publication date preserved, proper attribution to first source that reported the story.
 - **Comma-separated source merging** (02-04): Simple implementation matching existing source_name VARCHAR column - may evolve to JSON array if source metadata needed later.
+- **Three-phase collection** (02-06): Collect all → deduplicate → store (instead of per-source storage) enables cross-source duplicate detection with minimal memory footprint.
+- **Additive health monitoring** (02-06): Health check failures log warnings but never block pipeline - core workflow reliability preserved while adding observability.
 
 ### Pending Todos
 
@@ -96,7 +98,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-07
-Stopped at: Completed 02-04-PLAN.md (semantic deduplication)
+Last session: 2026-02-06
+Stopped at: Completed 02-06-PLAN.md (pipeline integration)
 Resume file: None
-Next: Phase 2 continues - 02-05 (batch collection orchestration)
+Next: Phase 2 final plan - verification and documentation
