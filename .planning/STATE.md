@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 4 of 8 IN PROGRESS (Intelligence Report Generation)
-Plan: 4/10 complete
-Status: Phase 4 in progress — Plans 01-04 complete (role filtering, exec summaries, sector heatmap, entity tracker)
-Last activity: 2026-02-07 — Completed 04-04-PLAN.md (entity tracker aggregation)
+Plan: 5/10 complete
+Status: Phase 4 in progress — Plans 01-05 complete (role filtering, exec summaries, sector heatmap, entity tracker, what to watch)
+Last activity: 2026-02-07 — Completed 04-05-PLAN.md (what to watch forward-looking analysis)
 
-Progress: [██████░░░░] 45% (Phase 1: 5/5, Phase 2: 6/6, Phase 3: 3/3, Phase 4: 4/10)
+Progress: [██████░░░░] 47.5% (Phase 1: 5/5, Phase 2: 6/6, Phase 3: 3/3, Phase 4: 5/10)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 18
+- Total plans completed: 19
 - Average duration: 2.8 minutes
-- Total execution time: 0.88 hours
+- Total execution time: 0.91 hours
 
 **By Phase:**
 
@@ -30,15 +30,15 @@ Progress: [██████░░░░] 45% (Phase 1: 5/5, Phase 2: 6/6, Phas
 | 01 | 5/5 | 26 min | 5.2 min |
 | 02 | 6/6 | 17 min | 2.8 min |
 | 03 | 3/3 | 5.5 min | 1.8 min |
-| 04 | 4/10 | 12 min | 3.0 min |
+| 04 | 5/10 | 13.5 min | 2.7 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-03 (1.3min), 04-01 (4min), 04-02 (parallel), 04-03 (5s), 04-04 (3min)
-- Trend: Phase 4 Wave 2 complete (parallel execution of 02-03), continuing with 04
+- Last 5 plans: 04-01 (4min), 04-02 (parallel), 04-03 (5s), 04-04 (3min), 04-05 (1.5min)
+- Trend: Phase 4 Wave 2 continuing with autonomous execution
 - **Phase 1 complete**: Vertical slice operational
 - **Phase 2 complete**: 20 sources, semantic dedup, health monitoring, pipeline integrated
 - **Phase 3 complete**: 9-dimension classification (entities, impact, category, region, business line)
-- **Phase 4 in progress**: 4/10 plans complete (role filtering, exec summaries, sector heatmap, entity tracker)
+- **Phase 4 in progress**: 5/10 plans complete (role filtering, exec summaries, sector heatmap, entity tracker, what to watch)
 
 *Updated after each plan completion*
 
@@ -79,6 +79,8 @@ Recent decisions affecting current work:
 - **Simple majority signal** (04-03): Determine directional signal by comparing positive vs negative counts (neutral ignored).
 - **Entity count tracking** (04-04): defaultdict with count/type composite for single-pass entity mention tracking.
 - **Defensive entity parsing** (04-04): Handle None, JSON strings, and malformed data for robust entity aggregation.
+- **Dual filtering criteria** (04-05): What to Watch filters by priority (Critical/High) OR category (Market Trends) for comprehensive coverage.
+- **Temperature 0.5 for what-to-watch** (04-05): Higher than summaries (0.4) to encourage forward-looking creativity while maintaining consistency.
 
 ### Pending Todos
 
@@ -93,6 +95,6 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-07
-Stopped at: Phase 4 Plans 01-04 COMPLETE — role filtering, exec summaries (Wave 2 parallel), sector heatmap, entity tracker
+Stopped at: Phase 4 Plans 01-05 COMPLETE — role filtering, exec summaries (Wave 2 parallel), sector heatmap, entity tracker, what to watch
 Resume file: None
-Next: Continue Phase 4 - proceed to 04-05 (Template Integration) or execute remaining Wave 2 plans
+Next: Continue Phase 4 - proceed to 04-06 (Market Pulse) or 04-07 (Template Integration)
