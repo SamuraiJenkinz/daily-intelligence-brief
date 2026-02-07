@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 
 ## Current Position
 
-Phase: 4 of 8 IN PROGRESS (Intelligence Report Generation)
-Plan: 6/10 complete
-Status: Phase 4 in progress — Plans 01-06 complete (role filtering, exec summaries, sector heatmap, entity tracker, what to watch, market pulse)
-Last activity: 2026-02-07 — Completed 04-06-PLAN.md (market pulse bar aggregation)
+Phase: 4 of 8 COMPLETE (Intelligence Report Generation)
+Plan: 7/7 complete
+Status: Phase 4 COMPLETE — All plans executed (role filtering, exec summaries, sector heatmap, entity tracker, what to watch, market pulse, template integration)
+Last activity: 2026-02-07 — Completed 04-07-PLAN.md (template integration and branding)
 
-Progress: [██████░░░░] 50.0% (Phase 1: 5/5, Phase 2: 6/6, Phase 3: 3/3, Phase 4: 6/10)
+Progress: [███████░░░] 70.0% (Phase 1: 5/5, Phase 2: 6/6, Phase 3: 3/3, Phase 4: 7/7)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 20
-- Average duration: 2.7 minutes
-- Total execution time: 0.96 hours
+- Total plans completed: 21
+- Average duration: 2.9 minutes
+- Total execution time: 1.03 hours
 
 **By Phase:**
 
@@ -30,15 +30,15 @@ Progress: [██████░░░░] 50.0% (Phase 1: 5/5, Phase 2: 6/6, Ph
 | 01 | 5/5 | 26 min | 5.2 min |
 | 02 | 6/6 | 17 min | 2.8 min |
 | 03 | 3/3 | 5.5 min | 1.8 min |
-| 04 | 6/10 | 16.5 min | 2.75 min |
+| 04 | 7/7 | 24 min | 3.4 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-02 (parallel), 04-03 (5s), 04-04 (3min), 04-05 (1.5min), 04-06 (3min)
-- Trend: Phase 4 Wave 2 continuing with fast autonomous execution
+- Last 5 plans: 04-03 (5s), 04-04 (3min), 04-05 (1.5min), 04-06 (3min), 04-07 (7.5min)
+- Trend: Phase 4 complete with consistent fast execution
 - **Phase 1 complete**: Vertical slice operational
 - **Phase 2 complete**: 20 sources, semantic dedup, health monitoring, pipeline integrated
 - **Phase 3 complete**: 9-dimension classification (entities, impact, category, region, business line)
-- **Phase 4 in progress**: 6/10 plans complete (role filtering, exec summaries, sector heatmap, entity tracker, what to watch, market pulse)
+- **Phase 4 complete**: 7/7 plans complete (role filtering, exec summaries, aggregation, template integration)
 
 *Updated after each plan completion*
 
@@ -84,6 +84,15 @@ Recent decisions affecting current work:
 - **Six predefined market segments** (04-06): P&C Market, Reinsurance, Specialty Lines, Life & Health, M&A Activity, Regulatory for market pulse bar.
 - **Sentiment score thresholds** (04-06): Strong (>0.3), Stable (>0), Mixed (>-0.3), Softening (else) for four-level classification.
 - **P&C Market combination** (04-06): Combines Property and Casualty business lines into single segment matching industry terminology.
+- **Reporter calls all aggregators** (04-07): Reporter service calls all three aggregation methods (sector_heatmap, entity_tracker, market_pulse) and passes to template.
+- **Edition stats expansion** (04-07): Edition stats now includes entity_count and signal_count for footer display.
+- **Template dict access pattern** (04-07): Use bracket notation for what_to_watch dict access in Jinja2 to avoid built-in method conflicts.
+- **Kevin Taylor dual attribution** (04-07): Kevin Taylor badge appears in header AND footer for maximum attribution visibility.
+- **CONFIDENTIAL banner placement** (04-07): Banner positioned above header for maximum visibility and compliance.
+- **Market pulse bar positioning** (04-07): Between header and container (not inside tabs) for universal context.
+- **Cross-tab sections architecture** (04-07): Heatmap, entity tracker, what to watch positioned after all tab content for cross-role visibility.
+- **Impact chip ordering** (04-07): Sentiment, impact_level, region, business_line, entities (top 3) provides logical visual hierarchy.
+- **Prototype CSS integration** (04-07): Wholesale CSS integration from prototype faster and more consistent than piecemeal implementation.
 
 ### Pending Todos
 
@@ -91,13 +100,11 @@ None yet.
 
 ### Blockers/Concerns
 
-**Phase 4:**
-- Report format clarification: REPT-01 specifies single HTML with tabs, but PROJECT.md mentions "separate emails per role" — roadmap follows REPT-01 (tabbed brief, single email)
-- Phase 4 has 10 plans — largest phase in the roadmap
+None - Phase 4 complete, ready for Phase 5 (Professional Reporting)
 
 ## Session Continuity
 
 Last session: 2026-02-07
-Stopped at: Phase 4 Plans 01-06 COMPLETE — role filtering, exec summaries (Wave 2 parallel), sector heatmap, entity tracker, what to watch, market pulse
+Stopped at: Phase 4 COMPLETE — 7/7 plans executed (role filtering, exec summaries, aggregation, template integration)
 Resume file: None
-Next: Continue Phase 4 - proceed to 04-07 (Template Integration)
+Next: Begin Phase 5 - Professional Reporting (email delivery, PDF export, scheduling)
