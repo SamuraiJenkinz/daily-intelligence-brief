@@ -17,6 +17,7 @@ import structlog
 from app.models.news_article import NewsArticle
 from app.schemas.report import ExecutiveSummary, WhatToWatch
 from app.config import get_settings
+from app.services.aggregator import ReportAggregator
 
 
 # Priority ranking order for article sorting
@@ -383,21 +384,26 @@ Generate 4-6 actionable forward-looking items."""
         what_to_watch = self._generate_what_to_watch(prepared_articles, report_date)
         what_to_watch_dict = what_to_watch.model_dump()
 
-        # Compute edition stats
+        # Aggregate data for visualizations (pure Python, fast)
+        sector_heatmap = ReportAggregator.aggregate_sector_heatmap(prepared_articles)
+        entity_tracker = ReportAggregator.aggregate_entity_tracker(prepared_articles, top_n=15)
+        market_pulse = ReportAggregator.aggregate_market_pulse(prepared_articles)
+
+        # Compute edition stats (now with entity and signal counts)
         source_count = len(set(a.source_name for a in articles if a.source_name))
         article_count = len(articles)
 
         edition_stats = {
             'source_count': source_count,
             'article_count': article_count,
-            'entity_count': 0,  # Filled later by aggregator (Plan 04)
-            'signal_count': 0   # Filled later by what-to-watch (Plan 05)
+            'entity_count': len(entity_tracker),
+            'signal_count': len(what_to_watch_dict.get("items", [])),
         }
 
         # Load template
         template = self.env.get_template('role_brief.html')
 
-        # Render template
+        # Render template with complete context
         context = {
             'articles': prepared_articles,
             'report_date': report_date,
@@ -405,6 +411,9 @@ Generate 4-6 actionable forward-looking items."""
             'edition_stats': edition_stats,
             'executive_summaries': executive_summaries_dict,
             'what_to_watch': what_to_watch_dict,
+            'sector_heatmap': sector_heatmap,
+            'entity_tracker': entity_tracker,
+            'market_pulse': market_pulse,
         }
         html = template.render(**context)
 
