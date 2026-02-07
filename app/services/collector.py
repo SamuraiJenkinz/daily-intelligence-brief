@@ -20,6 +20,7 @@ from app.services.sources import (
     LloydsListSource,
     RSSSource
 )
+from app.services.deduplicator import ArticleDeduplicator
 
 logger = structlog.get_logger()
 
@@ -78,14 +79,14 @@ class ApifyCollector:
                 db.commit()
                 return 0
 
-            total_articles = 0
+            # Phase 1: Collect all articles into memory
+            all_articles = []
 
             for source in sources:
                 try:
                     articles = self._scrape_source(source)
                     if articles:
-                        self._store_articles(db, run.id, articles)
-                        total_articles += len(articles)
+                        all_articles.extend(articles)
                         self.logger.info(
                             "source_scraped",
                             source_name=source.name,
@@ -106,6 +107,25 @@ class ApifyCollector:
                     )
                     # Continue with next source - don't block pipeline
                     continue
+
+            # Phase 2: Deduplicate
+            pre_dedup_count = len(all_articles)
+            if pre_dedup_count > 1:
+                self.logger.info("starting_deduplication", article_count=pre_dedup_count)
+                deduplicator = ArticleDeduplicator()
+                all_articles = deduplicator.deduplicate(all_articles)
+                self.logger.info(
+                    "deduplication_complete",
+                    articles_before=pre_dedup_count,
+                    articles_after=len(all_articles),
+                    duplicates_removed=pre_dedup_count - len(all_articles)
+                )
+
+            # Phase 3: Store
+            total_articles = 0
+            if all_articles:
+                self._store_articles(db, run.id, all_articles)
+                total_articles = len(all_articles)
 
             # Update run status
             run.status = RunStatus.COMPLETED
