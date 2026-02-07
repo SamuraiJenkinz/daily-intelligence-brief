@@ -10,31 +10,31 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 2 of 8 (News Collection Scale)
-Plan: 5 of 6 complete (02-05: health-monitor)
+Plan: 3 of 6 complete (02-03: source-registry-rss-integration)
 Status: In Progress
-Last activity: 2026-02-07 — Completed 02-05-PLAN.md (source health monitoring)
+Last activity: 2026-02-06 — Completed 02-03-PLAN.md (source registry and RSS integration)
 
-Progress: [██████░░░░] 15% (Phase 1: 5/5, Phase 2: 5/6 plans complete)
+Progress: [█████░░░░░] 13% (Phase 1: 5/5, Phase 2: 3/6 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
 - Total plans completed: 8
-- Average duration: 4.0 minutes
-- Total execution time: 0.53 hours
+- Average duration: 3.88 minutes
+- Total execution time: 0.52 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01 | 5/5 | 26 min | 5.2 min |
-| 02 | 5/6 | 6 min | 1.2 min |
+| 02 | 3/6 | 5 min | 1.7 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-04 (4min), 01-05 (6min), 02-01 (2min), 02-02 (1min), 02-05 (3min)
+- Last 5 plans: 01-05 (6min), 02-01 (2min), 02-02 (1min), 02-03 (2min)
 - Trend: Very fast execution for pattern-based implementations
 - **Phase 1 complete**: Vertical slice operational
-- **Phase 2 progressing**: Health monitoring service complete
+- **Phase 2 progressing**: 20-source registry ready, RSS integration complete
 
 *Updated after each plan completion*
 
@@ -66,9 +66,9 @@ Recent decisions affecting current work:
 - **Generic RSS source** (02-02): Single RSSSource class handles all RSS/Atom feeds - eliminates need for source-specific scrapers for RSS-based publishers.
 - **Malformed feed tolerance** (02-02): System processes feeds with bozo flag if entries exist - maximizes data collection from imperfect feeds.
 - **Date fallback chain** (02-02): Falls back through published_parsed → updated_parsed → created_parsed → current time for robust date extraction.
-- **7-day baseline health monitoring** (02-05): SourceHealthMonitor uses 7-day moving average to detect source anomalies - zero articles critical, <50% baseline warning, new sources get 'unknown' status.
-- **50% baseline threshold** (02-05): Warning alerts trigger at 50% of baseline average, balancing sensitivity with false positive prevention.
-- **Completed runs only for health** (02-05): Health calculations filter to completed runs only, excluding running/failed runs for accurate baseline metrics.
+- **Type-based RSS routing** (02-03): Check source_type=RSS to route all RSS sources generically rather than name-based map - eliminates need for RSS source-specific scrapers.
+- **20 source seed data** (02-03): Seed all 18 target sources plus 2 disabled sources (Moody's, Fitch) for future activation - complete source registry ready for Phase 2 production.
+- **Source name passed to RSSSource** (02-03): Pass source.name to RSSSource constructor for proper article attribution - articles from RSS sources get correct source_name value.
 
 ### Pending Todos
 
@@ -90,7 +90,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-07
-Stopped at: Completed 02-05-PLAN.md (source health monitoring)
+Last session: 2026-02-06
+Stopped at: Completed 02-03-PLAN.md (source registry and RSS integration)
 Resume file: None
-Next: Phase 2 continues - 02-06 (health alerting endpoint)
+Next: Phase 2 continues - 02-04 (error handling and validation)
