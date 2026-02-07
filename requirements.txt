@@ -29,3 +29,6 @@ python-dotenv
 
 # Structured logging
 structlog
+
+# RSS feed parsing
+feedparser==6.0.12
