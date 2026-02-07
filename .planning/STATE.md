@@ -10,31 +10,31 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 2 of 8 (News Collection Scale)
-Plan: 1 of 6 complete (02-02: generic-rss-source)
+Plan: 2 of 6 complete (02-01: multi-source-scrapers)
 Status: In Progress
-Last activity: 2026-02-06 — Completed 02-02-PLAN.md (generic RSS feed source)
+Last activity: 2026-02-07 — Completed 02-01-PLAN.md (multi-source scraper implementation)
 
-Progress: [█████░░░░░] 10% (Phase 1: 5/5, Phase 2: 1/6 plans complete)
+Progress: [█████░░░░░] 12% (Phase 1: 5/5, Phase 2: 2/6 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 4.7 minutes
-- Total execution time: 0.47 hours
+- Total plans completed: 7
+- Average duration: 4.3 minutes
+- Total execution time: 0.50 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01 | 5/5 | 26 min | 5.2 min |
-| 02 | 1/6 | 1 min | 1.4 min |
+| 02 | 2/6 | 3 min | 1.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (11min), 01-03 (2min), 01-04 (4min), 01-05 (6min), 02-02 (1min)
-- Trend: Fast execution for infrastructure components
+- Last 5 plans: 01-03 (2min), 01-04 (4min), 01-05 (6min), 02-01 (2min), 02-02 (1min)
+- Trend: Very fast execution for pattern-based implementations
 - **Phase 1 complete**: Vertical slice operational
-- **Phase 2 started**: Generic RSS source implemented
+- **Phase 2 progressing**: 4 new scrapers + RSS source implemented
 
 *Updated after each plan completion*
 
@@ -60,6 +60,9 @@ Recent decisions affecting current work:
 - **Pipeline orchestrator pattern** (01-05): Collector creates Run internally (Option A) - simpler for Phase 1, orchestrator queries latest Run for coordination.
 - **Admin UI delivery** (01-05): Opens report in new window for browser-based viewing before email integration in Phase 5.
 - **Custom response headers** (01-05): X-MDInsights-* headers enable client-side run tracking without additional API calls.
+- **CSS selector fallbacks** (02-01): Multiple fallback selectors per field (containers, titles, descriptions) for robust extraction across site structure changes.
+- **web-scraper for all sources** (02-01): Using web-scraper actor for all 4 new sources (Insurance Journal, Business Insurance, Artemis, Lloyd's List) - sufficient for static content, can migrate to playwright-scraper if dynamic content needed.
+- **20-article limit** (02-01): Hard limit of 20 articles per source for Phase 2 cost control and consistent dataset size.
 - **Generic RSS source** (02-02): Single RSSSource class handles all RSS/Atom feeds - eliminates need for source-specific scrapers for RSS-based publishers.
 - **Malformed feed tolerance** (02-02): System processes feeds with bozo flag if entries exist - maximizes data collection from imperfect feeds.
 - **Date fallback chain** (02-02): Falls back through published_parsed → updated_parsed → created_parsed → current time for robust date extraction.
@@ -84,7 +87,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-06
-Stopped at: Completed 02-02-PLAN.md (generic RSS feed source)
+Last session: 2026-02-07
+Stopped at: Completed 02-01-PLAN.md (multi-source scraper implementation)
 Resume file: None
-Next: 02-03-PLAN.md (source registry system)
+Next: Phase 2 continues - 02-03+ (source registry, validation, etc.)
