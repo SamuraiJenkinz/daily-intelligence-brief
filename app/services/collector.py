@@ -17,7 +17,8 @@ from app.services.sources import (
     InsuranceJournalSource,
     BusinessInsuranceSource,
     ArtemisSource,
-    LloydsListSource
+    LloydsListSource,
+    RSSSource
 )
 
 logger = structlog.get_logger()
@@ -167,18 +168,26 @@ class ApifyCollector:
         Returns:
             NewsSource implementation or None
         """
-        # Map source names to scraper classes
-        source_map = {
+        # RSS sources use generic handler
+        if source.source_type == SourceType.RSS:
+            return RSSSource(self.apify_client, source.url, source_name=source.name)
+
+        # Apify sources use site-specific scrapers
+        apify_source_map = {
             "Reinsurance News": ReinsuranceNewsSource,
             "Insurance Journal": InsuranceJournalSource,
             "Business Insurance": BusinessInsuranceSource,
             "Artemis": ArtemisSource,
-            "Lloyd's List": LloydsListSource
+            "Lloyd's List": LloydsListSource,
         }
 
-        scraper_class = source_map.get(source.name)
-
+        scraper_class = apify_source_map.get(source.name)
         if not scraper_class:
+            self.logger.warning(
+                "no_scraper_for_source",
+                source_name=source.name,
+                source_type=source.source_type.value if source.source_type else "unknown"
+            )
             return None
 
         return scraper_class(self.apify_client, source.url)
