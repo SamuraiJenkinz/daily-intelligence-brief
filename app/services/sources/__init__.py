@@ -6,5 +6,16 @@ supported news source.
 """
 from app.services.sources.base import NewsSource
 from app.services.sources.reinsurance_news import ReinsuranceNewsSource
+from app.services.sources.insurance_journal import InsuranceJournalSource
+from app.services.sources.business_insurance import BusinessInsuranceSource
+from app.services.sources.artemis import ArtemisSource
+from app.services.sources.lloyds_list import LloydsListSource
 
-__all__ = ["NewsSource", "ReinsuranceNewsSource"]
+__all__ = [
+    "NewsSource",
+    "ReinsuranceNewsSource",
+    "InsuranceJournalSource",
+    "BusinessInsuranceSource",
+    "ArtemisSource",
+    "LloydsListSource"
+]

@@ -11,7 +11,14 @@ import structlog
 
 from app.database import SessionLocal
 from app.models import NewsArticle, Source, Run, RunStatus, SourceType
-from app.services.sources import NewsSource, ReinsuranceNewsSource
+from app.services.sources import (
+    NewsSource,
+    ReinsuranceNewsSource,
+    InsuranceJournalSource,
+    BusinessInsuranceSource,
+    ArtemisSource,
+    LloydsListSource
+)
 
 logger = structlog.get_logger()
 
@@ -161,9 +168,12 @@ class ApifyCollector:
             NewsSource implementation or None
         """
         # Map source names to scraper classes
-        # For Phase 1, only Reinsurance News is supported
         source_map = {
-            "Reinsurance News": ReinsuranceNewsSource
+            "Reinsurance News": ReinsuranceNewsSource,
+            "Insurance Journal": InsuranceJournalSource,
+            "Business Insurance": BusinessInsuranceSource,
+            "Artemis": ArtemisSource,
+            "Lloyd's List": LloydsListSource
         }
 
         scraper_class = source_map.get(source.name)
