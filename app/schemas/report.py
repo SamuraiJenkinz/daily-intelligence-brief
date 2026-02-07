@@ -55,6 +55,22 @@ class ExecutiveSummary(BaseModel):
     )
 
 
+class WhatToWatchItem(BaseModel):
+    """Single forward-looking item to monitor."""
+    title: str = Field(description="Concise headline (5-8 words)")
+    description: str = Field(description="1-2 sentence explanation of what to watch and why")
+    timeframe: str = Field(description="When this matters (e.g., 'Next 30-60 days', 'Q2 2026')")
+    impact_roles: List[str] = Field(description="Which roles should monitor this")
+
+
+class WhatToWatch(BaseModel):
+    """Cross-role forward-looking analysis."""
+    items: List[WhatToWatchItem] = Field(
+        description="4-6 forward-looking items to monitor",
+        default_factory=list
+    )
+
+
 class ReportContext(BaseModel):
     """
     Context data for generating unified role-based intelligence brief.

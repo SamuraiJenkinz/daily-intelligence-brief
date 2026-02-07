@@ -15,7 +15,7 @@ from openai import AzureOpenAI
 import structlog
 
 from app.models.news_article import NewsArticle
-from app.schemas.report import ExecutiveSummary
+from app.schemas.report import ExecutiveSummary, WhatToWatch
 from app.config import get_settings
 
 
@@ -239,6 +239,107 @@ Focus on actionable insights and business implications."""
                 role_context=f"Summary generation encountered an error: {str(e)[:100]}"
             )
 
+    def _generate_what_to_watch(
+        self,
+        prepared_articles: List[dict],
+        report_date: datetime
+    ) -> WhatToWatch:
+        """
+        Generate forward-looking "What to Watch" items based on high-priority
+        and market trend articles.
+
+        Args:
+            prepared_articles: List of prepared article dictionaries
+            report_date: Date of the report
+
+        Returns:
+            WhatToWatch object with 4-6 forward-looking items
+        """
+        # Filter to relevant articles: Critical/High priority OR Market Trends
+        relevant_articles = [
+            a for a in prepared_articles
+            if a.get('priority') in ["Critical", "High"] or a.get('category') == "Market Trends"
+        ]
+
+        # If no relevant articles or Azure OpenAI not configured, return empty fallback
+        if not relevant_articles or self.client is None:
+            if self.client is None:
+                logger.warning("azure_openai_not_configured_for_what_to_watch")
+            else:
+                logger.info("no_relevant_articles_for_what_to_watch", count=len(prepared_articles))
+            return WhatToWatch(items=[])
+
+        try:
+            # Sort by priority
+            relevant_articles.sort(key=lambda a: PRIORITY_ORDER.get(a.get('priority'), 4))
+
+            # Build article context from top 15 relevant articles
+            article_context = []
+            for a in relevant_articles[:15]:
+                context_str = (
+                    f"{a.get('title', 'No title')}\n"
+                    f"{a.get('summary', a.get('description', 'No summary'))}\n"
+                    f"(Category: {a.get('category', 'N/A')}, Region: {a.get('region', 'N/A')})"
+                )
+                article_context.append(context_str)
+
+            article_context_str = "\n\n".join(article_context)
+
+            # Build prompt
+            system_message = {
+                "role": "system",
+                "content": "You are a strategic intelligence analyst identifying forward-looking market signals for insurance professionals."
+            }
+
+            date_str = report_date.strftime("%B %d, %Y") if report_date else "today"
+            user_message = {
+                "role": "user",
+                "content": f"""Based on {len(relevant_articles)} high-priority and market trend articles from {date_str}, identify 4-6 forward-looking items to watch.
+
+Articles:
+{article_context_str}
+
+For each item, provide:
+1. A concise headline (5-8 words)
+2. 1-2 sentence explanation of what to watch and why
+3. WHEN this matters (specific timeframe like "Next 30-60 days", "Q2 2026", "Renewal season 2026")
+4. WHO should monitor this (which roles: Brokers, Leadership, Compliance, Underwriting)
+
+Focus areas:
+- M&A activity and due diligence timelines
+- Regulatory changes and implementation deadlines
+- Renewal cycle trends and pricing dynamics
+- Emerging risks and market shifts
+
+Generate 4-6 actionable forward-looking items."""
+            }
+
+            # Call Azure OpenAI with structured outputs
+            completion = self.client.beta.chat.completions.parse(
+                model=self.deployment,
+                messages=[system_message, user_message],
+                response_format=WhatToWatch,
+                temperature=0.5
+            )
+
+            what_to_watch = completion.choices[0].message.parsed
+
+            logger.info(
+                "what_to_watch_generated",
+                article_count=len(relevant_articles),
+                item_count=len(what_to_watch.items)
+            )
+
+            return what_to_watch
+
+        except Exception as e:
+            logger.warning(
+                "what_to_watch_generation_failed",
+                error=str(e)
+            )
+            # Return empty fallback on error
+            return WhatToWatch(items=[])
+
     def generate_role_brief(
         self,
         articles: List[NewsArticle],
@@ -278,6 +379,10 @@ Focus on actionable insights and business implications."""
             role: summary.model_dump() for role, summary in executive_summaries.items()
         }
 
+        # Generate what to watch items
+        what_to_watch = self._generate_what_to_watch(prepared_articles, report_date)
+        what_to_watch_dict = what_to_watch.model_dump()
+
         # Compute edition stats
         source_count = len(set(a.source_name for a in articles if a.source_name))
         article_count = len(articles)
@@ -299,6 +404,7 @@ Focus on actionable insights and business implications."""
             'company_name': company_name,
             'edition_stats': edition_stats,
             'executive_summaries': executive_summaries_dict,
+            'what_to_watch': what_to_watch_dict,
         }
         html = template.render(**context)
 
