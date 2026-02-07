@@ -16,6 +16,10 @@ from app.models.news_article import NewsArticle
 from app.config import get_settings
 
 
+# Priority ranking order for article sorting
+PRIORITY_ORDER = {"Critical": 0, "High": 1, "Medium": 2, "Monitor": 3}
+
+
 class RoleReportService:
     """
     Service for generating role-based intelligence briefs.
@@ -40,18 +44,48 @@ class RoleReportService:
 
         self.company_name = settings.company_name
 
+    @staticmethod
+    def filter_articles_by_role(articles: List[dict], role: str) -> List[dict]:
+        """
+        Filter articles by role membership and sort by priority.
+
+        Args:
+            articles: List of prepared article dictionaries
+            role: Role to filter by (e.g., "Brokers", "Leadership")
+
+        Returns:
+            List of articles where role is in article['roles'], sorted by priority
+            (Critical first, Monitor last)
+        """
+        # Filter articles that include this role
+        role_articles = [a for a in articles if role in a.get('roles', [])]
+
+        # Sort by priority using PRIORITY_ORDER
+        # Unknown priorities get value 4 (sorted after Monitor)
+        role_articles.sort(key=lambda a: PRIORITY_ORDER.get(a.get('priority'), 4))
+
+        return role_articles
+
     def _prepare_articles(self, articles: List[NewsArticle]) -> List[dict]:
         """
-        Prepare articles for template by parsing JSON roles field.
+        Prepare articles for template by parsing JSON fields.
 
         Args:
             articles: List of NewsArticle ORM objects
 
         Returns:
-            List of article dictionaries with parsed roles
+            List of article dictionaries with parsed JSON fields (roles, entities)
         """
         prepared = []
         for article in articles:
+            # Parse entities field (JSON string -> list of dicts)
+            entities = []
+            if article.entities:
+                if isinstance(article.entities, str):
+                    entities = json.loads(article.entities)
+                else:
+                    entities = article.entities
+
             article_dict = {
                 'id': article.id,
                 'title': article.title,
@@ -63,26 +97,29 @@ class RoleReportService:
                 'priority': article.priority,
                 'summary': article.summary,
                 'sentiment': article.sentiment,
+                'entities': entities,
+                'impact_level': article.impact_level,
+                'category': article.category,
+                'region': article.region,
+                'business_line': article.business_line,
             }
             prepared.append(article_dict)
         return prepared
 
     def generate_role_brief(
         self,
-        target_role: str,
         articles: List[NewsArticle],
         report_date: datetime,
         company_name: str = None
     ) -> str:
         """
-        Generate HTML brief for a specific role.
+        Generate unified HTML brief for all roles.
 
-        Note: For Phase 1, the template shows all roles with tabs.
-        The target_role parameter is retained for potential future use
-        (e.g., separate emails per role in Phase 5).
+        The brief contains all roles in a single HTML document with tabs for
+        each role. Articles are filtered and sorted by role/priority within
+        the template via filter_articles_by_role.
 
         Args:
-            target_role: Role to generate brief for (Brokers, Leadership, etc.)
             articles: List of classified NewsArticle objects
             report_date: Date for the report
             company_name: Company name (defaults to settings)
@@ -93,18 +130,29 @@ class RoleReportService:
         if company_name is None:
             company_name = self.company_name
 
-        # Prepare articles (parse JSON roles)
+        # Prepare articles (parse JSON fields)
         prepared_articles = self._prepare_articles(articles)
+
+        # Compute edition stats
+        source_count = len(set(a.source_name for a in articles if a.source_name))
+        article_count = len(articles)
+
+        edition_stats = {
+            'source_count': source_count,
+            'article_count': article_count,
+            'entity_count': 0,  # Filled later by aggregator (Plan 04)
+            'signal_count': 0   # Filled later by what-to-watch (Plan 05)
+        }
 
         # Load template
         template = self.env.get_template('role_brief.html')
 
         # Render template
         context = {
-            'target_role': target_role,
             'articles': prepared_articles,
             'report_date': report_date,
             'company_name': company_name,
+            'edition_stats': edition_stats,
         }
         html = template.render(**context)
 
@@ -117,25 +165,21 @@ class RoleReportService:
         self,
         articles: List[NewsArticle],
         report_date: datetime
-    ) -> Dict[str, str]:
+    ) -> str:
         """
-        Generate separate HTML briefs for all roles.
+        Generate unified HTML brief for all roles.
+
+        Since the brief is now unified (all roles in one HTML with tabs),
+        this method simply calls generate_role_brief once.
 
         Args:
             articles: List of classified NewsArticle objects
             report_date: Date for the report
 
         Returns:
-            Dictionary mapping role name to HTML string
+            HTML string (single unified brief)
         """
-        roles = ["Brokers", "Leadership", "Compliance", "Underwriting"]
-        briefs = {}
-
-        for role in roles:
-            briefs[role] = self.generate_role_brief(
-                target_role=role,
-                articles=articles,
-                report_date=report_date
-            )
-
-        return briefs
+        return self.generate_role_brief(
+            articles=articles,
+            report_date=report_date
+        )

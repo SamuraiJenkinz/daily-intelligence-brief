@@ -46,7 +46,7 @@ class PipelineOrchestrator:
         self.reporter = reporter
         self.logger = logger.bind(service="pipeline")
 
-    def run_full_pipeline(self, role: str = "Brokers") -> Dict:
+    def run_full_pipeline(self) -> Dict:
         """
         Execute complete pipeline from collection to report generation.
 
@@ -54,11 +54,8 @@ class PipelineOrchestrator:
         1. Collect articles from enabled sources (creates Run internally)
         2. Query collected articles for classification
         3. Classify articles with Azure OpenAI
-        4. Generate HTML report for specified role
+        4. Generate unified HTML report for all roles
         5. Update Run record with final status
-
-        Args:
-            role: Target role for report generation (default: "Brokers")
 
         Returns:
             Dictionary with pipeline results:
@@ -80,7 +77,7 @@ class PipelineOrchestrator:
         }
 
         try:
-            self.logger.info("pipeline_started", target_role=role)
+            self.logger.info("pipeline_started")
             start_time = datetime.utcnow()
 
             # Step 1: Collect articles (collector creates Run internally)
@@ -148,10 +145,9 @@ class PipelineOrchestrator:
             )
 
             # Step 5: Generate report
-            self.logger.info("step_5_report_generation_started", role=role)
+            self.logger.info("step_5_report_generation_started")
             report_date = datetime.utcnow()
             html_output = self.reporter.generate_role_brief(
-                target_role=role,
                 articles=classified_articles,
                 report_date=report_date
             )
