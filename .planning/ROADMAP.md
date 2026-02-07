@@ -12,8 +12,8 @@ MDInsights transforms global insurance news into actionable intelligence for Mar
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Vertical Slice Foundation** - Single source to single tabbed report with AI classification
-- [ ] **Phase 2: News Collection at Scale** - 18+ sources with Apify actors and RSS feeds
+- [x] **Phase 1: Vertical Slice Foundation** - Single source to single tabbed report with AI classification
+- [x] **Phase 2: News Collection at Scale** - 18+ sources with Apify actors and RSS feeds
 - [ ] **Phase 3: Advanced Classification Pipeline** - Priority ranking, entity extraction, and comprehensive tagging
 - [ ] **Phase 4: Intelligence Report Generation** - Tabbed HTML brief with executive summaries and analytics
 - [ ] **Phase 5: Automated Delivery System** - Microsoft Graph email delivery with Task Scheduler automation
@@ -191,8 +191,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Vertical Slice Foundation | 0/5 | Not started | - |
-| 2. News Collection at Scale | 0/6 | Not started | - |
+| 1. Vertical Slice Foundation | 5/5 | Complete | 2026-02-06 |
+| 2. News Collection at Scale | 6/6 | Complete | 2026-02-07 |
 | 3. Advanced Classification Pipeline | 0/5 | Not started | - |
 | 4. Intelligence Report Generation | 0/10 | Not started | - |
 | 5. Automated Delivery System | 0/4 | Not started | - |
@@ -200,4 +200,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 7. Production Hardening | 0/5 | Not started | - |
 | 8. Polish and Launch | 0/4 | Not started | - |
 
-**Total:** 0/44 plans complete across 8 phases
+**Total:** 11/44 plans complete across 8 phases
