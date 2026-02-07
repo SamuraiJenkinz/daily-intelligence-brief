@@ -23,16 +23,16 @@
 
 ### Report Generation
 
-- [ ] **REPT-01**: System generates a single HTML brief with clickable role tabs (Brokers, Leadership, Compliance, Underwriting)
-- [ ] **REPT-02**: Each role tab shows only articles relevant to that audience, priority-ranked
-- [ ] **REPT-03**: AI generates a tailored executive summary per role tab
-- [ ] **REPT-04**: Brief includes sector heatmap with directional signals
-- [ ] **REPT-05**: Brief includes entity tracker with mention counts across the edition
-- [ ] **REPT-06**: Brief includes "What to Watch" forward-looking section with timeframes
-- [ ] **REPT-07**: Brief includes market pulse bar with at-a-glance sector indicators
-- [ ] **REPT-08**: Brief includes sentiment, impact, entity, region, and business line chips per story
-- [ ] **REPT-09**: Brief matches Marsh visual identity (prototype styling)
-- [ ] **REPT-10**: Brief attributes authorship to Kevin Taylor, Colleague Technology Services
+- [x] **REPT-01**: System generates a single HTML brief with clickable role tabs (Brokers, Leadership, Compliance, Underwriting)
+- [x] **REPT-02**: Each role tab shows only articles relevant to that audience, priority-ranked
+- [x] **REPT-03**: AI generates a tailored executive summary per role tab
+- [x] **REPT-04**: Brief includes sector heatmap with directional signals
+- [x] **REPT-05**: Brief includes entity tracker with mention counts across the edition
+- [x] **REPT-06**: Brief includes "What to Watch" forward-looking section with timeframes
+- [x] **REPT-07**: Brief includes market pulse bar with at-a-glance sector indicators
+- [x] **REPT-08**: Brief includes sentiment, impact, entity, region, and business line chips per story
+- [x] **REPT-09**: Brief matches Marsh visual identity (prototype styling)
+- [x] **REPT-10**: Brief attributes authorship to Kevin Taylor, Colleague Technology Services
 
 ### Delivery
 
@@ -95,16 +95,16 @@
 | CLSF-03 | Phase 3 | Complete |
 | CLSF-04 | Phase 3 | Complete |
 | CLSF-05 | Phase 1 (partial), Phase 3 | Complete |
-| REPT-01 | Phase 1 (partial), Phase 4 | Pending |
-| REPT-02 | Phase 1 (partial), Phase 4 | Pending |
-| REPT-03 | Phase 4 | Pending |
-| REPT-04 | Phase 4 | Pending |
-| REPT-05 | Phase 4 | Pending |
-| REPT-06 | Phase 4 | Pending |
-| REPT-07 | Phase 4 | Pending |
-| REPT-08 | Phase 4 | Pending |
-| REPT-09 | Phase 1 (partial), Phase 4, Phase 8 (enhanced) | Pending |
-| REPT-10 | Phase 4, Phase 8 (enhanced) | Pending |
+| REPT-01 | Phase 1 (partial), Phase 4 | Complete |
+| REPT-02 | Phase 1 (partial), Phase 4 | Complete |
+| REPT-03 | Phase 4 | Complete |
+| REPT-04 | Phase 4 | Complete |
+| REPT-05 | Phase 4 | Complete |
+| REPT-06 | Phase 4 | Complete |
+| REPT-07 | Phase 4 | Complete |
+| REPT-08 | Phase 4 | Complete |
+| REPT-09 | Phase 1 (partial), Phase 4, Phase 8 (enhanced) | Complete |
+| REPT-10 | Phase 4, Phase 8 (enhanced) | Complete |
 | DELV-01 | Phase 5 | Pending |
 | DELV-02 | Phase 5 | Pending |
 | DELV-03 | Phase 5 | Pending |
@@ -131,4 +131,4 @@
 
 ---
 *Requirements defined: 2026-02-06*
-*Last updated: 2026-02-06 after roadmap creation*
+*Last updated: 2026-02-07 after Phase 4 completion*

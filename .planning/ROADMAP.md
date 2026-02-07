@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Vertical Slice Foundation** - Single source to single tabbed report with AI classification
 - [x] **Phase 2: News Collection at Scale** - 18+ sources with Apify actors and RSS feeds
 - [x] **Phase 3: Advanced Classification Pipeline** - Priority ranking, entity extraction, and comprehensive tagging
-- [ ] **Phase 4: Intelligence Report Generation** - Tabbed HTML brief with executive summaries and analytics
+- [x] **Phase 4: Intelligence Report Generation** - Tabbed HTML brief with executive summaries and analytics
 - [ ] **Phase 5: Automated Delivery System** - Microsoft Graph email delivery with Task Scheduler automation
 - [ ] **Phase 6: Admin Dashboard** - HTMX web interface for source and recipient management
 - [ ] **Phase 7: Production Hardening** - Source health monitoring, backup, and reliability features
@@ -189,10 +189,10 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 1. Vertical Slice Foundation | 5/5 | Complete | 2026-02-06 |
 | 2. News Collection at Scale | 6/6 | Complete | 2026-02-07 |
 | 3. Advanced Classification Pipeline | 3/3 | Complete | 2026-02-07 |
-| 4. Intelligence Report Generation | 0/7 | Not started | - |
+| 4. Intelligence Report Generation | 7/7 | Complete | 2026-02-07 |
 | 5. Automated Delivery System | 0/4 | Not started | - |
 | 6. Admin Dashboard | 0/5 | Not started | - |
 | 7. Production Hardening | 0/5 | Not started | - |
 | 8. Polish and Launch | 0/4 | Not started | - |
 
-**Total:** 14/39 plans complete across 8 phases
+**Total:** 21/39 plans complete across 8 phases
