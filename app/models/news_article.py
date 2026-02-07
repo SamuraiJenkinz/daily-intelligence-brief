@@ -19,6 +19,9 @@ class NewsArticle(Base):
 
     The 'roles' field stores a JSON array of role strings (e.g., ["Brokers", "Leadership"])
     to support multi-role assignment per article.
+
+    Phase 3 fields (entities, impact_level, category, region, business_line) provide
+    advanced classification for entity extraction and categorical filtering.
     """
     __tablename__ = "news_articles"
 
@@ -38,6 +41,13 @@ class NewsArticle(Base):
     priority = Column(String(20), nullable=True)  # Critical, High, Medium, Monitor
     summary = Column(Text, nullable=True)  # AI-generated summary
     sentiment = Column(String(20), nullable=True)  # positive, negative, neutral
+
+    # Phase 3: Advanced classification fields
+    entities = Column(Text, nullable=True)  # JSON array of {name, type, context} objects
+    impact_level = Column(String(20), nullable=True)  # Critical, High, Medium, Low
+    category = Column(String(50), nullable=True)  # M&A, Regulatory, Loss Event, etc.
+    region = Column(String(50), nullable=True)  # North America, Europe, etc.
+    business_line = Column(String(50), nullable=True)  # Property, Casualty, etc.
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
