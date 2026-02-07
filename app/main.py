@@ -18,6 +18,7 @@ from app.database import Base, engine, SessionLocal
 from app.models import news_article, source, run  # noqa: F401
 from app.config import get_settings
 from app.routers.admin import router as admin_router
+from app.routers.pipeline import router as pipeline_router
 
 # Load environment variables from .env file
 load_dotenv()
@@ -53,6 +54,7 @@ app = FastAPI(
 
 # Register API routers
 app.include_router(admin_router)
+app.include_router(pipeline_router)
 
 
 @app.get("/api/health", tags=["Health"])

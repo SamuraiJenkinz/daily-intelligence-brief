@@ -112,6 +112,26 @@ def trigger_pipeline(role: str = Query(default="Brokers")):
                 detail=f"Pipeline execution failed: {error_msg}"
             )
 
+        # Check source health after pipeline run
+        health_alerts = []
+        try:
+            from app.services.health_monitor import SourceHealthMonitor
+            health_monitor = SourceHealthMonitor()
+            db_health = SessionLocal()
+            try:
+                alerts = health_monitor.get_alerts(db_health)
+                if alerts:
+                    logger.warning(
+                        "source_health_alerts",
+                        alert_count=len(alerts),
+                        sources=[a["source_name"] for a in alerts]
+                    )
+                    health_alerts = alerts
+            finally:
+                db_health.close()
+        except Exception as health_err:
+            logger.warning("health_check_failed", error=str(health_err))
+
         # Return HTML report with custom headers
         logger.info(
             "manual_trigger_completed",
@@ -125,7 +145,8 @@ def trigger_pipeline(role: str = Query(default="Brokers")):
             headers={
                 "X-MDInsights-Run-ID": str(result["run_id"]),
                 "X-Articles-Collected": str(result["articles_collected"]),
-                "X-Articles-Classified": str(result["articles_classified"])
+                "X-Articles-Classified": str(result["articles_classified"]),
+                "X-MDInsights-Health-Alerts": str(len(health_alerts))
             }
         )
 
