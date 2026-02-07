@@ -36,9 +36,9 @@
 
 ### Delivery
 
-- [ ] **DELV-01**: System sends single HTML email per edition via Microsoft Graph API
-- [ ] **DELV-02**: Email is delivered daily before market open (08:00 local)
-- [ ] **DELV-03**: System runs on Windows Task Scheduler for automated daily execution
+- [x] **DELV-01**: System sends single HTML email per edition via Microsoft Graph API
+- [x] **DELV-02**: Email is delivered daily before market open (08:00 local)
+- [x] **DELV-03**: System runs on Windows Task Scheduler for automated daily execution
 
 ### Admin
 
@@ -105,9 +105,9 @@
 | REPT-08 | Phase 4 | Complete |
 | REPT-09 | Phase 1 (partial), Phase 4, Phase 8 (enhanced) | Complete |
 | REPT-10 | Phase 4, Phase 8 (enhanced) | Complete |
-| DELV-01 | Phase 5 | Pending |
-| DELV-02 | Phase 5 | Pending |
-| DELV-03 | Phase 5 | Pending |
+| DELV-01 | Phase 5 | Complete |
+| DELV-02 | Phase 5 | Complete |
+| DELV-03 | Phase 5 | Complete |
 | ADMN-01 | Phase 6 | Pending |
 | ADMN-02 | Phase 6 | Pending |
 | ADMN-03 | Phase 6 | Pending |
@@ -131,4 +131,4 @@
 
 ---
 *Requirements defined: 2026-02-06*
-*Last updated: 2026-02-07 after Phase 4 completion*
+*Last updated: 2026-02-07 after Phase 5 completion*
