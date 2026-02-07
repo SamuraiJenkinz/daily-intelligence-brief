@@ -10,19 +10,19 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 5 of 8 IN PROGRESS (Automated Delivery System)
-Plan: 2/2 complete
-Status: Wave 1 COMPLETE — Email template and service infrastructure ready
-Last activity: 2026-02-07 — Completed 05-02-PLAN.md
+Plan: 3/4 complete
+Status: Wave 2 COMPLETE — Email delivery pipeline and CLI automation ready
+Last activity: 2026-02-07 — Completed 05-03-PLAN.md
 Verified: 2026-02-07 — Phase 4 VERIFIED (10/10 must-haves passed)
 
-Progress: [██████░░░░] 60.0% (Phase 1: 5/5, Phase 2: 6/6, Phase 3: 3/3, Phase 4: 7/7, Phase 5: 2/2)
+Progress: [██████░░░░] 65.2% (Phase 1: 5/5, Phase 2: 6/6, Phase 3: 3/3, Phase 4: 7/7, Phase 5: 3/4)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 23
-- Average duration: 3.2 minutes
-- Total execution time: 1.21 hours
+- Total plans completed: 24
+- Average duration: 4.2 minutes
+- Total execution time: 1.57 hours
 
 **By Phase:**
 
@@ -32,16 +32,16 @@ Progress: [██████░░░░] 60.0% (Phase 1: 5/5, Phase 2: 6/6, Ph
 | 02 | 6/6 | 17 min | 2.8 min |
 | 03 | 3/3 | 5.5 min | 1.8 min |
 | 04 | 7/7 | 24 min | 3.4 min |
-| 05 | 2/2 | 19.4 min | 9.7 min |
+| 05 | 3/4 | 41.1 min | 13.7 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-05 (1.5min), 04-06 (3min), 04-07 (7.5min), 05-01 (2.4min), 05-02 (17min)
-- Trend: Phase 5 complete with email infrastructure and template
+- Last 5 plans: 04-06 (3min), 04-07 (7.5min), 05-01 (2.4min), 05-02 (17min), 05-03 (21.7min)
+- Trend: Phase 5 progressing with end-to-end pipeline integration
 - **Phase 1 complete**: Vertical slice operational
 - **Phase 2 complete**: 20 sources, semantic dedup, health monitoring, pipeline integrated
 - **Phase 3 complete**: 9-dimension classification (entities, impact, category, region, business line)
 - **Phase 4 complete**: 7/7 plans complete (role filtering, exec summaries, aggregation, template integration)
-- **Phase 5 complete**: 2/2 plans complete (email service infrastructure, table-based template)
+- **Phase 5 in progress**: 3/4 plans complete (email infrastructure, template, pipeline integration)
 
 *Updated after each plan completion*
 
@@ -102,6 +102,12 @@ Recent decisions affecting current work:
 - **Table-based email layout** (05-02): Email template uses nested tables (not CSS Grid/Flexbox) for compatibility with Outlook's Word rendering engine.
 - **Inline CSS with @media** (05-02): All critical styles as inline attributes; @media queries in head preserved by premailer for responsive design.
 - **Bracket notation for dict fields** (05-02): Use what_to_watch['items'] instead of what_to_watch.items to avoid conflict with dict's items() method in Jinja2.
+- **Separate email generation from browser report** (05-03): Email clients need table-based HTML with inlined CSS, browser uses JS tabs. Reporter has both methods.
+- **Archive reports before sending** (05-03): Provides audit trail and recovery mechanism if emails fail. data/reports/{role}/{YYYY-MM-DD}.html created for every run.
+- **Skip email delivery for roles with no recipients** (05-03): Allow partial configuration during development and testing. Roles without recipients get 'skipped' status.
+- **CLI exit codes for Task Scheduler** (05-03): Task Scheduler uses exit codes to determine success/failure. Exit 0 on success, 1 on failure.
+- **Admin alert on pipeline failure only** (05-03): Avoid alert fatigue, only notify when intervention needed. Admin gets HTML email with error details when pipeline fails.
+- **Keep existing run_full_pipeline() unchanged** (05-03): Admin router still needs browser-only report generation. Backward compatibility maintained for /admin/trigger endpoint.
 
 ### Pending Todos
 
@@ -109,11 +115,11 @@ None yet.
 
 ### Blockers/Concerns
 
-None - Phase 5 complete, email infrastructure and template ready for future integration
+None - Phase 5 Wave 2 complete, pipeline integration ready for Task Scheduler configuration
 
 ## Session Continuity
 
 Last session: 2026-02-07
-Stopped at: Completed 05-02-PLAN.md — Email template created
+Stopped at: Completed 05-03-PLAN.md — Email delivery pipeline and CLI automation
 Resume file: None
-Next: Phase 5 complete — Move to next phase when needed
+Next: Plan 05-04 — Windows Task Scheduler configuration for daily automation
