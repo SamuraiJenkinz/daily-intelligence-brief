@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 3 of 8 (Advanced Classification Pipeline)
-Plan: 2 of 5 complete
+Plan: 3 of 5 complete
 Status: In progress
-Last activity: 2026-02-07 — Completed 03-02-PLAN.md (classifier prompt expansion)
+Last activity: 2026-02-07 — Completed 03-03-PLAN.md (end-to-end classification test)
 
-Progress: [█████░░░░░] 30% (Phase 1: 5/5, Phase 2: 6/6, Phase 3: 2/5)
+Progress: [█████░░░░░] 32% (Phase 1: 5/5, Phase 2: 6/6, Phase 3: 3/5)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
-- Average duration: 3.3 minutes
-- Total execution time: 0.75 hours
+- Total plans completed: 14
+- Average duration: 3.1 minutes
+- Total execution time: 0.76 hours
 
 **By Phase:**
 
@@ -29,14 +29,14 @@ Progress: [█████░░░░░] 30% (Phase 1: 5/5, Phase 2: 6/6, Phas
 |-------|-------|-------|----------|
 | 01 | 5/5 | 26 min | 5.2 min |
 | 02 | 6/6 | 17 min | 2.8 min |
-| 03 | 2/5 | 4.2 min | 2.1 min |
+| 03 | 3/5 | 5.5 min | 1.8 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-05 (1min), 02-06 (3min), 03-01 (2.5min), 03-02 (1.7min)
-- Trend: Very fast execution for data/schema/prompt implementations
+- Last 5 plans: 02-06 (3min), 03-01 (2.5min), 03-02 (1.7min), 03-03 (1.3min)
+- Trend: Very fast execution for data/schema/prompt/test implementations
 - **Phase 1 complete**: Vertical slice operational
 - **Phase 2 complete**: 20 sources, semantic dedup, health monitoring, pipeline integrated
-- **Phase 3 started**: Data layer expanded for advanced classification
+- **Phase 3 in progress**: Advanced classification (data layer + classifier + test complete)
 
 *Updated after each plan completion*
 
@@ -86,6 +86,10 @@ Recent decisions affecting current work:
 - **Categorical Literal types** (03-01): Strict Literal types for impact_level, category, region, business_line - Azure OpenAI structured outputs require enum constraints.
 - **Comprehensive prompt design** (03-02): Appended 5 new guidance sections to existing CLASSIFICATION_PROMPT - single coherent prompt delivers all 9 dimensions in one GPT-4o call instead of multi-pass classification.
 - **Pydantic v2 model_dump** (03-02): Use model_dump() for entities serialization instead of deprecated dict() method - future-proof Pydantic v2 compatibility.
+- **Subprocess migration pattern** (03-03): Run migration as subprocess before database queries in test scripts - idempotent, no import pollution, simple and reliable.
+- **Entity round-trip validation** (03-03): Explicit json.loads + structure checks prove JSON serialization preserves all entity fields (name, type, context).
+- **Comprehensive validation metrics** (03-03): Track 7+ metrics (multi-role rate, entity counts, categorical distributions) - validates all 9 classification dimensions.
+- **Reset classification pattern** (03-03): Set roles=None to force re-classification instead of querying unclassified articles - enables reproducible testing on same articles.
 
 ### Pending Todos
 
@@ -108,6 +112,6 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-07
-Stopped at: Completed 03-02-PLAN.md (classifier prompt expansion, 1.7 min)
+Stopped at: Completed 03-03-PLAN.md (end-to-end classification test, 1.3 min)
 Resume file: None
-Next: Execute 03-03 (classification testing and validation)
+Next: Execute 03-04 (reporter template entity display) or 03-05 (categorical filtering)
