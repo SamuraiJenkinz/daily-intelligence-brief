@@ -94,19 +94,16 @@ Plans:
   8. Each article card includes sentiment, impact, entity, region, and business line chips
   9. Report matches Marsh visual identity with professional styling
   10. Report attributes authorship to Kevin Taylor, Colleague Technology Services in footer
-**Plans**: 10 plans
+**Plans**: 7 plans
 
 Plans:
-- [ ] 04-01: Role-specific filtering — query logic to select articles per role, priority ranking algorithm
-- [ ] 04-02: Executive summary generation — GPT-4o prompt per role tab, one-paragraph distillation of key themes
-- [ ] 04-03: Sector heatmap component — aggregate articles by sector, calculate directional signals (up/down/neutral)
-- [ ] 04-04: Entity tracker component — count entity mentions across edition, rank by prominence
-- [ ] 04-05: "What to Watch" section — GPT-4o analysis of forward-looking stories with timeframes (this week/month/quarter)
-- [ ] 04-06: Market pulse bar — visual indicator combining sector signals into overall market sentiment
-- [ ] 04-07: Article card design — chips for sentiment/impact/entity/region/business line, priority badges
-- [ ] 04-08: Marsh branding integration — CSS matching Marsh corporate identity, logo, color palette
-- [ ] 04-09: Mobile-responsive template — ensure tabs and cards work on phone/tablet screens
-- [ ] 04-10: Author attribution — footer with Kevin Taylor credit and Colleague Technology Services attribution
+- [ ] 04-01-PLAN.md — Role filtering and priority ranking (query logic, updated reporter signature)
+- [ ] 04-02-PLAN.md — Executive summary generation (GPT-4o per role, Pydantic structured outputs)
+- [ ] 04-03-PLAN.md — Sector heatmap component (pure Python aggregation by business_line + sentiment)
+- [ ] 04-04-PLAN.md — Entity tracker component (pure Python entity mention counting, top 15)
+- [ ] 04-05-PLAN.md — "What to Watch" section (GPT-4o cross-role forward-looking analysis)
+- [ ] 04-06-PLAN.md — Market pulse bar (pure Python sentiment aggregation by sector)
+- [ ] 04-07-PLAN.md — Template enhancement and branding (article chips + Marsh CSS + mobile responsive + attribution)
 
 ### Phase 5: Automated Delivery System
 **Goal**: Automate daily email delivery via Microsoft Graph with Windows Task Scheduler
@@ -192,10 +189,10 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 1. Vertical Slice Foundation | 5/5 | Complete | 2026-02-06 |
 | 2. News Collection at Scale | 6/6 | Complete | 2026-02-07 |
 | 3. Advanced Classification Pipeline | 3/3 | Complete | 2026-02-07 |
-| 4. Intelligence Report Generation | 0/10 | Not started | - |
+| 4. Intelligence Report Generation | 0/7 | Not started | - |
 | 5. Automated Delivery System | 0/4 | Not started | - |
 | 6. Admin Dashboard | 0/5 | Not started | - |
 | 7. Production Hardening | 0/5 | Not started | - |
 | 8. Polish and Launch | 0/4 | Not started | - |
 
-**Total:** 14/42 plans complete across 8 phases
+**Total:** 14/39 plans complete across 8 phases
