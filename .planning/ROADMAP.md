@@ -118,10 +118,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 05-01: Microsoft Graph email integration — configure Azure AD app, implement send mail with HTML body
-- [ ] 05-02: Email template optimization — inline CSS with premailer, test across email clients (Outlook/Gmail/mobile)
-- [ ] 05-03: Windows Task Scheduler automation — create scheduled task for daily 06:00 execution
-- [ ] 05-04: Delivery monitoring and alerting — log success/failure, email admin on pipeline failures
+- [ ] 05-01-PLAN.md — GraphEmailService + delivery schema + recipient config (emailer.py, delivery.py, config.py)
+- [ ] 05-02-PLAN.md — Table-based email template for per-role briefs (no JavaScript, Outlook/Gmail compatible)
+- [ ] 05-03-PLAN.md — Reporter email generation + pipeline email delivery + CLI entry point + admin alerting
+- [ ] 05-04-PLAN.md — Windows Task Scheduler batch script + PowerShell setup script
 
 ### Phase 6: Admin Dashboard
 **Goal**: Provide web interface for source management, recipient configuration, and report archive
@@ -190,7 +190,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 2. News Collection at Scale | 6/6 | Complete | 2026-02-07 |
 | 3. Advanced Classification Pipeline | 3/3 | Complete | 2026-02-07 |
 | 4. Intelligence Report Generation | 7/7 | Complete | 2026-02-07 |
-| 5. Automated Delivery System | 0/4 | Not started | - |
+| 5. Automated Delivery System | 0/4 | Planned | - |
 | 6. Admin Dashboard | 0/5 | Not started | - |
 | 7. Production Hardening | 0/5 | Not started | - |
 | 8. Polish and Launch | 0/4 | Not started | - |
