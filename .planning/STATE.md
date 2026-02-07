@@ -72,6 +72,9 @@ Recent decisions affecting current work:
 - **Static method for filtering** (04-01): filter_articles_by_role as static method for stateless filtering logic.
 - **Edition stats in reporter** (04-01): Reporter service computes edition_stats (source_count, article_count) from articles.
 - **Unified brief signature** (04-01): Removed target_role parameter — unified brief contains all roles via tabs.
+- **Temperature 0.4 for summaries** (04-02): Balance consistency with variety for executive summaries (vs 0.3 for classification).
+- **Top 20 articles for context** (04-02): Provides rich AI context without exceeding token budgets, priority-sorted.
+- **Three-tier fallback** (04-02): Graceful degradation for empty articles, unconfigured Azure, or generation errors.
 - **defaultdict for aggregation** (04-03): Use defaultdict for O(1) grouping by business_line in sector heatmap.
 - **Simple majority signal** (04-03): Determine directional signal by comparing positive vs negative counts (neutral ignored).
 
