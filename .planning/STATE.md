@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 3 of 8 (Advanced Classification Pipeline)
-Plan: 0 of 5 complete
-Status: Not started
-Last activity: 2026-02-07 — Phase 2 COMPLETE (all 6/6 plans, verified)
+Plan: 1 of 5 complete
+Status: In progress
+Last activity: 2026-02-07 — Completed 03-01-PLAN.md (data layer expansion)
 
-Progress: [█████░░░░░] 25% (Phase 1: 5/5, Phase 2: 6/6, Phase 3+: not started)
+Progress: [█████░░░░░] 27% (Phase 1: 5/5, Phase 2: 6/6, Phase 3: 1/5)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
-- Average duration: 3.6 minutes
-- Total execution time: 0.67 hours
+- Total plans completed: 12
+- Average duration: 3.5 minutes
+- Total execution time: 0.71 hours
 
 **By Phase:**
 
@@ -29,12 +29,14 @@ Progress: [█████░░░░░] 25% (Phase 1: 5/5, Phase 2: 6/6, Phas
 |-------|-------|-------|----------|
 | 01 | 5/5 | 26 min | 5.2 min |
 | 02 | 6/6 | 17 min | 2.8 min |
+| 03 | 1/5 | 2.5 min | 2.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-03 (2min), 02-04 (5min), 02-05 (1min), 02-06 (3min)
-- Trend: Fast execution for data processing implementations
+- Last 5 plans: 02-04 (5min), 02-05 (1min), 02-06 (3min), 03-01 (2.5min)
+- Trend: Fast execution for data/schema implementations
 - **Phase 1 complete**: Vertical slice operational
 - **Phase 2 complete**: 20 sources, semantic dedup, health monitoring, pipeline integrated
+- **Phase 3 started**: Data layer expanded for advanced classification
 
 *Updated after each plan completion*
 
@@ -77,6 +79,11 @@ Recent decisions affecting current work:
 - **Comma-separated source merging** (02-04): Simple implementation matching existing source_name VARCHAR column - may evolve to JSON array if source metadata needed later.
 - **Three-phase collection** (02-06): Collect all → deduplicate → store (instead of per-source storage) enables cross-source duplicate detection with minimal memory footprint.
 - **Additive health monitoring** (02-06): Health check failures log warnings but never block pipeline - core workflow reliability preserved while adding observability.
+- **Phase 3 nullable fields** (03-01): All Phase 3 classification fields (entities, impact_level, category, region, business_line) are nullable for backward compatibility with existing Phase 1/2 articles.
+- **Impact vs priority distinction** (03-01): Separate impact_level (market magnitude) from priority (Marsh urgency) - different dimensions enable nuanced classification.
+- **SQLAlchemy 2.0 connection pattern** (03-01): Use "with engine.connect() as conn" instead of engine.execute() - SQLAlchemy 2.0 compatibility.
+- **Entity extraction structure** (03-01): JSON array in entities column with {name, type, context} objects - flexible storage for variable-length entity lists.
+- **Categorical Literal types** (03-01): Strict Literal types for impact_level, category, region, business_line - Azure OpenAI structured outputs require enum constraints.
 
 ### Pending Todos
 
@@ -99,6 +106,6 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-07
-Stopped at: Phase 2 COMPLETE — all 6 plans executed, verification PASSED
+Stopped at: Completed 03-01-PLAN.md (data layer expansion, 2.5 min)
 Resume file: None
-Next: /gsd:plan-phase 3 (Advanced Classification Pipeline)
+Next: Execute 03-02 (classifier service update for Phase 3 fields)
