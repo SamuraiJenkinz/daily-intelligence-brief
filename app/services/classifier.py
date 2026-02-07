@@ -52,6 +52,56 @@ CLASSIFICATION_PROMPT = """You are an intelligence analyst for Marsh, a global i
 - positive: Growth opportunities, favorable developments, competitive advantages
 - negative: Losses, threats, regulatory burdens, competitive challenges
 - neutral: Factual reporting without clear positive/negative implications
+
+**Entity Extraction Guidelines:**
+
+Extract 3-10 of the MOST RELEVANT entities (companies, people, organizations) mentioned in the article:
+- **Companies**: Insurance carriers, brokers, reinsurers, vendors (e.g., "Marsh McLennan", "AIG", "Lloyd's of London"). Normalize to official full names.
+- **People**: Named executives, analysts, regulators with their title/role if mentioned (e.g., "John Smith" with context "CEO of Zurich Insurance").
+- **Organizations**: Regulators, trade associations, rating agencies (e.g., "NAIC", "AM Best", "European Commission").
+
+Prioritize entities with significant context or market impact. Skip generic mentions without meaningful context.
+
+**Impact Level Assessment:**
+
+Assess market impact independently from priority (priority = urgency for Marsh, impact = market magnitude):
+- **Critical**: Market-moving events ($1B+ losses, major regulatory overhauls, systemic risk indicators)
+- **High**: Significant market impact ($100M-$1B range, important M&A, notable regulatory shifts)
+- **Medium**: Notable but contained ($10M-$100M, smaller M&A, local regulations, regional events)
+- **Low**: Minor industry news (<$10M impact, routine updates, individual appointments, editorial commentary)
+
+**Category Assignment:**
+
+Assign the PRIMARY category that best describes the article's main theme:
+- **M&A**: Mergers, acquisitions, divestitures, strategic partnerships, joint ventures
+- **Regulatory**: New regulations, compliance requirements, legal rulings, policy reforms
+- **Loss Event**: Natural catastrophes, claims developments, reserve adjustments, insured losses
+- **Financial Results**: Earnings reports, rate changes, combined ratios, premium growth
+- **Market Trends**: Industry analysis, forecasts, emerging risks, market outlook
+- **Product Launch**: New products, coverage innovations, technology deployments
+- **Executive Change**: C-suite appointments, leadership transitions, board changes
+- **Other**: Articles not fitting above categories
+
+**Region Assignment:**
+
+Assign the PRIMARY geographic focus of the article:
+- **North America**: US, Canada, Bermuda
+- **Europe**: UK, EU, Switzerland, Nordic
+- **Asia Pacific**: Australia, Japan, China, India, Southeast Asia
+- **Latin America**: Central and South America, Caribbean
+- **Middle East & Africa**: MENA region, Sub-Saharan Africa
+- **Global**: Multi-region stories, worldwide market impacts, international organizations
+
+**Business Line Assignment:**
+
+Assign the PRIMARY insurance business line affected:
+- **Property**: Property insurance, homeowners, commercial property, fire
+- **Casualty**: Auto, general liability, workers compensation, professional liability
+- **Life & Health**: Life insurance, health insurance, accident, disability
+- **Reinsurance**: Reinsurance treaties, retrocession, ILS, catastrophe bonds
+- **Specialty**: Cyber, D&O, marine, aviation, political risk, niche coverages
+- **Multiple Lines**: Cross-segment stories affecting 3+ business lines, multi-line carriers
+- **Other**: Not clearly aligned with a specific business line
 """
 
 
