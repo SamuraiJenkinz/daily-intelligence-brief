@@ -9,6 +9,13 @@ from collections import defaultdict, Counter
 from typing import List, Dict
 
 
+def _calculate_sentiment_score(articles: List[dict]) -> float:
+    """Convert article sentiments to numeric score (-1.0 to 1.0)."""
+    sentiment_map = {"positive": 1.0, "neutral": 0.0, "negative": -1.0}
+    scores = [sentiment_map.get(a.get("sentiment", ""), 0.0) for a in articles if a.get("sentiment")]
+    return sum(scores) / len(scores) if scores else 0.0
+
+
 class ReportAggregator:
     """Aggregates article data into visualization-ready structures."""
 
@@ -102,3 +109,64 @@ class ReportAggregator:
         ]
 
         return sorted(entity_list, key=lambda x: x["count"], reverse=True)[:top_n]
+
+    @staticmethod
+    def aggregate_market_pulse(articles: List[dict]) -> List[dict]:
+        """
+        Generate market pulse bar indicators by sector grouping.
+
+        Computes sentiment-based indicators for predefined market segments.
+        Each indicator shows overall direction (up/down/stable) based on
+        article sentiment within that segment.
+
+        Args:
+            articles: List of prepared article dicts
+
+        Returns:
+            List of dicts for pulse bar:
+            [{"label": str, "value": str, "status_class": str, "dot_class": str}, ...]
+        """
+        pulse_items = []
+
+        # Define market segments as (label, filter_fn) tuples
+        segments = [
+            ("P&C Market", lambda a: a.get("business_line") in ["Property", "Casualty"]),
+            ("Reinsurance", lambda a: a.get("business_line") == "Reinsurance"),
+            ("Specialty Lines", lambda a: a.get("business_line") == "Specialty"),
+            ("Life & Health", lambda a: a.get("business_line") == "Life & Health"),
+            ("M&A Activity", lambda a: a.get("category") == "M&A"),
+            ("Regulatory", lambda a: a.get("category") == "Regulatory"),
+        ]
+
+        for label, filter_fn in segments:
+            segment_articles = [a for a in articles if filter_fn(a)]
+            if not segment_articles:
+                continue
+
+            score = _calculate_sentiment_score(segment_articles)
+
+            if score > 0.3:
+                value = "Strong"
+                status_class = "up"
+                dot_class = "green"
+            elif score > 0.0:
+                value = "Stable"
+                status_class = "stable"
+                dot_class = "blue"
+            elif score > -0.3:
+                value = "Mixed"
+                status_class = "stable"
+                dot_class = "amber"
+            else:
+                value = "Softening"
+                status_class = "down"
+                dot_class = "red"
+
+            pulse_items.append({
+                "label": label,
+                "value": value,
+                "status_class": status_class,
+                "dot_class": dot_class,
+            })
+
+        return pulse_items
