@@ -85,16 +85,16 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| COLL-01 | Phase 1 (partial), Phase 2 | Pending |
-| COLL-02 | Phase 2 | Pending |
-| COLL-03 | Phase 2 | Pending |
-| COLL-04 | Phase 2, Phase 7 (enhanced) | Pending |
-| COLL-05 | Phase 1 (partial), Phase 2 | Pending |
-| CLSF-01 | Phase 3 | Pending |
-| CLSF-02 | Phase 1 | Pending |
-| CLSF-03 | Phase 3 | Pending |
-| CLSF-04 | Phase 3 | Pending |
-| CLSF-05 | Phase 1 (partial), Phase 3 | Pending |
+| COLL-01 | Phase 1 (partial), Phase 2 | Complete |
+| COLL-02 | Phase 2 | Complete |
+| COLL-03 | Phase 2 | Complete |
+| COLL-04 | Phase 2, Phase 7 (enhanced) | Complete |
+| COLL-05 | Phase 1 (partial), Phase 2 | Complete |
+| CLSF-01 | Phase 3 | Complete |
+| CLSF-02 | Phase 1 | Complete |
+| CLSF-03 | Phase 3 | Complete |
+| CLSF-04 | Phase 3 | Complete |
+| CLSF-05 | Phase 1 (partial), Phase 3 | Complete |
 | REPT-01 | Phase 1 (partial), Phase 4 | Pending |
 | REPT-02 | Phase 1 (partial), Phase 4 | Pending |
 | REPT-03 | Phase 4 | Pending |
