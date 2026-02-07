@@ -55,12 +55,12 @@ Plans:
 **Plans**: 6 plans
 
 Plans:
-- [ ] 02-01: Multi-source Apify configuration — create actors for 5 priority sources (Reinsurance News, Insurance Journal, Business Insurance, Artemis, Lloyd's List)
-- [ ] 02-02: Additional Apify actors — remaining 13+ sources including wire services and press releases
-- [ ] 02-03: RSS feed integration — parser for Bloomberg, Reuters, S&P Global, Moody's, Fitch, AM Best feeds
-- [ ] 02-04: Deduplication engine — content similarity using embeddings, merge duplicate articles with source attribution
-- [ ] 02-05: Source health monitoring — baseline article counts, anomaly detection, alert mechanism
-- [ ] 02-06: Collection orchestration — coordinated daily runs across all sources with error handling
+- [ ] 02-01-PLAN.md — Priority Apify scrapers (Insurance Journal, Business Insurance, Artemis, Lloyd's List)
+- [ ] 02-02-PLAN.md — Generic RSS feed source class with feedparser integration
+- [ ] 02-03-PLAN.md — Source integration wiring (collector routing, 18-source seed script)
+- [ ] 02-04-PLAN.md — Semantic deduplication engine (sentence-transformers, 0.85 threshold)
+- [ ] 02-05-PLAN.md — Source health monitoring (baseline tracking, anomaly detection)
+- [ ] 02-06-PLAN.md — Collection orchestration (dedup + health wiring into pipeline)
 
 ### Phase 3: Advanced Classification Pipeline
 **Goal**: Implement comprehensive AI classification beyond role tags for rich intelligence
