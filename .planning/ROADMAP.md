@@ -63,7 +63,7 @@ Plans:
 - [ ] 02-06-PLAN.md — Collection orchestration (dedup + health wiring into pipeline)
 
 ### Phase 3: Advanced Classification Pipeline
-**Goal**: Implement comprehensive AI classification beyond role tags for rich intelligence
+**Goal**: Expand single-pass GPT-4o classification with entity extraction, impact scoring, and categorical tagging
 **Depends on**: Phase 2
 **Requirements**: CLSF-01, CLSF-03, CLSF-04, CLSF-05
 **Success Criteria** (what must be TRUE):
@@ -72,14 +72,12 @@ Plans:
   3. AI tags each article with sentiment (positive/negative/neutral) and impact level
   4. AI assigns category, region, and business line to each article for filtering
   5. Classification uses GPT-4o with structured JSON output for consistent parsing
-**Plans**: 5 plans
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: Priority classification system — GPT-4o prompt for Critical/High/Medium/Monitor tiers with business logic
-- [ ] 03-02: Entity extraction pipeline — identify and normalize companies, people, organizations from article text
-- [ ] 03-03: Sentiment and impact analysis — positive/negative/neutral sentiment, impact level scoring
-- [ ] 03-04: Categorical tagging system — category (M&A, regulatory, loss event), region, business line assignment
-- [ ] 03-05: Structured output schema — Pydantic models with GPT-4o structured output mode for type safety
+- [ ] 03-01-PLAN.md — Data layer expansion (DB migration + ORM model + Pydantic schema with entity types)
+- [ ] 03-02-PLAN.md — Classifier prompt and field storage (expanded prompt + classify_articles writes new fields)
+- [ ] 03-03-PLAN.md — End-to-end classification test (verify all 9 fields populated via live Azure OpenAI)
 
 ### Phase 4: Intelligence Report Generation
 **Goal**: Generate production-quality tabbed HTML brief with executive summaries and analytics
@@ -193,11 +191,11 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 |-------|----------------|--------|-----------|
 | 1. Vertical Slice Foundation | 5/5 | Complete | 2026-02-06 |
 | 2. News Collection at Scale | 6/6 | Complete | 2026-02-07 |
-| 3. Advanced Classification Pipeline | 0/5 | Not started | - |
+| 3. Advanced Classification Pipeline | 0/3 | Not started | - |
 | 4. Intelligence Report Generation | 0/10 | Not started | - |
 | 5. Automated Delivery System | 0/4 | Not started | - |
 | 6. Admin Dashboard | 0/5 | Not started | - |
 | 7. Production Hardening | 0/5 | Not started | - |
 | 8. Polish and Launch | 0/4 | Not started | - |
 
-**Total:** 11/44 plans complete across 8 phases
+**Total:** 11/42 plans complete across 8 phases
