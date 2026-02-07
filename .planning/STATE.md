@@ -10,31 +10,31 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 2 of 8 (News Collection Scale)
-Plan: 2 of 6 complete (02-01: multi-source-scrapers)
+Plan: 5 of 6 complete (02-05: health-monitor)
 Status: In Progress
-Last activity: 2026-02-07 — Completed 02-01-PLAN.md (multi-source scraper implementation)
+Last activity: 2026-02-07 — Completed 02-05-PLAN.md (source health monitoring)
 
-Progress: [█████░░░░░] 12% (Phase 1: 5/5, Phase 2: 2/6 plans complete)
+Progress: [██████░░░░] 15% (Phase 1: 5/5, Phase 2: 5/6 plans complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: 4.3 minutes
-- Total execution time: 0.50 hours
+- Total plans completed: 8
+- Average duration: 4.0 minutes
+- Total execution time: 0.53 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01 | 5/5 | 26 min | 5.2 min |
-| 02 | 2/6 | 3 min | 1.5 min |
+| 02 | 5/6 | 6 min | 1.2 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-03 (2min), 01-04 (4min), 01-05 (6min), 02-01 (2min), 02-02 (1min)
+- Last 5 plans: 01-04 (4min), 01-05 (6min), 02-01 (2min), 02-02 (1min), 02-05 (3min)
 - Trend: Very fast execution for pattern-based implementations
 - **Phase 1 complete**: Vertical slice operational
-- **Phase 2 progressing**: 4 new scrapers + RSS source implemented
+- **Phase 2 progressing**: Health monitoring service complete
 
 *Updated after each plan completion*
 
@@ -66,6 +66,9 @@ Recent decisions affecting current work:
 - **Generic RSS source** (02-02): Single RSSSource class handles all RSS/Atom feeds - eliminates need for source-specific scrapers for RSS-based publishers.
 - **Malformed feed tolerance** (02-02): System processes feeds with bozo flag if entries exist - maximizes data collection from imperfect feeds.
 - **Date fallback chain** (02-02): Falls back through published_parsed → updated_parsed → created_parsed → current time for robust date extraction.
+- **7-day baseline health monitoring** (02-05): SourceHealthMonitor uses 7-day moving average to detect source anomalies - zero articles critical, <50% baseline warning, new sources get 'unknown' status.
+- **50% baseline threshold** (02-05): Warning alerts trigger at 50% of baseline average, balancing sensitivity with false positive prevention.
+- **Completed runs only for health** (02-05): Health calculations filter to completed runs only, excluding running/failed runs for accurate baseline metrics.
 
 ### Pending Todos
 
@@ -88,6 +91,6 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-07
-Stopped at: Completed 02-01-PLAN.md (multi-source scraper implementation)
+Stopped at: Completed 02-05-PLAN.md (source health monitoring)
 Resume file: None
-Next: Phase 2 continues - 02-03+ (source registry, validation, etc.)
+Next: Phase 2 continues - 02-06 (health alerting endpoint)
