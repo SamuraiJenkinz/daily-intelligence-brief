@@ -163,7 +163,67 @@ def root() -> RedirectResponse:
 
 
 if __name__ == "__main__":
-    import uvicorn
+    import sys
+    import asyncio
 
-    settings = get_settings()
-    uvicorn.run("app.main:app", host=settings.host, port=settings.port, reload=settings.debug)
+    if len(sys.argv) > 1 and sys.argv[1] == "run-pipeline":
+        # CLI mode: run full pipeline with email delivery
+        # Used by Windows Task Scheduler
+        import structlog
+        from app.database import Base, engine
+        from app.services.collector import ApifyCollector
+        from app.services.classifier import RoleClassificationService
+        from app.services.reporter import RoleReportService
+        from app.services.pipeline import PipelineOrchestrator
+
+        # Ensure tables exist
+        os.makedirs("data", exist_ok=True)
+        Base.metadata.create_all(bind=engine)
+
+        settings = get_settings()
+        logger = structlog.get_logger("cli")
+
+        logger.info("pipeline_cli_started")
+
+        # Initialize services
+        collector = ApifyCollector(apify_token=settings.apify_token)
+        classifier = RoleClassificationService(
+            endpoint=settings.azure_openai_endpoint,
+            api_key=settings.azure_openai_api_key,
+            deployment=settings.azure_openai_deployment,
+            api_version=settings.azure_openai_api_version
+        )
+        reporter = RoleReportService()
+
+        orchestrator = PipelineOrchestrator(
+            collector=collector,
+            classifier=classifier,
+            reporter=reporter
+        )
+
+        # Run async pipeline
+        result = asyncio.run(orchestrator.run_full_pipeline_with_email())
+
+        # Log result
+        if result["status"] == "completed":
+            logger.info(
+                "pipeline_cli_completed",
+                run_id=result["run_id"],
+                articles=result["articles_collected"],
+                classified=result["articles_classified"],
+                emails=result.get("emails_sent", {}),
+                archived=result.get("reports_archived", [])
+            )
+            sys.exit(0)
+        else:
+            logger.error(
+                "pipeline_cli_failed",
+                error=result.get("error"),
+                run_id=result.get("run_id")
+            )
+            sys.exit(1)
+    else:
+        # Web server mode (default)
+        import uvicorn
+        settings = get_settings()
+        uvicorn.run("app.main:app", host=settings.host, port=settings.port, reload=settings.debug)
