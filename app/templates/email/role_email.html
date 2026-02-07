@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ company_name }} Intelligence Brief - {{ role }}</title>
+    <style>
+        /* Responsive styles preserved by premailer */
+        @media only screen and (max-width: 600px) {
+            .wrapper { width: 100% !important; }
+            .content { width: 100% !important; padding-left: 10px !important; padding-right: 10px !important; }
+            .header-cell { padding-left: 15px !important; padding-right: 15px !important; }
+            .pulse-row td { display: block !important; width: 100% !important; text-align: left !important; padding-bottom: 8px !important; }
+            .article-card-table { width: 100% !important; }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f5f7fa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6;">
+    <!-- Outer wrapper table -->
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f5f7fa; margin: 0; padding: 0;">
+        <tr>
+            <td align="center" style="padding-top: 20px; padding-bottom: 20px;">
+
+                <!-- Main content container (600px max width) -->
+                <table role="presentation" class="wrapper" cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; margin: 0 auto;">
+
+                    <!-- CONFIDENTIAL BANNER -->
+                    <tr>
+                        <td style="background-color: #00263e; color: rgba(255,255,255,0.7); text-align: center; padding-top: 6px; padding-bottom: 6px; font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;">
+                            CONFIDENTIAL - FOR INTERNAL USE ONLY
+                        </td>
+                    </tr>
+
+                    <!-- HEADER SECTION -->
+                    <tr>
+                        <td class="header-cell" style="background-color: #00263e; color: #ffffff; padding-top: 35px; padding-bottom: 30px; padding-left: 30px; padding-right: 30px;">
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                <tr>
+                                    <td style="vertical-align: top;">
+                                        <h1 style="margin: 0; margin-bottom: 4px; font-size: 28px; font-weight: 300; letter-spacing: -0.5px; color: #ffffff;">
+                                            {{ company_name }} <span style="font-weight: 600;">Intelligence Brief</span>
+                                        </h1>
+                                        <div style="font-size: 16px; opacity: 0.8; font-weight: 300; margin-bottom: 12px;">
+                                            Role-Based Insurance Market Intelligence
+                                        </div>
+                                        <div style="display: inline-block; background: linear-gradient(135deg, #00a3e0, #00c9ff); padding-top: 6px; padding-bottom: 6px; padding-left: 18px; padding-right: 18px; border-radius: 20px; font-size: 13px; font-weight: 600; letter-spacing: 0.5px;">
+                                            Kevin Taylor - Colleague Technology Services
+                                        </div>
+                                    </td>
+                                    <td style="vertical-align: top; text-align: right;">
+                                        <div style="display: inline-block; background-color: rgba(255,255,255,0.15); padding-top: 8px; padding-bottom: 8px; padding-left: 18px; padding-right: 18px; border-radius: 20px; font-size: 14px; font-weight: 500; margin-bottom: 8px;">
+                                            {{ report_date.strftime('%d %B %Y') }}
+                                        </div>
+                                        <div style="font-size: 12px; opacity: 0.6;">
+                                            {{ role }} Edition
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- MARKET PULSE BAR -->
+                    {% if market_pulse %}
+                    <tr>
+                        <td style="background-color: #ffffff; border-bottom: 1px solid #e0e0e0; padding-top: 14px; padding-bottom: 14px; padding-left: 20px; padding-right: 20px;">
+                            <table role="presentation" class="pulse-row" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                <tr>
+                                    {% for item in market_pulse %}
+                                    <td style="font-size: 13px; padding-right: 15px; padding-bottom: 5px; white-space: nowrap;">
+                                        {% if item.dot_class == 'green' %}
+                                        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: #28a745; margin-right: 6px;"></span>
+                                        {% elif item.dot_class == 'blue' %}
+                                        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: #0077c8; margin-right: 6px;"></span>
+                                        {% elif item.dot_class == 'amber' %}
+                                        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: #fd7e14; margin-right: 6px;"></span>
+                                        {% elif item.dot_class == 'red' %}
+                                        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background-color: #dc3545; margin-right: 6px;"></span>
+                                        {% endif %}
+                                        <span style="color: #6c757d; font-weight: 500;">{{ item.label }}</span>
+                                        <span style="font-weight: 700; color: #00263e;">{{ item.value }}</span>
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    {% endif %}
+
+                    <!-- CONTENT SECTION -->
+                    <tr>
+                        <td class="content" style="padding-top: 30px; padding-bottom: 30px; padding-left: 30px; padding-right: 30px;">
+
+                            <!-- EXECUTIVE SUMMARY -->
+                            {% if executive_summary %}
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 25px; background-color: #ffffff; border-left: 4px solid #00a3e0; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.06);">
+                                <tr>
+                                    <td style="padding-top: 20px; padding-bottom: 20px; padding-left: 20px; padding-right: 20px;">
+                                        <h2 style="margin: 0; margin-bottom: 14px; color: #00263e; font-weight: 500; font-size: 18px;">Executive Summary</h2>
+                                        {% for paragraph in executive_summary.summary_paragraphs %}
+                                        <p style="margin: 0; margin-bottom: 10px; font-size: 14px; color: #444;">{{ paragraph }}</p>
+                                        {% endfor %}
+                                        {% if executive_summary.key_numbers %}
+                                        <div style="margin-top: 12px;">
+                                            {% for num in executive_summary.key_numbers %}
+                                            <span style="display: inline-block; background-color: #e8f7fc; color: #00a3e0; padding-top: 3px; padding-bottom: 3px; padding-left: 10px; padding-right: 10px; border-radius: 10px; font-size: 12px; font-weight: 600; margin-right: 6px; margin-top: 6px;">{{ num }}</span>
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                        {% if executive_summary.role_context %}
+                                        <p style="margin: 0; margin-top: 12px; font-size: 13px; color: #666; font-style: italic;">{{ executive_summary.role_context }}</p>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                            {% endif %}
+
+                            <!-- ARTICLES SECTION -->
+                            {% if articles %}
+                            <h2 style="margin: 0; margin-bottom: 16px; color: #00263e; font-size: 20px; font-weight: 500;">Priority Intelligence</h2>
+
+                            {% for article in articles %}
+                            <!-- Article Card -->
+                            <table role="presentation" class="article-card-table" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom: 16px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); {% if article.priority == 'Critical' %}border-left: 4px solid #dc3545;{% elif article.priority == 'High' %}border-left: 4px solid #fd7e14;{% elif article.priority == 'Medium' %}border-left: 4px solid #ffc107;{% else %}border-left: 4px solid #6c757d;{% endif %}">
+                                <tr>
+                                    <td style="padding-top: 20px; padding-bottom: 12px; padding-left: 20px; padding-right: 20px;">
+                                        <h3 style="margin: 0; margin-bottom: 8px; font-weight: 600; color: #00263e; font-size: 16px;">
+                                            {% if article.source_url %}
+                                            <a href="{{ article.source_url }}" style="color: #00263e; text-decoration: none;">{{ article.title }}</a>
+                                            {% else %}
+                                            {{ article.title }}
+                                            {% endif %}
+                                        </h3>
+                                        <div style="font-size: 12px; color: #6c757d; margin-bottom: 8px;">
+                                            {{ article.source_name or 'Unknown Source' }}
+                                            {% if article.published_at %} &bull; {{ article.published_at.strftime('%d %b %Y') }}{% endif %}
+                                        </div>
+                                        {% if article.summary %}
+                                        <p style="margin: 0; margin-bottom: 12px; font-size: 13px; color: #555; line-height: 1.5;">{{ article.summary }}</p>
+                                        {% endif %}
+
+                                        <!-- Chips row -->
+                                        <div style="margin-top: 10px;">
+                                            {% if article.sentiment %}
+                                            {% if article.sentiment == 'positive' %}
+                                            <span style="display: inline-block; padding-top: 2px; padding-bottom: 2px; padding-left: 8px; padding-right: 8px; border-radius: 3px; font-size: 11px; margin-right: 4px; background-color: #d4edda; color: #155724;">{{ article.sentiment|capitalize }}</span>
+                                            {% elif article.sentiment == 'negative' %}
+                                            <span style="display: inline-block; padding-top: 2px; padding-bottom: 2px; padding-left: 8px; padding-right: 8px; border-radius: 3px; font-size: 11px; margin-right: 4px; background-color: #f8d7da; color: #721c24;">{{ article.sentiment|capitalize }}</span>
+                                            {% else %}
+                                            <span style="display: inline-block; padding-top: 2px; padding-bottom: 2px; padding-left: 8px; padding-right: 8px; border-radius: 3px; font-size: 11px; margin-right: 4px; background-color: #e2e3e5; color: #383d41;">{{ article.sentiment|capitalize }}</span>
+                                            {% endif %}
+                                            {% endif %}
+
+                                            {% if article.impact_level %}
+                                            {% if article.impact_level == 'High' %}
+                                            <span style="display: inline-block; padding-top: 2px; padding-bottom: 2px; padding-left: 8px; padding-right: 8px; border-radius: 3px; font-size: 11px; margin-right: 4px; background-color: #fff3cd; color: #856404;">{{ article.impact_level }} Impact</span>
+                                            {% elif article.impact_level == 'Moderate' %}
+                                            <span style="display: inline-block; padding-top: 2px; padding-bottom: 2px; padding-left: 8px; padding-right: 8px; border-radius: 3px; font-size: 11px; margin-right: 4px; background-color: #d1ecf1; color: #0c5460;">{{ article.impact_level }} Impact</span>
+                                            {% else %}
+                                            <span style="display: inline-block; padding-top: 2px; padding-bottom: 2px; padding-left: 8px; padding-right: 8px; border-radius: 3px; font-size: 11px; margin-right: 4px; background-color: #e2e3e5; color: #383d41;">{{ article.impact_level }} Impact</span>
+                                            {% endif %}
+                                            {% endif %}
+
+                                            {% if article.region %}
+                                            <span style="display: inline-block; padding-top: 2px; padding-bottom: 2px; padding-left: 8px; padding-right: 8px; border-radius: 3px; font-size: 11px; margin-right: 4px; background-color: #e9ecef; color: #495057;">{{ article.region }}</span>
+                                            {% endif %}
+
+                                            {% if article.business_line %}
+                                            <span style="display: inline-block; padding-top: 2px; padding-bottom: 2px; padding-left: 8px; padding-right: 8px; border-radius: 3px; font-size: 11px; margin-right: 4px; background-color: #e9ecef; color: #495057;">{{ article.business_line }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                            {% endfor %}
+                            {% else %}
+                            <div style="text-align: center; padding-top: 40px; padding-bottom: 40px; color: #6c757d;">
+                                <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;">📭</div>
+                                <p style="font-size: 16px; font-weight: 500;">No articles for {{ role }} today</p>
+                            </div>
+                            {% endif %}
+
+                            <!-- SECTOR HEATMAP -->
+                            {% if sector_heatmap %}
+                            <h2 style="margin: 0; margin-top: 30px; margin-bottom: 16px; color: #00263e; font-size: 18px; font-weight: 500;">Sector Activity</h2>
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); margin-bottom: 25px;">
+                                {% for cell in sector_heatmap %}
+                                <tr>
+                                    <td style="padding-top: 12px; padding-bottom: 12px; padding-left: 20px; padding-right: 20px; {% if not loop.last %}border-bottom: 1px solid #f0f0f0;{% endif %}">
+                                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                            <tr>
+                                                <td style="font-weight: 600; font-size: 14px; color: #00263e; width: 35%;">{{ cell.sector }}</td>
+                                                <td style="font-size: 13px; {% if cell.signal_class == 'heat-positive' %}color: #28a745;{% elif cell.signal_class == 'heat-negative' %}color: #dc3545;{% else %}color: #fd7e14;{% endif %} width: 45%;">{{ cell.signal }}</td>
+                                                <td style="text-align: right; font-size: 13px; color: #6c757d; width: 20%;">{{ cell.article_count }} articles</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                            {% endif %}
+
+                            <!-- ENTITY TRACKER -->
+                            {% if entity_tracker %}
+                            <h2 style="margin: 0; margin-top: 30px; margin-bottom: 16px; color: #00263e; font-size: 18px; font-weight: 500;">Key Entities</h2>
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); margin-bottom: 25px;">
+                                {% for entity in entity_tracker[:10] %}
+                                <tr>
+                                    <td style="padding-top: 10px; padding-bottom: 10px; padding-left: 20px; padding-right: 20px; {% if not loop.last %}border-bottom: 1px solid #f0f0f0;{% endif %}">
+                                        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                                            <tr>
+                                                <td style="width: 40px; vertical-align: middle;">
+                                                    <div style="background-color: #00263e; color: #ffffff; width: 26px; height: 26px; border-radius: 50%; text-align: center; line-height: 26px; font-size: 11px; font-weight: 700;">{{ loop.index }}</div>
+                                                </td>
+                                                <td style="vertical-align: middle; font-weight: 600; font-size: 14px; color: #333;">
+                                                    {{ entity.name }}
+                                                    {% if entity.type %}
+                                                    <div style="font-size: 11px; color: #6c757d; font-weight: 400;">{{ entity.type }}</div>
+                                                    {% endif %}
+                                                </td>
+                                                <td style="text-align: right; vertical-align: middle; font-size: 13px; color: #6c757d;">{{ entity.count }} mentions</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </table>
+                            {% endif %}
+
+                            <!-- WHAT TO WATCH -->
+                            {% if what_to_watch and what_to_watch['items'] %}
+                            <h2 style="margin: 0; margin-top: 30px; margin-bottom: 16px; color: #ffffff; font-size: 18px; font-weight: 500; background-color: #00263e; padding-top: 20px; padding-bottom: 12px; padding-left: 20px; padding-right: 20px; border-radius: 8px 8px 0 0;">What to Watch</h2>
+                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #00263e; border-radius: 0 0 8px 8px; margin-bottom: 25px;">
+                                <tr>
+                                    <td style="padding-left: 20px; padding-right: 20px; padding-bottom: 20px;">
+                                        {% for item in what_to_watch['items'] %}
+                                        <div style="background-color: rgba(255,255,255,0.08); border-radius: 8px; border-left: 3px solid #00a3e0; padding-top: 16px; padding-bottom: 16px; padding-left: 16px; padding-right: 16px; margin-bottom: 12px;">
+                                            <h4 style="margin: 0; margin-bottom: 6px; font-weight: 600; font-size: 14px; color: #ffffff;">{{ item.title }}</h4>
+                                            <p style="margin: 0; margin-bottom: 8px; font-size: 13px; color: rgba(255,255,255,0.8);">{{ item.description }}</p>
+                                            <span style="display: inline-block; background-color: #00a3e0; padding-top: 2px; padding-bottom: 2px; padding-left: 8px; padding-right: 8px; border-radius: 8px; font-size: 11px; font-weight: 700; color: #ffffff; margin-right: 8px;">{{ item.timeframe }}</span>
+                                            {% if item.impact_roles %}
+                                            <span style="font-size: 11px; color: rgba(255,255,255,0.6);">For: {{ item.impact_roles|join(', ') }}</span>
+                                            {% endif %}
+                                        </div>
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                            </table>
+                            {% endif %}
+
+                        </td>
+                    </tr>
+
+                    <!-- FOOTER SECTION -->
+                    <tr>
+                        <td style="background-color: #f5f7fa; padding-top: 25px; padding-bottom: 25px; padding-left: 20px; padding-right: 20px; text-align: center; color: #6c757d; font-size: 12px;">
+                            <div style="width: 60px; height: 3px; background-color: #0077c8; margin-left: auto; margin-right: auto; margin-bottom: 14px; border-radius: 2px;"></div>
+                            <div style="margin-bottom: 4px; font-weight: 500;">{{ company_name }} Intelligence Brief</div>
+                            <div style="margin-bottom: 10px; opacity: 0.7;">
+                                {{ edition_stats.article_count }} articles from {{ edition_stats.source_count }} sources &bull; {{ edition_stats.entity_count }} entities tracked &bull; {{ edition_stats.signal_count }} signals
+                            </div>
+                            <div style="margin-bottom: 14px; font-size: 11px; opacity: 0.5;">
+                                CONFIDENTIAL - For internal use only. This is an automated intelligence brief.
+                            </div>
+                            <div style="display: inline-block; background: linear-gradient(135deg, #00263e, #0077c8); color: #ffffff; padding-top: 8px; padding-bottom: 8px; padding-left: 24px; padding-right: 24px; border-radius: 20px; font-size: 12px; font-weight: 600; letter-spacing: 0.5px;">
+                                Kevin Taylor - Colleague Technology Services
+                            </div>
+                        </td>
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
