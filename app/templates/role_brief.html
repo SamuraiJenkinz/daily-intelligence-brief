@@ -361,7 +361,12 @@
             {{ role }} Intelligence
         </h2>
 
-        {% set role_articles = articles | selectattr('roles', 'search', role) | list %}
+        {% set role_articles = [] %}
+        {% for article in articles %}
+            {% if role in article.roles %}
+                {% set _ = role_articles.append(article) %}
+            {% endif %}
+        {% endfor %}
 
         {% if role_articles %}
             <!-- Group by priority -->
