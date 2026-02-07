@@ -175,7 +175,10 @@ Classify this article according to the role definitions provided."""
                 title=title[:50],
                 roles=classification.roles,
                 priority=classification.priority,
-                sentiment=classification.sentiment
+                sentiment=classification.sentiment,
+                impact_level=classification.impact_level,
+                category=classification.category,
+                entity_count=len(classification.entities)
             )
 
             return classification
@@ -234,6 +237,13 @@ Classify this article according to the role definitions provided."""
                 article.priority = classification.priority
                 article.summary = classification.summary
                 article.sentiment = classification.sentiment
+
+                # Phase 3: Advanced classification fields
+                article.entities = json.dumps([e.model_dump() for e in classification.entities])
+                article.impact_level = classification.impact_level
+                article.category = classification.category
+                article.region = classification.region
+                article.business_line = classification.business_line
 
                 classified_count += 1
 
