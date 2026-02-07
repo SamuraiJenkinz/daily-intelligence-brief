@@ -11,13 +11,18 @@ from typing import List, Dict
 
 from jinja2 import Environment, FileSystemLoader
 from premailer import transform
+from openai import AzureOpenAI
+import structlog
 
 from app.models.news_article import NewsArticle
+from app.schemas.report import ExecutiveSummary
 from app.config import get_settings
 
 
 # Priority ranking order for article sorting
 PRIORITY_ORDER = {"Critical": 0, "High": 1, "Medium": 2, "Monitor": 3}
+
+logger = structlog.get_logger(__name__)
 
 
 class RoleReportService:
@@ -43,6 +48,18 @@ class RoleReportService:
         )
 
         self.company_name = settings.company_name
+
+        # Azure OpenAI client (same pattern as classifier.py)
+        if settings.is_azure_openai_configured():
+            self.client = AzureOpenAI(
+                azure_endpoint=settings.azure_openai_endpoint,
+                api_key=settings.azure_openai_api_key,
+                api_version=settings.azure_openai_api_version
+            )
+            self.deployment = settings.azure_openai_deployment
+        else:
+            self.client = None
+            self.deployment = None
 
     @staticmethod
     def filter_articles_by_role(articles: List[dict], role: str) -> List[dict]:
@@ -106,6 +123,122 @@ class RoleReportService:
             prepared.append(article_dict)
         return prepared
 
+    def _generate_executive_summary(
+        self,
+        role: str,
+        prepared_articles: List[dict],
+        report_date: datetime
+    ) -> ExecutiveSummary:
+        """
+        Generate AI-powered executive summary for a specific role.
+
+        Args:
+            role: Role name (e.g., "Brokers", "Leadership")
+            prepared_articles: List of prepared article dictionaries
+            report_date: Date of the report
+
+        Returns:
+            ExecutiveSummary object with structured summary content
+        """
+        # Filter articles for this role
+        role_articles = [a for a in prepared_articles if role in a.get('roles', [])]
+
+        # If no articles for role, return fallback
+        if not role_articles:
+            logger.info("no_articles_for_role", role=role)
+            return ExecutiveSummary(
+                summary_paragraphs=[f"No significant developments for {role} today."],
+                key_numbers=[],
+                role_context=f"No {role}-relevant intelligence in today's edition."
+            )
+
+        # If Azure OpenAI not configured, return fallback
+        if self.client is None:
+            logger.warning("azure_openai_not_configured", role=role)
+            return ExecutiveSummary(
+                summary_paragraphs=[
+                    f"Executive summary generation requires Azure OpenAI configuration.",
+                    f"Found {len(role_articles)} articles for {role} in today's edition."
+                ],
+                key_numbers=[f"{len(role_articles)} total articles"],
+                role_context=f"Azure OpenAI configuration needed for AI-generated summaries."
+            )
+
+        try:
+            # Sort by priority
+            role_articles.sort(key=lambda a: PRIORITY_ORDER.get(a.get('priority'), 4))
+
+            # Build article context from top 20 articles
+            article_context = []
+            for a in role_articles[:20]:
+                context_str = (
+                    f"[{a.get('priority', 'N/A')}] {a.get('title', 'No title')}\n"
+                    f"{a.get('summary', a.get('description', 'No summary'))}\n"
+                    f"(Category: {a.get('category', 'N/A')}, Impact: {a.get('impact_level', 'N/A')}, "
+                    f"Region: {a.get('region', 'N/A')})"
+                )
+                article_context.append(context_str)
+
+            article_context_str = "\n\n".join(article_context)
+
+            # Build prompt
+            system_message = {
+                "role": "system",
+                "content": "You are an insurance industry intelligence analyst writing executive summaries for senior professionals. Be concise, fact-based, and actionable."
+            }
+
+            date_str = report_date.strftime("%B %d, %Y") if report_date else "today"
+            user_message = {
+                "role": "user",
+                "content": f"""Generate an executive summary for {role} based on {len(role_articles)} articles from {date_str}.
+
+Articles (priority-sorted):
+{article_context_str}
+
+Generate:
+1. 2-3 paragraphs summarizing key developments relevant to {role}
+2. 3-5 key numbers/statistics from the articles (with context)
+3. One sentence explaining why this matters to {role}
+
+Focus on actionable insights and business implications."""
+            }
+
+            # Call Azure OpenAI with structured outputs
+            completion = self.client.beta.chat.completions.parse(
+                model=self.deployment,
+                messages=[system_message, user_message],
+                response_format=ExecutiveSummary,
+                temperature=0.4
+            )
+
+            summary = completion.choices[0].message.parsed
+
+            logger.info(
+                "executive_summary_generated",
+                role=role,
+                article_count=len(role_articles),
+                paragraph_count=len(summary.summary_paragraphs),
+                key_numbers_count=len(summary.key_numbers)
+            )
+
+            return summary
+
+        except Exception as e:
+            logger.warning(
+                "executive_summary_generation_failed",
+                role=role,
+                error=str(e)
+            )
+            # Return fallback on error
+            return ExecutiveSummary(
+                summary_paragraphs=[
+                    f"Unable to generate AI summary for {role}.",
+                    f"Found {len(role_articles)} articles in today's edition."
+                ],
+                key_numbers=[f"{len(role_articles)} total articles"],
+                role_context=f"Summary generation encountered an error: {str(e)[:100]}"
+            )
+
     def generate_role_brief(
         self,
         articles: List[NewsArticle],
@@ -133,6 +266,18 @@ class RoleReportService:
         # Prepare articles (parse JSON fields)
         prepared_articles = self._prepare_articles(articles)
 
+        # Generate executive summaries for all roles
+        executive_summaries = {}
+        for role in ["Brokers", "Leadership", "Compliance", "Underwriting"]:
+            executive_summaries[role] = self._generate_executive_summary(
+                role, prepared_articles, report_date
+            )
+
+        # Convert ExecutiveSummary objects to dicts for template
+        executive_summaries_dict = {
+            role: summary.model_dump() for role, summary in executive_summaries.items()
+        }
+
         # Compute edition stats
         source_count = len(set(a.source_name for a in articles if a.source_name))
         article_count = len(articles)
@@ -153,6 +298,7 @@ class RoleReportService:
             'report_date': report_date,
             'company_name': company_name,
             'edition_stats': edition_stats,
+            'executive_summaries': executive_summaries_dict,
         }
         html = template.render(**context)
 

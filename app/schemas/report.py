@@ -41,6 +41,20 @@ class EditionStats(BaseModel):
         }
 
 
+class ExecutiveSummary(BaseModel):
+    """Schema for role-specific executive summary (Azure OpenAI structured output)."""
+    summary_paragraphs: List[str] = Field(
+        description="2-3 paragraphs of executive summary for this role"
+    )
+    key_numbers: List[str] = Field(
+        description="3-5 highlighted numbers/statistics from articles (with context)",
+        default_factory=list
+    )
+    role_context: str = Field(
+        description="One-sentence context about why this matters to this role"
+    )
+
+
 class ReportContext(BaseModel):
     """
     Context data for generating unified role-based intelligence brief.
