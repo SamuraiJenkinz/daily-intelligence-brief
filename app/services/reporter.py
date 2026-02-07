@@ -444,3 +444,83 @@ Generate 4-6 actionable forward-looking items."""
             articles=articles,
             report_date=report_date
         )
+
+    def generate_role_emails(
+        self,
+        articles: List[NewsArticle],
+        report_date: datetime,
+        company_name: str = None
+    ) -> Dict[str, str]:
+        """
+        Generate separate HTML emails for each role.
+
+        Unlike generate_role_brief (browser with JS tabs), this creates
+        4 independent HTML emails using the table-based email template.
+
+        Args:
+            articles: List of classified NewsArticle objects
+            report_date: Date for the report
+            company_name: Company name (defaults to settings)
+
+        Returns:
+            Dict mapping role name to HTML email content (CSS inlined via premailer)
+        """
+        if company_name is None:
+            company_name = self.company_name
+
+        # Prepare articles once (shared across roles)
+        prepared_articles = self._prepare_articles(articles)
+
+        # Compute aggregation data once (shared across all role emails)
+        sector_heatmap = ReportAggregator.aggregate_sector_heatmap(prepared_articles)
+        entity_tracker = ReportAggregator.aggregate_entity_tracker(prepared_articles, top_n=10)
+        market_pulse = ReportAggregator.aggregate_market_pulse(prepared_articles)
+
+        # Generate what to watch once (shared)
+        what_to_watch = self._generate_what_to_watch(prepared_articles, report_date)
+        what_to_watch_dict = what_to_watch.model_dump()
+
+        # Compute edition stats once (shared)
+        source_count = len(set(a.source_name for a in articles if a.source_name))
+        article_count = len(articles)
+
+        edition_stats = {
+            'source_count': source_count,
+            'article_count': article_count,
+            'entity_count': len(entity_tracker),
+            'signal_count': len(what_to_watch_dict.get("items", [])),
+        }
+
+        # Generate separate email for each role
+        role_emails = {}
+        for role in ["Brokers", "Leadership", "Compliance", "Underwriting"]:
+            # Filter articles for this role
+            role_articles = self.filter_articles_by_role(prepared_articles, role)
+
+            # Generate executive summary for this role
+            exec_summary = self._generate_executive_summary(role, prepared_articles, report_date)
+
+            # Load email template
+            template = self.env.get_template('email/role_email.html')
+
+            # Render with context
+            context = {
+                'role': role,
+                'articles': role_articles,
+                'executive_summary': exec_summary.model_dump(),
+                'report_date': report_date,
+                'company_name': company_name,
+                'edition_stats': edition_stats,
+                'sector_heatmap': sector_heatmap,
+                'entity_tracker': entity_tracker,
+                'market_pulse': market_pulse,
+                'what_to_watch': what_to_watch_dict,
+            }
+            html = template.render(**context)
+
+            # Inline CSS for email compatibility
+            html_inlined = transform(html)
+
+            role_emails[role] = html_inlined
+
+        return role_emails
