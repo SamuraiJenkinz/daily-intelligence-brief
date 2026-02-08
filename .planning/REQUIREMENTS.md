@@ -42,11 +42,11 @@
 
 ### Admin
 
-- [ ] **ADMN-01**: Admin can add, edit, and disable news sources via web UI
-- [ ] **ADMN-02**: Admin can manage recipients and their role assignments
-- [ ] **ADMN-03**: Admin can view report archive and search past articles
-- [ ] **ADMN-04**: Admin can manually trigger a brief generation on demand
-- [ ] **ADMN-05**: Admin dashboard uses HTMX for SPA-like experience (matching BrasilIntel pattern)
+- [x] **ADMN-01**: Admin can add, edit, and disable news sources via web UI
+- [x] **ADMN-02**: Admin can manage recipients and their role assignments
+- [x] **ADMN-03**: Admin can view report archive and search past articles
+- [x] **ADMN-04**: Admin can manually trigger a brief generation on demand
+- [x] **ADMN-05**: Admin dashboard uses HTMX for SPA-like experience (matching BrasilIntel pattern)
 
 ## v2 Requirements
 
@@ -108,11 +108,11 @@
 | DELV-01 | Phase 5 | Complete |
 | DELV-02 | Phase 5 | Complete |
 | DELV-03 | Phase 5 | Complete |
-| ADMN-01 | Phase 6 | Pending |
-| ADMN-02 | Phase 6 | Pending |
-| ADMN-03 | Phase 6 | Pending |
-| ADMN-04 | Phase 6 | Pending |
-| ADMN-05 | Phase 6 | Pending |
+| ADMN-01 | Phase 6 | Complete |
+| ADMN-02 | Phase 6 | Complete |
+| ADMN-03 | Phase 6 | Complete |
+| ADMN-04 | Phase 6 | Complete |
+| ADMN-05 | Phase 6 | Complete |
 
 **Coverage:**
 - v1 requirements: 23 total
@@ -131,4 +131,4 @@
 
 ---
 *Requirements defined: 2026-02-06*
-*Last updated: 2026-02-07 after Phase 5 completion*
+*Last updated: 2026-02-08 after Phase 6 completion*
