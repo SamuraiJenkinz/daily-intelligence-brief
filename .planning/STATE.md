@@ -10,19 +10,19 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 7 of 8 IN PROGRESS (Production Hardening)
-Plan: 2/4 complete
-Status: Phase 7 Plan 2 COMPLETE — Database backup service with Azure Blob integration operational
-Last activity: 2026-02-08 — Completed 07-02-PLAN.md
+Plan: 3/4 complete
+Status: Phase 7 Plan 4 COMPLETE — Classification drift monitoring with statistical tests operational
+Last activity: 2026-02-08 — Completed 07-04-PLAN.md
 Verified: Not yet verified
 
-Progress: [████████░░] 92.3% (Phase 1: 5/5, Phase 2: 6/6, Phase 3: 3/3, Phase 4: 7/7, Phase 5: 4/4, Phase 6: 5/5, Phase 7: 2/4)
+Progress: [█████████░] 94.9% (Phase 1: 5/5, Phase 2: 6/6, Phase 3: 3/3, Phase 4: 7/7, Phase 5: 4/4, Phase 6: 5/5, Phase 7: 3/4)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 32
-- Average duration: 5.3 minutes
-- Total execution time: 2.8 hours
+- Total plans completed: 33
+- Average duration: 6.7 minutes
+- Total execution time: 3.5 hours
 
 **By Phase:**
 
@@ -34,18 +34,18 @@ Progress: [████████░░] 92.3% (Phase 1: 5/5, Phase 2: 6/6, Ph
 | 04 | 7/7 | 24 min | 3.4 min |
 | 05 | 4/4 | 43.7 min | 10.9 min |
 | 06 | 5/5 | 35 min | 7.0 min |
-| 07 | 2/4 | 43 min | 21.5 min |
+| 07 | 3/4 | 87 min | 29.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-03 (4.7min), 06-04 (9min), 06-05 (2min), 07-01 (19min), 07-02 (24min)
-- Trend: Phase 7 started — production hardening with logging and retry logic
+- Last 5 plans: 06-04 (9min), 06-05 (2min), 07-01 (19min), 07-02 (24min), 07-04 (44min)
+- Trend: Phase 7 production hardening — monitoring and reliability features
 - **Phase 1 complete**: Vertical slice operational
 - **Phase 2 complete**: 20 sources, semantic dedup, health monitoring, pipeline integrated
 - **Phase 3 complete**: 9-dimension classification (entities, impact, category, region, business line)
 - **Phase 4 complete**: 7/7 plans complete (role filtering, exec summaries, aggregation, template integration)
 - **Phase 5 complete**: 4/4 plans complete (email infrastructure, template, pipeline integration, Task Scheduler automation)
 - **Phase 6 complete**: 5/5 plans complete (base template, source CRUD, archive browser, FTS5 search, recipient management)
-- **Phase 7 in progress**: 2/4 plans complete (structured logging, retry logic, database backup)
+- **Phase 7 in progress**: 3/4 plans complete (structured logging, retry logic, database backup, drift monitoring)
 
 *Updated after each plan completion*
 
@@ -78,6 +78,10 @@ Recent decisions affecting current work:
 - **sqlite3 .backup() API** (07-02): Use sqlite3 .backup() instead of file copy for safe online backups without exclusive locks.
 - **Local-then-Azure backup** (07-02): Create local backup first, verify integrity, then upload to Azure for disaster recovery.
 - **Dual retention strategy** (07-02): 7 days local (fast restore), 30 days Azure configurable (disaster recovery).
+- **Priority as confidence proxy** (07-04): Use priority distribution as behavioral proxy since Azure OpenAI structured outputs don't return confidence scores.
+- **14-day baseline with 3-day recent** (07-04): Balance statistical power (30+ samples) with drift detection speed (catch issues within days).
+- **Three drift tests** (07-04): KS test for priority distribution, chi-square for role/category distributions, comprehensive coverage of failure modes.
+- **0.05 p-value threshold** (07-04): Standard statistical significance (95% confidence) balances sensitivity with false positive rate.
 
 ### Pending Todos
 
@@ -85,11 +89,11 @@ None.
 
 ### Blockers/Concerns
 
-None — Phase 7 Plan 2 complete, database backup service operational
+None — Phase 7 Plan 4 complete, drift monitoring with statistical tests operational
 
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed 07-02-PLAN.md
+Stopped at: Completed 07-04-PLAN.md
 Resume file: None
-Next: Phase 7 Plan 3 (Health Checks and Metrics API)
+Next: Phase 8 Plan 1 (Admin Dashboard Enhancement)
