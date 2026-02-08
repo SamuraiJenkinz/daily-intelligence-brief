@@ -5,13 +5,17 @@ Provides endpoints for:
 - Manual pipeline execution
 - Run history
 - Admin UI
+- Source management
+- Recipient management
 """
 import structlog
-from typing import List, Dict
-from fastapi import APIRouter, Query, HTTPException
+import re
+from typing import List, Dict, Optional
+from fastapi import APIRouter, Query, HTTPException, Request, Form
 from fastapi.responses import HTMLResponse
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
+from pydantic import BaseModel, EmailStr, ValidationError, field_validator
 
 from app.config import get_settings
 from app.services.collector import ApifyCollector
@@ -20,6 +24,8 @@ from app.services.reporter import RoleReportService
 from app.services.pipeline import PipelineOrchestrator
 from app.database import SessionLocal
 from app.models import Run, Source, NewsArticle
+from app.models.source import SourceType
+from app.schemas.admin import SourceCreate, SourceUpdate
 from datetime import datetime, date
 from sqlalchemy import func
 
@@ -257,6 +263,322 @@ def get_recent_runs() -> List[Dict]:
             }
             for run in runs
         ]
+
+    finally:
+        db.close()
+
+
+@router.get("/sources", response_class=HTMLResponse)
+def get_sources(
+    request: Request,
+    search: Optional[str] = Query(None),
+    enabled_filter: Optional[str] = Query("all")
+):
+    """
+    Get all sources for source management page.
+
+    Args:
+        request: FastAPI request object
+        search: Optional search query for filtering by name or URL
+        enabled_filter: Filter by enabled status ("all", "true", "false")
+
+    Returns:
+        HTML response with source table or full page
+    """
+    db = SessionLocal()
+
+    try:
+        # Build query with filters
+        query = db.query(Source)
+
+        if search:
+            search_pattern = f"%{search}%"
+            query = query.filter(
+                (Source.name.ilike(search_pattern)) |
+                (Source.url.ilike(search_pattern))
+            )
+
+        if enabled_filter == "true":
+            query = query.filter(Source.enabled == True)
+        elif enabled_filter == "false":
+            query = query.filter(Source.enabled == False)
+
+        sources = query.order_by(Source.name).all()
+
+        # Check if this is an HTMX partial request
+        is_htmx = request.headers.get("HX-Request") == "true"
+
+        if is_htmx:
+            # Return just the table body partial
+            template = jinja_env.get_template('admin/partials/source_table.html')
+            html = template.render(sources=sources)
+        else:
+            # Return full page
+            template = jinja_env.get_template('admin/sources.html')
+            html = template.render(sources=sources, active_nav="sources")
+
+        return HTMLResponse(content=html)
+
+    finally:
+        db.close()
+
+
+@router.post("/sources/create", response_class=HTMLResponse)
+def create_source(
+    name: str = Form(...),
+    url: str = Form(...),
+    source_type: str = Form(...),
+    actor_id: Optional[str] = Form(None),
+    enabled: bool = Form(True)
+):
+    """
+    Create a new source.
+
+    Args:
+        name: Source name
+        url: Source URL
+        source_type: Type of source (apify or rss)
+        actor_id: Optional Apify actor ID
+        enabled: Whether source is enabled
+
+    Returns:
+        HTML response with updated source table
+    """
+    db = SessionLocal()
+
+    try:
+        # Validate input with Pydantic
+        try:
+            source_data = SourceCreate(
+                name=name,
+                url=url,
+                source_type=source_type,
+                actor_id=actor_id if actor_id else None,
+                enabled=enabled
+            )
+        except ValidationError as e:
+            # Return form with errors
+            errors = {err["loc"][0]: err["msg"] for err in e.errors()}
+            template = jinja_env.get_template('admin/partials/source_form.html')
+            html = template.render(errors=errors, form_data={
+                "name": name,
+                "url": url,
+                "source_type": source_type,
+                "actor_id": actor_id,
+                "enabled": enabled
+            })
+            return HTMLResponse(content=html, status_code=422)
+
+        # Check for duplicate name
+        existing = db.query(Source).filter(Source.name == source_data.name).first()
+        if existing:
+            errors = {"name": "A source with this name already exists"}
+            template = jinja_env.get_template('admin/partials/source_form.html')
+            html = template.render(errors=errors, form_data={
+                "name": name,
+                "url": url,
+                "source_type": source_type,
+                "actor_id": actor_id,
+                "enabled": enabled
+            })
+            return HTMLResponse(content=html, status_code=422)
+
+        # Create new source
+        new_source = Source(
+            name=source_data.name,
+            url=source_data.url,
+            source_type=SourceType(source_data.source_type),
+            actor_id=source_data.actor_id,
+            enabled=source_data.enabled
+        )
+
+        db.add(new_source)
+        db.commit()
+        db.refresh(new_source)
+
+        logger.info("source_created", source_id=new_source.id, name=new_source.name)
+
+        # Return updated table
+        sources = db.query(Source).order_by(Source.name).all()
+        template = jinja_env.get_template('admin/partials/source_table.html')
+        html = template.render(sources=sources)
+
+        return HTMLResponse(content=html)
+
+    finally:
+        db.close()
+
+
+@router.get("/sources/{source_id}/edit", response_class=HTMLResponse)
+def get_source_edit_row(source_id: int):
+    """
+    Get inline edit form for a source.
+
+    Args:
+        source_id: Source ID
+
+    Returns:
+        HTML response with edit row partial
+    """
+    db = SessionLocal()
+
+    try:
+        source = db.query(Source).filter(Source.id == source_id).first()
+        if not source:
+            raise HTTPException(status_code=404, detail="Source not found")
+
+        template = jinja_env.get_template('admin/partials/source_edit_row.html')
+        html = template.render(source=source)
+
+        return HTMLResponse(content=html)
+
+    finally:
+        db.close()
+
+
+@router.post("/sources/{source_id}", response_class=HTMLResponse)
+def update_source(
+    source_id: int,
+    name: str = Form(...),
+    url: str = Form(...),
+    source_type: str = Form(...),
+    actor_id: Optional[str] = Form(None),
+    enabled: bool = Form(False)
+):
+    """
+    Update an existing source.
+
+    Args:
+        source_id: Source ID
+        name: Source name
+        url: Source URL
+        source_type: Type of source (apify or rss)
+        actor_id: Optional Apify actor ID
+        enabled: Whether source is enabled
+
+    Returns:
+        HTML response with updated source row
+    """
+    db = SessionLocal()
+
+    try:
+        source = db.query(Source).filter(Source.id == source_id).first()
+        if not source:
+            raise HTTPException(status_code=404, detail="Source not found")
+
+        # Validate input with Pydantic
+        try:
+            source_data = SourceUpdate(
+                name=name,
+                url=url,
+                source_type=source_type,
+                actor_id=actor_id if actor_id else None,
+                enabled=enabled
+            )
+        except ValidationError as e:
+            # Return edit row with errors
+            errors = {err["loc"][0]: err["msg"] for err in e.errors()}
+            template = jinja_env.get_template('admin/partials/source_edit_row.html')
+            html = template.render(source=source, errors=errors)
+            return HTMLResponse(content=html, status_code=422)
+
+        # Check for duplicate name (excluding current source)
+        existing = db.query(Source).filter(
+            Source.name == source_data.name,
+            Source.id != source_id
+        ).first()
+        if existing:
+            errors = {"name": "A source with this name already exists"}
+            template = jinja_env.get_template('admin/partials/source_edit_row.html')
+            html = template.render(source=source, errors=errors)
+            return HTMLResponse(content=html, status_code=422)
+
+        # Update source
+        source.name = source_data.name
+        source.url = source_data.url
+        source.source_type = SourceType(source_data.source_type)
+        source.actor_id = source_data.actor_id
+        source.enabled = source_data.enabled
+
+        db.commit()
+        db.refresh(source)
+
+        logger.info("source_updated", source_id=source.id, name=source.name)
+
+        # Return updated row
+        template = jinja_env.get_template('admin/partials/source_row.html')
+        html = template.render(source=source)
+
+        return HTMLResponse(content=html)
+
+    finally:
+        db.close()
+
+
+@router.post("/sources/{source_id}/toggle", response_class=HTMLResponse)
+def toggle_source(source_id: int):
+    """
+    Toggle source enabled status.
+
+    Args:
+        source_id: Source ID
+
+    Returns:
+        HTML response with updated source row
+    """
+    db = SessionLocal()
+
+    try:
+        source = db.query(Source).filter(Source.id == source_id).first()
+        if not source:
+            raise HTTPException(status_code=404, detail="Source not found")
+
+        # Toggle enabled status
+        source.enabled = not source.enabled
+        db.commit()
+        db.refresh(source)
+
+        logger.info("source_toggled", source_id=source.id, enabled=source.enabled)
+
+        # Return updated row
+        template = jinja_env.get_template('admin/partials/source_row.html')
+        html = template.render(source=source)
+
+        return HTMLResponse(content=html)
+
+    finally:
+        db.close()
+
+
+@router.delete("/sources/{source_id}", response_class=HTMLResponse)
+def delete_source(source_id: int):
+    """
+    Delete a source.
+
+    Args:
+        source_id: Source ID
+
+    Returns:
+        Empty HTML response (HTMX removes the row)
+    """
+    db = SessionLocal()
+
+    try:
+        source = db.query(Source).filter(Source.id == source_id).first()
+        if not source:
+            raise HTTPException(status_code=404, detail="Source not found")
+
+        source_name = source.name
+        db.delete(source)
+        db.commit()
+
+        logger.info("source_deleted", source_id=source_id, name=source_name)
+
+        # Return empty response with success toast trigger
+        return HTMLResponse(
+            content="",
+            headers={"HX-Trigger": "showToast"}
+        )
 
     finally:
         db.close()
