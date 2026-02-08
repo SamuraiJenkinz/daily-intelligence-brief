@@ -10,19 +10,19 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 6 of 8 IN PROGRESS (Admin Dashboard)
-Plan: 3/5 complete
+Plan: 4/5 complete
 Status: Building admin interface with Bootstrap 5 + HTMX
-Last activity: 2026-02-08 — Completed 06-03-PLAN.md
+Last activity: 2026-02-08 — Completed 06-04-PLAN.md
 Verified: Not yet verified
 
-Progress: [████████░░] 82.1% (Phase 1: 5/5, Phase 2: 6/6, Phase 3: 3/3, Phase 4: 7/7, Phase 5: 4/4, Phase 6: 3/5)
+Progress: [████████░░] 84.6% (Phase 1: 5/5, Phase 2: 6/6, Phase 3: 3/3, Phase 4: 7/7, Phase 5: 4/4, Phase 6: 4/5)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 28
+- Total plans completed: 29
 - Average duration: 4.4 minutes
-- Total execution time: 2.00 hours
+- Total execution time: 2.15 hours
 
 **By Phase:**
 
@@ -33,17 +33,17 @@ Progress: [████████░░] 82.1% (Phase 1: 5/5, Phase 2: 6/6, Ph
 | 03 | 3/3 | 5.5 min | 1.8 min |
 | 04 | 7/7 | 24 min | 3.4 min |
 | 05 | 4/4 | 43.7 min | 10.9 min |
-| 06 | 3/5 | 23.2 min | 7.7 min |
+| 06 | 4/5 | 32.2 min | 8.1 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-03 (21.7min), 05-04 (2.6min), 06-01 (15min), 06-02 (3.5min), 06-03 (4.7min)
-- Trend: Phase 6 progressing well - archive browser and manual trigger integrated
+- Last 5 plans: 05-04 (2.6min), 06-01 (15min), 06-02 (3.5min), 06-03 (4.7min), 06-04 (9min)
+- Trend: Phase 6 progressing well - FTS5 search complete
 - **Phase 1 complete**: Vertical slice operational
 - **Phase 2 complete**: 20 sources, semantic dedup, health monitoring, pipeline integrated
 - **Phase 3 complete**: 9-dimension classification (entities, impact, category, region, business line)
 - **Phase 4 complete**: 7/7 plans complete (role filtering, exec summaries, aggregation, template integration)
 - **Phase 5 complete**: 4/4 plans complete (email infrastructure, template, pipeline integration, Task Scheduler automation)
-- **Phase 6 in progress**: 3/5 plans complete (base template, dashboard, source CRUD, archive browser, manual trigger)
+- **Phase 6 in progress**: 4/5 plans complete (base template, dashboard, source CRUD, archive browser, manual trigger, article search)
 
 *Updated after each plan completion*
 
@@ -129,6 +129,10 @@ Recent decisions affecting current work:
 - **HTMX for archive filtering** (06-03): Role and month dropdowns trigger hx-get to update #archive-list without full page reload. Better UX.
 - **30s auto-refresh for runs table** (06-03): hx-trigger="every 30s" shows real-time pipeline status. Balances freshness vs server load.
 - **Keep old admin_trigger.html** (06-03): Backward compatibility for existing POST /admin/trigger-pipeline workflow during transition.
+- **FTS5 with BM25 ranking** (06-04): SQLite FTS5 provides fast full-text search with relevance ranking. Porter stemming with unicode61 tokenizer for international text.
+- **300ms debounce delay** (06-04): Balance responsive UX with server load. User doesn't notice delay, server gets reasonable request rate.
+- **Graceful fallback to LIKE queries** (06-04): FTS5 table might not exist if migration not run. Service catches FTS errors and uses standard LIKE pattern matching.
+- **Collapsible filter section** (06-04): Clean default UI, advanced filters available when needed. Bootstrap collapse provides smooth animation.
 
 ### Pending Todos
 
@@ -141,6 +145,6 @@ None - Phase 6 proceeding smoothly with admin dashboard foundation and source CR
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed 06-03-PLAN.md — Report archive browser and manual trigger integration
+Stopped at: Completed 06-04-PLAN.md — FTS5 article search with debounced HTMX and multi-filter support
 Resume file: None
-Next: Phase 6 remaining plans (06-04, 06-05) - article search, recipient management (if not already complete)
+Next: Phase 6 remaining plan (06-05) - recipient management, or Phase 7/8 if complete
