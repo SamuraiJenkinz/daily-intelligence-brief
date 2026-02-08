@@ -22,12 +22,14 @@ from app.services.collector import ApifyCollector
 from app.services.classifier import RoleClassificationService
 from app.services.reporter import RoleReportService
 from app.services.pipeline import PipelineOrchestrator
+from app.services.search import ArticleSearchService
 from app.database import SessionLocal
 from app.models import Run, Source, NewsArticle
 from app.models.source import SourceType
 from app.schemas.admin import SourceCreate, SourceUpdate
 from datetime import datetime, date
 from sqlalchemy import func
+import math
 
 
 logger = structlog.get_logger(__name__)
@@ -121,8 +123,8 @@ def get_admin_trigger_ui():
     Returns:
         HTML page with form for triggering pipeline execution
     """
-    template = jinja_env.get_template('admin_trigger.html')
-    html = template.render()
+    template = jinja_env.get_template('admin/trigger.html')
+    html = template.render(active_nav='trigger')
     return HTMLResponse(content=html)
 
 
@@ -949,3 +951,82 @@ def get_archived_report(role: str, date: str):
         media_type="text/html",
         filename=f"{role}_{date}.html"
     )
+
+
+@router.get("/runs-table", response_class=HTMLResponse)
+def get_runs_table():
+    """
+    Get recent runs table HTML partial.
+
+    Returns:
+        HTML table partial with recent pipeline runs
+    """
+    db = SessionLocal()
+
+    try:
+        # Get recent runs (last 10)
+        runs = db.query(Run).order_by(Run.id.desc()).limit(10).all()
+
+        # Build HTML table
+        if not runs:
+            html = """
+            <div class="text-center p-4 text-muted">
+                <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                <p class="mt-2">No pipeline runs yet</p>
+            </div>
+            """
+        else:
+            rows = []
+            for run in runs:
+                status_badge = {
+                    'completed': '<span class="badge bg-success">Completed</span>',
+                    'failed': '<span class="badge bg-danger">Failed</span>',
+                    'running': '<span class="badge bg-primary">Running</span>',
+                    'pending': '<span class="badge bg-secondary">Pending</span>'
+                }.get(run.status.value, f'<span class="badge bg-secondary">{run.status.value}</span>')
+
+                created = run.created_at.strftime('%Y-%m-%d %H:%M:%S') if run.created_at else 'N/A'
+                completed = run.completed_at.strftime('%Y-%m-%d %H:%M:%S') if run.completed_at else 'N/A'
+
+                error_cell = ''
+                if run.error_message:
+                    error_cell = f'<small class="text-danger">{run.error_message[:100]}...</small>'
+
+                row = f"""
+                <tr>
+                    <td>{run.id}</td>
+                    <td>{status_badge}</td>
+                    <td><small>{created}</small></td>
+                    <td><small>{completed}</small></td>
+                    <td>{run.articles_collected or 0}</td>
+                    <td>{run.articles_classified or 0}</td>
+                    <td>{error_cell}</td>
+                </tr>
+                """
+                rows.append(row)
+
+            html = f"""
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Completed</th>
+                            <th>Collected</th>
+                            <th>Classified</th>
+                            <th>Error</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {''.join(rows)}
+                    </tbody>
+                </table>
+            </div>
+            """
+
+        return HTMLResponse(content=html)
+
+    finally:
+        db.close()
