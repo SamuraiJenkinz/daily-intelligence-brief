@@ -1,0 +1,95 @@
+<form
+    hx-post="/admin/sources/create"
+    hx-target="#source-table-body"
+    hx-swap="innerHTML"
+>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label for="newSourceName" class="form-label">Name <span class="text-danger">*</span></label>
+            <input
+                type="text"
+                class="form-control {% if errors and errors.name %}is-invalid{% endif %}"
+                id="newSourceName"
+                name="name"
+                value="{{ form_data.name if form_data else '' }}"
+                required
+            >
+            {% if errors and errors.name %}
+                <div class="invalid-feedback">{{ errors.name }}</div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-6">
+            <label for="newSourceUrl" class="form-label">URL <span class="text-danger">*</span></label>
+            <input
+                type="text"
+                class="form-control {% if errors and errors.url %}is-invalid{% endif %}"
+                id="newSourceUrl"
+                name="url"
+                value="{{ form_data.url if form_data else '' }}"
+                placeholder="https://example.com"
+                required
+            >
+            {% if errors and errors.url %}
+                <div class="invalid-feedback">{{ errors.url }}</div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <label for="newSourceType" class="form-label">Source Type <span class="text-danger">*</span></label>
+            <select
+                class="form-select {% if errors and errors.source_type %}is-invalid{% endif %}"
+                id="newSourceType"
+                name="source_type"
+                required
+            >
+                <option value="" disabled {% if not form_data or not form_data.source_type %}selected{% endif %}>Choose...</option>
+                <option value="apify" {% if form_data and form_data.source_type == 'apify' %}selected{% endif %}>Apify</option>
+                <option value="rss" {% if form_data and form_data.source_type == 'rss' %}selected{% endif %}>RSS</option>
+            </select>
+            {% if errors and errors.source_type %}
+                <div class="invalid-feedback">{{ errors.source_type }}</div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <label for="newSourceActorId" class="form-label">Actor ID <span class="text-muted">(optional)</span></label>
+            <input
+                type="text"
+                class="form-control"
+                id="newSourceActorId"
+                name="actor_id"
+                value="{{ form_data.actor_id if form_data else '' }}"
+                placeholder="e.g., apify/web-scraper"
+            >
+            <div class="form-text">Required for Apify sources</div>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label d-block">Status</label>
+            <div class="form-check form-switch mt-2">
+                <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="newSourceEnabled"
+                    name="enabled"
+                    {% if not form_data or form_data.enabled %}checked{% endif %}
+                >
+                <label class="form-check-label" for="newSourceEnabled">
+                    Enabled
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-12">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Add Source
+            </button>
+            <button type="reset" class="btn btn-secondary ms-2">
+                <i class="bi bi-x-circle"></i> Clear
+            </button>
+        </div>
+    </div>
+</form>

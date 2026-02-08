@@ -1,0 +1,11 @@
+{% if sources %}
+    {% for source in sources %}
+        {% include "admin/partials/source_row.html" %}
+    {% endfor %}
+{% else %}
+    <tr>
+        <td colspan="6" class="text-center text-muted py-4">
+            <i class="bi bi-inbox"></i> No sources found
+        </td>
+    </tr>
+{% endif %}

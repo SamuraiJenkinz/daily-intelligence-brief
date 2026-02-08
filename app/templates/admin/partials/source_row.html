@@ -1,0 +1,67 @@
+<tr id="source-{{ source.id }}">
+    <td>
+        <strong>{{ source.name }}</strong>
+    </td>
+    <td class="url-cell" title="{{ source.url }}">
+        <a href="{{ source.url }}" target="_blank" class="text-decoration-none">
+            {{ source.url[:50] }}{% if source.url|length > 50 %}...{% endif %}
+            <i class="bi bi-box-arrow-up-right small"></i>
+        </a>
+    </td>
+    <td>
+        {% if source.source_type.value == "apify" %}
+            <span class="badge bg-primary badge-type">Apify</span>
+        {% else %}
+            <span class="badge bg-info badge-type">RSS</span>
+        {% endif %}
+    </td>
+    <td>
+        {% if source.actor_id %}
+            <code class="small">{{ source.actor_id }}</code>
+        {% else %}
+            <span class="text-muted">N/A</span>
+        {% endif %}
+    </td>
+    <td>
+        {% if source.enabled %}
+            <span class="badge bg-success">Enabled</span>
+        {% else %}
+            <span class="badge bg-warning text-dark">Disabled</span>
+        {% endif %}
+    </td>
+    <td class="text-end actions-cell">
+        <div class="btn-group btn-group-sm" role="group">
+            <button
+                type="button"
+                class="btn btn-outline-secondary"
+                title="Edit"
+                hx-get="/admin/sources/{{ source.id }}/edit"
+                hx-target="closest tr"
+                hx-swap="outerHTML"
+            >
+                <i class="bi bi-pencil"></i>
+            </button>
+            <button
+                type="button"
+                class="btn btn-outline-{% if source.enabled %}warning{% else %}success{% endif %}"
+                title="{% if source.enabled %}Disable{% else %}Enable{% endif %}"
+                hx-post="/admin/sources/{{ source.id }}/toggle"
+                hx-target="closest tr"
+                hx-swap="outerHTML"
+            >
+                <i class="bi bi-toggle-{% if source.enabled %}on{% else %}off{% endif %}"></i>
+            </button>
+            <button
+                type="button"
+                class="btn btn-outline-danger"
+                title="Delete"
+                hx-delete="/admin/sources/{{ source.id }}"
+                hx-target="closest tr"
+                hx-swap="outerHTML swap:1s"
+                hx-confirm="Delete source '{{ source.name }}'? This cannot be undone."
+            >
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    </td>
+</tr>
