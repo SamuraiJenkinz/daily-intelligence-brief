@@ -582,3 +582,370 @@ def delete_source(source_id: int):
 
     finally:
         db.close()
+
+
+# Pydantic schema for recipient validation
+class RecipientUpdate(BaseModel):
+    """Schema for validating recipient email lists."""
+    to: str = ""
+    cc: str = ""
+    bcc: str = ""
+
+    @field_validator('to', 'cc', 'bcc')
+    @classmethod
+    def validate_emails(cls, v: str) -> str:
+        """Validate that all emails in comma-separated list are valid."""
+        if not v or not v.strip():
+            return ""
+
+        # Split by comma and validate each email
+        emails = [e.strip() for e in v.split(',') if e.strip()]
+
+        # Simple email regex validation
+        email_pattern = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+
+        for email in emails:
+            if not email_pattern.match(email):
+                raise ValueError(f"Invalid email address: {email}")
+
+        return v
+
+
+@router.get("/recipients", response_class=HTMLResponse)
+def get_recipients_page(request: Request):
+    """
+    Serve recipient management page.
+
+    Shows email recipients for all four roles (Brokers, Leadership,
+    Compliance, Underwriting) with inline editing capability.
+
+    Args:
+        request: FastAPI request object for HTMX detection
+
+    Returns:
+        HTML response with recipient management interface
+    """
+    settings = get_settings()
+
+    # Build recipients dict for all roles
+    roles = ["Brokers", "Leadership", "Compliance", "Underwriting"]
+    recipients = {}
+
+    for role in roles:
+        recipients[role] = settings.get_email_recipients(role)
+
+    # Check if this is an HTMX request
+    is_htmx = request.headers.get("HX-Request") == "true"
+
+    if is_htmx:
+        # Return partial (though unlikely for this endpoint)
+        template = jinja_env.get_template('admin/recipients.html')
+        html = template.render(recipients=recipients, active_nav="recipients")
+    else:
+        # Return full page
+        template = jinja_env.get_template('admin/recipients.html')
+        html = template.render(recipients=recipients, active_nav="recipients")
+
+    return HTMLResponse(content=html)
+
+
+@router.get("/recipients/{role}/edit", response_class=HTMLResponse)
+def get_recipient_edit_form(role: str):
+    """
+    Get edit form partial for a role's recipients.
+
+    Args:
+        role: Role name (Brokers, Leadership, Compliance, Underwriting)
+
+    Returns:
+        HTML response with recipient card in edit mode
+
+    Raises:
+        HTTPException: If role is invalid
+    """
+    valid_roles = ["Brokers", "Leadership", "Compliance", "Underwriting"]
+
+    if role not in valid_roles:
+        raise HTTPException(status_code=400, detail=f"Invalid role: {role}")
+
+    settings = get_settings()
+    recipients = settings.get_email_recipients(role)
+
+    # Convert lists back to comma-separated strings for form
+    form_data = {
+        "to": ", ".join(recipients.to),
+        "cc": ", ".join(recipients.cc),
+        "bcc": ", ".join(recipients.bcc)
+    }
+
+    template = jinja_env.get_template('admin/partials/recipient_card.html')
+    html = template.render(role=role, recipients=recipients, form_data=form_data, edit=True)
+
+    return HTMLResponse(content=html)
+
+
+@router.post("/recipients/{role}", response_class=HTMLResponse)
+def update_recipients(
+    role: str,
+    to: str = Form(default=""),
+    cc: str = Form(default=""),
+    bcc: str = Form(default="")
+):
+    """
+    Update email recipients for a role.
+
+    Saves changes to .env file and clears settings cache so
+    changes take effect on next pipeline run.
+
+    Args:
+        role: Role name (Brokers, Leadership, Compliance, Underwriting)
+        to: Comma-separated TO email addresses
+        cc: Comma-separated CC email addresses
+        bcc: Comma-separated BCC email addresses
+
+    Returns:
+        HTML response with updated recipient card
+
+    Raises:
+        HTTPException: If role is invalid or validation fails
+    """
+    valid_roles = ["Brokers", "Leadership", "Compliance", "Underwriting"]
+
+    if role not in valid_roles:
+        raise HTTPException(status_code=400, detail=f"Invalid role: {role}")
+
+    try:
+        # Validate input
+        recipient_data = RecipientUpdate(to=to, cc=cc, bcc=bcc)
+    except ValidationError as e:
+        # Return edit form with errors
+        errors = {err["loc"][0]: err["msg"] for err in e.errors()}
+
+        settings = get_settings()
+        recipients = settings.get_email_recipients(role)
+
+        template = jinja_env.get_template('admin/partials/recipient_card.html')
+        html = template.render(
+            role=role,
+            recipients=recipients,
+            form_data={"to": to, "cc": cc, "bcc": bcc},
+            edit=True,
+            errors=errors
+        )
+        return HTMLResponse(content=html, status_code=422)
+
+    # Update .env file
+    env_path = Path(".env")
+
+    # Map role to env variable prefixes
+    role_prefix_map = {
+        "Brokers": "REPORT_RECIPIENTS_BROKERS",
+        "Leadership": "REPORT_RECIPIENTS_LEADERSHIP",
+        "Compliance": "REPORT_RECIPIENTS_COMPLIANCE",
+        "Underwriting": "REPORT_RECIPIENTS_UNDERWRITING"
+    }
+
+    prefix = role_prefix_map[role]
+
+    # Read current .env content
+    if env_path.exists():
+        env_content = env_path.read_text(encoding="utf-8")
+    else:
+        env_content = ""
+
+    # Update or add each recipient type
+    for field_name, field_value in [("", to), ("_CC", cc), ("_BCC", bcc)]:
+        var_name = f"{prefix}{field_name}"
+        pattern = re.compile(f"^{re.escape(var_name)}=.*$", re.MULTILINE)
+
+        if pattern.search(env_content):
+            # Replace existing line
+            env_content = pattern.sub(f"{var_name}={field_value}", env_content)
+        else:
+            # Append new line
+            if env_content and not env_content.endswith("\n"):
+                env_content += "\n"
+            env_content += f"{var_name}={field_value}\n"
+
+    # Write updated content
+    env_path.write_text(env_content, encoding="utf-8")
+
+    # Clear settings cache
+    get_settings.cache_clear()
+
+    logger.info("recipients_updated", role=role)
+
+    # Return updated card in display mode
+    settings = get_settings()
+    recipients = settings.get_email_recipients(role)
+
+    template = jinja_env.get_template('admin/partials/recipient_card.html')
+    html = template.render(role=role, recipients=recipients, edit=False)
+
+    return HTMLResponse(content=html)
+
+
+@router.get("/archive", response_class=HTMLResponse)
+def get_archive_browser(
+    request: Request,
+    role: str = Query(default=None),
+    month: str = Query(default=None)
+):
+    """
+    Browse archived reports grouped by date.
+
+    Args:
+        request: FastAPI request object
+        role: Optional filter by role (brokers, leadership, compliance, underwriting)
+        month: Optional filter by month (YYYY-MM format)
+
+    Returns:
+        HTML archive browser page or HTMX partial
+    """
+    import re
+    from collections import defaultdict
+
+    # Get reports directory
+    reports_dir = Path(__file__).parent.parent.parent / "data" / "reports"
+
+    # Valid roles (lowercase)
+    valid_roles = ["brokers", "leadership", "compliance", "underwriting"]
+
+    # Build archive data
+    archive_data = defaultdict(lambda: {role: None for role in valid_roles})
+
+    if reports_dir.exists():
+        # Scan directory structure: data/reports/{role}/{YYYY-MM-DD}.html
+        for role_dir in reports_dir.iterdir():
+            if not role_dir.is_dir():
+                continue
+
+            role_name = role_dir.name
+            if role_name not in valid_roles:
+                continue
+
+            # Apply role filter if specified
+            if role and role_name != role.lower():
+                continue
+
+            # Scan for date-named HTML files
+            for report_file in role_dir.glob("*.html"):
+                # Validate filename format (YYYY-MM-DD.html)
+                if not re.match(r'^\d{4}-\d{2}-\d{2}\.html$', report_file.name):
+                    continue
+
+                date_str = report_file.stem  # Remove .html extension
+
+                # Apply month filter if specified
+                if month and not date_str.startswith(month):
+                    continue
+
+                # Get file size
+                size_bytes = report_file.stat().st_size
+                size_kb = size_bytes / 1024
+
+                archive_data[date_str][role_name] = {
+                    "path": str(report_file.relative_to(reports_dir.parent.parent)),
+                    "size_kb": round(size_kb, 1),
+                    "exists": True
+                }
+
+    # Sort by date descending
+    sorted_dates = sorted(archive_data.keys(), reverse=True)
+
+    # Build sorted archive list
+    archive_list = [
+        {
+            "date": date_str,
+            "reports": archive_data[date_str]
+        }
+        for date_str in sorted_dates
+    ]
+
+    # Get available months for filter dropdown
+    available_months = sorted(set(date[:7] for date in archive_data.keys()), reverse=True)
+
+    # Check if HTMX request
+    is_htmx = request.headers.get("HX-Request") == "true"
+
+    if is_htmx:
+        # Return just the archive list partial
+        template = jinja_env.get_template('admin/partials/archive_list.html')
+        html = template.render(archive_list=archive_list)
+    else:
+        # Return full page
+        template = jinja_env.get_template('admin/archive.html')
+        html = template.render(
+            active_nav='archive',
+            archive_list=archive_list,
+            available_months=available_months,
+            selected_role=role,
+            selected_month=month,
+            valid_roles=valid_roles
+        )
+
+    return HTMLResponse(content=html)
+
+
+@router.get("/archive/{role}/{date}", response_class=HTMLResponse)
+def get_archived_report(role: str, date: str):
+    """
+    Serve an archived report HTML file.
+
+    Security:
+    - Validates date format (YYYY-MM-DD)
+    - Validates role is in allowed list
+    - Uses Path.resolve() to prevent path traversal
+    - Verifies final path is within data/reports/
+
+    Args:
+        role: Role name (lowercase)
+        date: Date in YYYY-MM-DD format
+
+    Returns:
+        FileResponse with HTML content
+
+    Raises:
+        HTTPException: 404 if file not found or invalid path
+    """
+    import re
+    from fastapi.responses import FileResponse
+
+    # Valid roles (lowercase)
+    valid_roles = ["brokers", "leadership", "compliance", "underwriting"]
+
+    # SECURITY: Validate role
+    if role.lower() not in valid_roles:
+        raise HTTPException(status_code=404, detail="Invalid role")
+
+    # SECURITY: Validate date format (YYYY-MM-DD)
+    if not re.match(r'^\d{4}-\d{2}-\d{2}$', date):
+        raise HTTPException(status_code=404, detail="Invalid date format")
+
+    # Build path
+    reports_dir = Path(__file__).parent.parent.parent / "data" / "reports"
+    report_path = reports_dir / role.lower() / f"{date}.html"
+
+    # SECURITY: Resolve path and verify it's within reports directory
+    try:
+        resolved_path = report_path.resolve()
+        resolved_reports_dir = reports_dir.resolve()
+
+        # Check if resolved path is within reports directory
+        if not str(resolved_path).startswith(str(resolved_reports_dir)):
+            raise HTTPException(status_code=404, detail="Invalid path")
+
+        # Check if file exists
+        if not resolved_path.exists() or not resolved_path.is_file():
+            raise HTTPException(status_code=404, detail="Report not found")
+
+    except Exception as e:
+        logger.error("archive_access_error", role=role, date=date, error=str(e))
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    # Return file
+    return FileResponse(
+        path=str(resolved_path),
+        media_type="text/html",
+        filename=f"{role}_{date}.html"
+    )
