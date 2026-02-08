@@ -38,3 +38,6 @@ sentence-transformers>=5.0.0
 
 # Retry logic with exponential backoff
 tenacity
+
+# Statistical analysis (drift detection)
+scipy

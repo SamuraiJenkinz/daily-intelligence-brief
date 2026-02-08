@@ -6,6 +6,7 @@ such as zero articles, below-baseline counts, or prolonged inactivity.
 """
 from datetime import datetime, timedelta
 from typing import Dict, List
+import statistics
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 import structlog
@@ -45,6 +46,9 @@ class SourceHealthMonitor:
                 - reason: str (if not healthy)
                 - latest_count: int (article count from latest run)
                 - baseline_avg: float (7-day moving average)
+                - baseline_std: float (standard deviation of baseline)
+                - threshold_value: float (calculated threshold for warning)
+                - consecutive_low_runs: int (number of consecutive below-baseline runs)
                 - total_runs: int (number of runs in lookback period)
         """
         cutoff = datetime.utcnow() - timedelta(days=self.lookback_days)
@@ -81,15 +85,32 @@ class SourceHealthMonitor:
                 "alert": False,
                 "latest_count": 0,
                 "baseline_avg": 0.0,
+                "baseline_std": 0.0,
+                "threshold_value": 0.0,
+                "consecutive_low_runs": 0,
                 "total_runs": 0
             }
 
         # Calculate baseline metrics
         counts = [count.article_count for count in run_counts]
         baseline_avg = sum(counts) / len(counts)
-        baseline_min = min(counts)
+        baseline_std = statistics.stdev(counts) if len(counts) > 1 else 0.0
         latest_count = counts[-1]  # Most recent run
         total_runs = len(counts)
+
+        # Calculate threshold using standard deviation (more lenient of two approaches)
+        # Warning threshold: baseline_avg - 2*std_dev OR 30% of baseline (whichever is more lenient)
+        std_threshold = baseline_avg - (2 * baseline_std)
+        pct_threshold = baseline_avg * 0.3
+        threshold_value = max(std_threshold, pct_threshold)
+
+        # Count consecutive low runs (below threshold)
+        consecutive_low_runs = 0
+        for count in reversed(counts):
+            if count < threshold_value:
+                consecutive_low_runs += 1
+            else:
+                break
 
         # Determine health status based on latest run vs baseline
         if latest_count == 0 and baseline_avg > 0:
@@ -102,10 +123,11 @@ class SourceHealthMonitor:
                 source_name=source.name,
                 latest_count=latest_count,
                 baseline_avg=baseline_avg,
+                baseline_std=baseline_std,
                 reason=reason
             )
-        elif latest_count < baseline_avg * 0.5:
-            # Warning: Less than 50% of baseline
+        elif latest_count < threshold_value and latest_count > 0:
+            # Warning: Below statistical threshold
             status = "warning"
             reason = "below_baseline"
             alert = True
@@ -114,11 +136,13 @@ class SourceHealthMonitor:
                 source_name=source.name,
                 latest_count=latest_count,
                 baseline_avg=baseline_avg,
-                threshold=baseline_avg * 0.5,
+                baseline_std=baseline_std,
+                threshold_value=threshold_value,
+                consecutive_low_runs=consecutive_low_runs,
                 reason=reason
             )
         else:
-            # Healthy: At or above 50% of baseline
+            # Healthy: At or above threshold
             status = "healthy"
             reason = None
             alert = False
@@ -126,7 +150,8 @@ class SourceHealthMonitor:
                 "source_health_healthy",
                 source_name=source.name,
                 latest_count=latest_count,
-                baseline_avg=baseline_avg
+                baseline_avg=baseline_avg,
+                baseline_std=baseline_std
             )
 
         return {
@@ -136,6 +161,9 @@ class SourceHealthMonitor:
             "alert": alert,
             "latest_count": latest_count,
             "baseline_avg": baseline_avg,
+            "baseline_std": baseline_std,
+            "threshold_value": threshold_value,
+            "consecutive_low_runs": consecutive_low_runs,
             "total_runs": total_runs
         }
 
@@ -199,3 +227,118 @@ class SourceHealthMonitor:
         )
 
         return alerts
+
+    def format_alert_email(self, alerts: List[Dict]) -> str:
+        """
+        Format health alerts as HTML email for admin notification.
+
+        Args:
+            alerts: List of alert dicts from get_alerts()
+
+        Returns:
+            HTML string suitable for email delivery
+        """
+        now = datetime.utcnow()
+        date_str = now.strftime("%d %B %Y")
+
+        # Count critical vs warning
+        critical_count = sum(1 for a in alerts if a["status"] == "critical")
+        warning_count = sum(1 for a in alerts if a["status"] == "warning")
+
+        # Build table rows
+        rows = []
+        for alert in alerts:
+            # Color-code by status
+            bg_color = "#dc3545" if alert["status"] == "critical" else "#fd7e14"
+            text_color = "#ffffff"
+
+            # Format reason
+            reason_text = alert["reason"].replace("_", " ").title()
+
+            # Add consecutive low runs info if > 1
+            if alert.get("consecutive_low_runs", 0) > 1:
+                reason_text += f" ({alert['consecutive_low_runs']} runs)"
+
+            row = f"""
+            <tr style="background-color: {bg_color}; color: {text_color};">
+                <td style="padding: 10px; border: 1px solid #ddd;">{alert["source_name"]}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">{alert["status"].upper()}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">{alert["latest_count"]}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">{alert["baseline_avg"]:.1f}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">{reason_text}</td>
+            </tr>
+            """
+            rows.append(row)
+
+        rows_html = "\n".join(rows)
+
+        # Build complete HTML email
+        html = f"""
+        <html>
+        <head>
+            <style>
+                body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; }}
+                table {{ border-collapse: collapse; width: 100%; margin: 20px 0; }}
+                th {{ background-color: #343a40; color: white; padding: 12px; text-align: left; border: 1px solid #ddd; }}
+                td {{ padding: 10px; border: 1px solid #ddd; }}
+                .summary {{ background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0; }}
+                .footer {{ color: #6c757d; font-size: 12px; margin-top: 30px; }}
+            </style>
+        </head>
+        <body>
+            <h2>Source Health Alert - {date_str}</h2>
+
+            <div class="summary">
+                <p><strong>{len(alerts)} source(s) require attention</strong></p>
+                <ul>
+                    <li><strong>Critical:</strong> {critical_count} (zero articles)</li>
+                    <li><strong>Warning:</strong> {warning_count} (below baseline)</li>
+                </ul>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Source Name</th>
+                        <th>Status</th>
+                        <th>Latest Count</th>
+                        <th>Baseline Avg</th>
+                        <th>Reason</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows_html}
+                </tbody>
+            </table>
+
+            <p class="footer">
+                View detailed source health and manage sources at: <a href="http://localhost:8001/admin">MDInsights Admin Dashboard</a><br>
+                This is an automated alert from MDInsights Source Health Monitor. Check logs for full details.
+            </p>
+        </body>
+        </html>
+        """
+
+        return html
+
+    def format_alert_summary(self, alerts: List[Dict]) -> str:
+        """
+        Format health alerts as plain text summary for log output.
+
+        Args:
+            alerts: List of alert dicts from get_alerts()
+
+        Returns:
+            Plain text one-liner summary
+        """
+        if not alerts:
+            return "No health alerts"
+
+        alert_parts = []
+        for alert in alerts:
+            status = alert["status"]
+            source = alert["source_name"]
+            reason = alert["reason"]
+            alert_parts.append(f"{source} ({status}: {reason})")
+
+        return f"{len(alerts)} alerts: {', '.join(alert_parts)}"
