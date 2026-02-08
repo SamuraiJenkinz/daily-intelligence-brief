@@ -174,10 +174,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 08-01: Final Marsh branding review — refine CSS, logo placement, typography to match brand guidelines
-- [ ] 08-02: User documentation — administrator guide covering source/recipient management and troubleshooting
-- [ ] 08-03: Deployment documentation — Windows Server setup, Azure AD app registration, Task Scheduler configuration
-- [ ] 08-04: Production deployment and handoff — deploy to production, configure monitoring, stakeholder sign-off
+- [ ] 08-01-PLAN.md — Brand verification script + CSS compliance check against prototype reference
+- [ ] 08-02-PLAN.md — Administrator guide for source/recipient management and troubleshooting
+- [ ] 08-03-PLAN.md — Deployment guide with Azure AD setup, .env reference, and production checklist
+- [ ] 08-04-PLAN.md — Production validation script, stakeholder checklist, and launch readiness checkpoint
 
 ## Progress
 
