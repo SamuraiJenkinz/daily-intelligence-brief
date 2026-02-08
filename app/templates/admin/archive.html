@@ -1,0 +1,126 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Report Archive{% endblock %}
+
+{% block extra_head %}
+<style>
+    .archive-filters {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+    }
+
+    .report-badge {
+        display: inline-block;
+        margin: 0.25rem;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .report-badge.available {
+        background-color: #0077c8;
+        color: white;
+    }
+
+    .report-badge.available:hover {
+        background-color: #005a9c;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .report-badge.missing {
+        background-color: #e9ecef;
+        color: #6c757d;
+        cursor: not-allowed;
+    }
+
+    .archive-date-header {
+        background-color: #f8f9fa;
+        border-left: 4px solid var(--marsh-light-blue);
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        color: var(--marsh-blue);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-1">
+                <i class="bi bi-archive"></i>
+                Report Archive
+            </h1>
+            <p class="text-muted">Browse and view archived daily intelligence briefs</p>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="archive-filters">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <label for="roleFilter" class="form-label fw-semibold">Filter by Role</label>
+                <select
+                    id="roleFilter"
+                    class="form-select"
+                    hx-get="/admin/archive"
+                    hx-target="#archive-list"
+                    hx-swap="innerHTML"
+                    hx-include="#monthFilter"
+                    name="role"
+                >
+                    <option value="">All Roles</option>
+                    {% for valid_role in valid_roles %}
+                    <option value="{{ valid_role }}" {% if selected_role == valid_role %}selected{% endif %}>
+                        {{ valid_role.title() }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label for="monthFilter" class="form-label fw-semibold">Filter by Month</label>
+                <select
+                    id="monthFilter"
+                    class="form-select"
+                    hx-get="/admin/archive"
+                    hx-target="#archive-list"
+                    hx-swap="innerHTML"
+                    hx-include="#roleFilter"
+                    name="month"
+                >
+                    <option value="">All Months</option>
+                    {% for available_month in available_months %}
+                    <option value="{{ available_month }}" {% if selected_month == available_month %}selected{% endif %}>
+                        {{ available_month }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-4 d-flex align-items-end">
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary w-100"
+                    onclick="document.getElementById('roleFilter').value=''; document.getElementById('monthFilter').value=''; htmx.trigger('#roleFilter', 'change');"
+                >
+                    <i class="bi bi-x-circle"></i>
+                    Clear Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Archive List -->
+    <div id="archive-list">
+        {% include 'admin/partials/archive_list.html' %}
+    </div>
+</div>
+{% endblock %}
