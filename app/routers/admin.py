@@ -1030,3 +1030,119 @@ def get_runs_table():
 
     finally:
         db.close()
+
+
+@router.get("/search", response_class=HTMLResponse)
+def search_articles(
+    request: Request,
+    q: Optional[str] = Query(None),
+    role: Optional[str] = Query(None),
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+    priority: Optional[str] = Query(None),
+    source: Optional[str] = Query(None),
+    page: int = Query(default=1, ge=1)
+):
+    """
+    Search articles with FTS5 full-text search and filters.
+
+    Provides debounced keyword search with multi-filter support:
+    - Keyword search across title, description, summary (FTS5 with BM25 ranking)
+    - Filter by role, priority, source, date range
+    - Paginated results (25 per page)
+
+    Args:
+        request: FastAPI request object for HTMX detection
+        q: Search query string
+        role: Filter by role (Brokers, Leadership, etc.)
+        date_from: Filter articles published on or after this date (YYYY-MM-DD)
+        date_to: Filter articles published on or before this date (YYYY-MM-DD)
+        priority: Filter by priority (Critical, High, Medium, Monitor)
+        source: Filter by source name
+        page: Page number for pagination
+
+    Returns:
+        HTML response with search page or results partial
+    """
+    db = SessionLocal()
+
+    try:
+        # Parse dates
+        date_from_parsed = None
+        date_to_parsed = None
+
+        if date_from:
+            try:
+                date_from_parsed = datetime.strptime(date_from, "%Y-%m-%d").date()
+            except ValueError:
+                pass
+
+        if date_to:
+            try:
+                date_to_parsed = datetime.strptime(date_to, "%Y-%m-%d").date()
+            except ValueError:
+                pass
+
+        # Pagination
+        per_page = 25
+        offset = (page - 1) * per_page
+
+        # Search articles
+        articles, total_count = ArticleSearchService.search(
+            db=db,
+            query=q,
+            role=role,
+            date_from=date_from_parsed,
+            date_to=date_to_parsed,
+            priority=priority,
+            source_name=source,
+            limit=per_page,
+            offset=offset
+        )
+
+        # Calculate total pages
+        total_pages = math.ceil(total_count / per_page) if total_count > 0 else 0
+
+        # Get filter options
+        filter_options = ArticleSearchService.get_filter_options(db)
+
+        # Check if HTMX request
+        is_htmx = request.headers.get("HX-Request") == "true"
+
+        if is_htmx:
+            # Return just the results partial
+            template = jinja_env.get_template('admin/partials/search_results.html')
+            html = template.render(
+                articles=articles,
+                total_count=total_count,
+                current_page=page,
+                total_pages=total_pages,
+                q=q,
+                role=role,
+                date_from=date_from,
+                date_to=date_to,
+                priority=priority,
+                source=source
+            )
+        else:
+            # Return full page
+            template = jinja_env.get_template('admin/search.html')
+            html = template.render(
+                active_nav='search',
+                articles=articles,
+                total_count=total_count,
+                current_page=page,
+                total_pages=total_pages,
+                q=q,
+                role=role,
+                date_from=date_from,
+                date_to=date_to,
+                priority=priority,
+                source=source,
+                filter_options=filter_options
+            )
+
+        return HTMLResponse(content=html)
+
+    finally:
+        db.close()

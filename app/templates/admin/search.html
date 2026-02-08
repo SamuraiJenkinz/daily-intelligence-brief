@@ -1,0 +1,259 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Article Search{% endblock %}
+
+{% block extra_head %}
+<style>
+    .search-input {
+        font-size: 1.1rem;
+        padding: 0.75rem 1rem;
+    }
+
+    .search-input:focus {
+        border-color: var(--marsh-light-blue);
+        box-shadow: 0 0 0 0.2rem rgba(0, 119, 200, 0.25);
+    }
+
+    .filter-section {
+        background-color: white;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .filter-toggle {
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .filter-toggle:hover {
+        color: var(--marsh-light-blue);
+    }
+
+    .article-card {
+        background-color: white;
+        border-radius: 0.5rem;
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        transition: box-shadow 0.2s ease;
+    }
+
+    .article-card:hover {
+        box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    }
+
+    .article-title {
+        color: var(--marsh-blue);
+        text-decoration: none;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .article-title:hover {
+        color: var(--marsh-light-blue);
+        text-decoration: underline;
+    }
+
+    .article-meta {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-bottom: 0.75rem;
+    }
+
+    .article-snippet {
+        color: #495057;
+        line-height: 1.6;
+    }
+
+    .badge {
+        font-weight: 500;
+        padding: 0.35em 0.65em;
+    }
+
+    .badge-priority-critical {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .badge-priority-high {
+        background-color: #fd7e14;
+        color: white;
+    }
+
+    .badge-priority-medium {
+        background-color: #0dcaf0;
+        color: white;
+    }
+
+    .badge-priority-monitor {
+        background-color: #6c757d;
+        color: white;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #6c757d;
+    }
+
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+
+    .pagination {
+        margin-top: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-0">
+                <i class="bi bi-search me-2"></i>
+                Article Search
+            </h1>
+            <p class="text-muted mt-2">Search and filter past news articles</p>
+        </div>
+    </div>
+
+    <!-- Search Input -->
+    <div class="row mb-3">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <input
+                        type="text"
+                        class="form-control search-input"
+                        id="search-query"
+                        name="q"
+                        placeholder="Search articles by keyword..."
+                        value="{{ q or '' }}"
+                        hx-get="/admin/search"
+                        hx-trigger="keyup changed delay:300ms"
+                        hx-target="#search-results"
+                        hx-include="[name='role'], [name='date_from'], [name='date_to'], [name='priority'], [name='source']"
+                        autocomplete="off"
+                    >
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters (Collapsible) -->
+    <div class="filter-section">
+        <div class="filter-toggle d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#filterOptions">
+            <span>
+                <i class="bi bi-funnel me-2"></i>
+                <strong>Filters</strong>
+            </span>
+            <i class="bi bi-chevron-down"></i>
+        </div>
+
+        <div class="collapse" id="filterOptions">
+            <hr>
+            <div class="row g-3">
+                <!-- Role Filter -->
+                <div class="col-md-3">
+                    <label for="filter-role" class="form-label">Role</label>
+                    <select
+                        class="form-select"
+                        id="filter-role"
+                        name="role"
+                        hx-get="/admin/search"
+                        hx-trigger="change"
+                        hx-target="#search-results"
+                        hx-include="[name='q'], [name='date_from'], [name='date_to'], [name='priority'], [name='source']"
+                    >
+                        <option value="">All Roles</option>
+                        {% for r in filter_options.roles %}
+                        <option value="{{ r }}" {% if role == r %}selected{% endif %}>{{ r }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Priority Filter -->
+                <div class="col-md-3">
+                    <label for="filter-priority" class="form-label">Priority</label>
+                    <select
+                        class="form-select"
+                        id="filter-priority"
+                        name="priority"
+                        hx-get="/admin/search"
+                        hx-trigger="change"
+                        hx-target="#search-results"
+                        hx-include="[name='q'], [name='role'], [name='date_from'], [name='date_to'], [name='source']"
+                    >
+                        <option value="">All Priorities</option>
+                        {% for p in filter_options.priorities %}
+                        <option value="{{ p }}" {% if priority == p %}selected{% endif %}>{{ p }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Source Filter -->
+                <div class="col-md-3">
+                    <label for="filter-source" class="form-label">Source</label>
+                    <select
+                        class="form-select"
+                        id="filter-source"
+                        name="source"
+                        hx-get="/admin/search"
+                        hx-trigger="change"
+                        hx-target="#search-results"
+                        hx-include="[name='q'], [name='role'], [name='date_from'], [name='date_to'], [name='priority']"
+                    >
+                        <option value="">All Sources</option>
+                        {% for s in filter_options.sources %}
+                        <option value="{{ s }}" {% if source == s %}selected{% endif %}>{{ s }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Date Range -->
+                <div class="col-md-3">
+                    <label for="filter-date-from" class="form-label">Date Range</label>
+                    <div class="input-group">
+                        <input
+                            type="date"
+                            class="form-control"
+                            id="filter-date-from"
+                            name="date_from"
+                            value="{{ date_from or '' }}"
+                            hx-get="/admin/search"
+                            hx-trigger="change"
+                            hx-target="#search-results"
+                            hx-include="[name='q'], [name='role'], [name='date_to'], [name='priority'], [name='source']"
+                        >
+                        <span class="input-group-text">to</span>
+                        <input
+                            type="date"
+                            class="form-control"
+                            id="filter-date-to"
+                            name="date_to"
+                            value="{{ date_to or '' }}"
+                            hx-get="/admin/search"
+                            hx-trigger="change"
+                            hx-target="#search-results"
+                            hx-include="[name='q'], [name='role'], [name='date_from'], [name='priority'], [name='source']"
+                        >
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Results -->
+    <div id="search-results">
+        {% include 'admin/partials/search_results.html' %}
+    </div>
+</div>
+{% endblock %}
