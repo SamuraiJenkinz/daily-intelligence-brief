@@ -136,11 +136,11 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 06-01: Source management UI — HTMX forms for add/edit/disable sources, table view with inline editing
-- [ ] 06-02: Recipient management UI — manage recipient list, assign roles, enable/disable recipients
-- [ ] 06-03: Report archive browser — list past reports by date, view archived HTML briefs
-- [ ] 06-04: Article search interface — search articles by keyword, filter by date/source/role/priority
-- [ ] 06-05: Manual trigger controls — button to run pipeline on-demand, view logs, monitor progress
+- [ ] 06-01-PLAN.md — Bootstrap 5 + HTMX base template, sidebar navigation, dashboard landing page with system stats
+- [ ] 06-02-PLAN.md — Source management CRUD with HTMX inline editing (add/edit/toggle/delete sources)
+- [ ] 06-03-PLAN.md — Report archive browser with date/role filtering + manual trigger integration into dashboard
+- [ ] 06-04-PLAN.md — SQLite FTS5 article search with debounced HTMX input and multi-filter support
+- [ ] 06-05-PLAN.md — Recipient management UI with per-role TO/CC/BCC editing and .env persistence
 
 ### Phase 7: Production Hardening
 **Goal**: Add reliability features for production operation and long-term maintenance
