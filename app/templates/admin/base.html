@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MDInsights Admin{% endblock %} - MDInsights Admin</title>
+
+    <!-- Bootstrap 5.3.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    <!-- Bootstrap Icons 1.11.3 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Custom CSS for Marsh branding and layout -->
+    <style>
+        :root {
+            --marsh-blue: #00263e;
+            --marsh-light-blue: #0077c8;
+            --sidebar-width: 250px;
+            --navbar-height: 56px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Navbar styling */
+        .navbar {
+            background-color: var(--marsh-blue) !important;
+            height: var(--navbar-height);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1030;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .navbar-brand {
+            color: white !important;
+            font-weight: 600;
+            font-size: 1.25rem;
+        }
+
+        .navbar-brand:hover {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+
+        .navbar .nav-link {
+            color: rgba(255, 255, 255, 0.85) !important;
+        }
+
+        .navbar .nav-link:hover {
+            color: white !important;
+        }
+
+        /* Sidebar styling */
+        .sidebar {
+            position: fixed;
+            top: var(--navbar-height);
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background-color: white;
+            border-right: 1px solid #dee2e6;
+            padding: 1.5rem 0;
+            overflow-y: auto;
+            z-index: 1020;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .sidebar .nav-link {
+            color: #495057;
+            padding: 0.75rem 1.5rem;
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: #f8f9fa;
+            color: var(--marsh-light-blue);
+            border-left-color: var(--marsh-light-blue);
+        }
+
+        .sidebar .nav-link.active {
+            background-color: #e7f3ff;
+            color: var(--marsh-blue);
+            border-left-color: var(--marsh-blue);
+            font-weight: 600;
+        }
+
+        .sidebar .nav-link i {
+            font-size: 1.25rem;
+        }
+
+        /* Main content area */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            margin-top: var(--navbar-height);
+            padding: 2rem;
+            min-height: calc(100vh - var(--navbar-height));
+            background-color: #f8f9fa;
+        }
+
+        /* Responsive layout */
+        @media (max-width: 767.98px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .navbar-toggler {
+                display: block !important;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .navbar-toggler {
+                display: none !important;
+            }
+        }
+
+        /* Mobile menu overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: var(--navbar-height);
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1019;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+        }
+
+        /* Card styling */
+        .card {
+            border: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            background-color: white;
+            border-bottom: 2px solid var(--marsh-light-blue);
+            font-weight: 600;
+            color: var(--marsh-blue);
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Top Navbar -->
+    <nav class="navbar navbar-dark">
+        <div class="container-fluid">
+            <!-- Mobile menu toggle -->
+            <button class="navbar-toggler" type="button" id="sidebarToggle" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Brand -->
+            <a class="navbar-brand" href="/admin">
+                <i class="bi bi-speedometer2"></i>
+                MDInsights Admin
+            </a>
+
+            <!-- Right-aligned links -->
+            <ul class="navbar-nav ms-auto flex-row">
+                <li class="nav-item">
+                    <a class="nav-link" href="/docs" target="_blank">
+                        <i class="bi bi-book"></i>
+                        API Docs
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Sidebar overlay for mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar" id="sidebar">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link {% if active_nav == 'dashboard' %}active{% endif %}" href="/admin">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_nav == 'sources' %}active{% endif %}" href="/admin/sources">
+                    <i class="bi bi-globe"></i>
+                    <span>Sources</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_nav == 'recipients' %}active{% endif %}" href="/admin/recipients">
+                    <i class="bi bi-people"></i>
+                    <span>Recipients</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_nav == 'archive' %}active{% endif %}" href="/admin/archive">
+                    <i class="bi bi-archive"></i>
+                    <span>Archive</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_nav == 'search' %}active{% endif %}" href="/admin/search">
+                    <i class="bi bi-search"></i>
+                    <span>Search</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if active_nav == 'trigger' %}active{% endif %}" href="/admin/trigger">
+                    <i class="bi bi-play-circle"></i>
+                    <span>Manual Trigger</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Bootstrap 5.3.3 JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <!-- HTMX 2.0.4 -->
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+
+    <!-- Mobile sidebar toggle -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                    sidebarOverlay.classList.toggle('show');
+                });
+            }
+
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', function() {
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.classList.remove('show');
+                });
+            }
+        });
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
