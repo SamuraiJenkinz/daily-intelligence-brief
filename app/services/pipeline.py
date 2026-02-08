@@ -250,13 +250,16 @@ class PipelineOrchestrator:
             start_time = datetime.utcnow()
 
             # Step 1: Collect articles (collector creates Run internally)
+            step_start = datetime.utcnow()
             self.logger.info("step_1_collection_started")
             articles_collected = self.collector.collect_from_sources()
             result["articles_collected"] = articles_collected
+            step_duration = (datetime.utcnow() - step_start).total_seconds()
 
             self.logger.info(
                 "step_1_collection_completed",
-                articles_collected=articles_collected
+                articles_collected=articles_collected,
+                duration_seconds=round(step_duration, 2)
             )
 
             # Query latest Run to get run_id
@@ -269,51 +272,63 @@ class PipelineOrchestrator:
                 return result
 
             result["run_id"] = latest_run.id
+
+            # Bind run_id to all subsequent log entries
+            import structlog
+            structlog.contextvars.bind_contextvars(run_id=latest_run.id)
+
             self.logger.info("run_identified", run_id=latest_run.id)
 
             # Step 2: Query collected articles for this run
-            self.logger.info("step_2_querying_articles", run_id=latest_run.id)
+            step_start = datetime.utcnow()
+            self.logger.info("step_2_querying_articles")
             articles = db.query(NewsArticle).filter(
                 NewsArticle.run_id == latest_run.id
             ).all()
 
             if not articles:
-                self.logger.warning(
-                    "no_articles_to_classify",
-                    run_id=latest_run.id
-                )
+                self.logger.warning("no_articles_to_classify")
                 result["status"] = "completed"
                 result["html_output"] = "<html><body><h1>No articles collected</h1></body></html>"
                 return result
 
+            step_duration = (datetime.utcnow() - step_start).total_seconds()
             self.logger.info(
                 "step_2_articles_queried",
-                article_count=len(articles)
+                article_count=len(articles),
+                duration_seconds=round(step_duration, 2)
             )
 
             # Step 3: Classify articles
+            step_start = datetime.utcnow()
             self.logger.info("step_3_classification_started")
             articles_classified = self.classifier.classify_articles(db, articles)
             result["articles_classified"] = articles_classified
+            step_duration = (datetime.utcnow() - step_start).total_seconds()
 
             self.logger.info(
                 "step_3_classification_completed",
-                articles_classified=articles_classified
+                articles_classified=articles_classified,
+                duration_seconds=round(step_duration, 2)
             )
 
             # Step 4: Re-query classified articles
+            step_start = datetime.utcnow()
             self.logger.info("step_4_querying_classified_articles")
             classified_articles = db.query(NewsArticle).filter(
                 NewsArticle.run_id == latest_run.id,
                 NewsArticle.roles.isnot(None)
             ).all()
+            step_duration = (datetime.utcnow() - step_start).total_seconds()
 
             self.logger.info(
                 "step_4_classified_articles_queried",
-                classified_count=len(classified_articles)
+                classified_count=len(classified_articles),
+                duration_seconds=round(step_duration, 2)
             )
 
             # Step 5: Generate unified browser report
+            step_start = datetime.utcnow()
             self.logger.info("step_5_report_generation_started")
             report_date = datetime.utcnow()
             html_output = self.reporter.generate_role_brief(
@@ -321,26 +336,32 @@ class PipelineOrchestrator:
                 report_date=report_date
             )
             result["html_output"] = html_output
+            step_duration = (datetime.utcnow() - step_start).total_seconds()
 
             self.logger.info(
                 "step_5_report_generation_completed",
-                html_length=len(html_output)
+                html_length=len(html_output),
+                duration_seconds=round(step_duration, 2)
             )
 
             # Step 6: Generate per-role emails
+            step_start = datetime.utcnow()
             self.logger.info("step_6_email_generation_started")
             role_emails = self.reporter.generate_role_emails(
                 articles=classified_articles,
                 report_date=report_date
             )
             result["role_emails_generated"] = len(role_emails)
+            step_duration = (datetime.utcnow() - step_start).total_seconds()
 
             self.logger.info(
                 "step_6_email_generation_completed",
-                role_count=len(role_emails)
+                role_count=len(role_emails),
+                duration_seconds=round(step_duration, 2)
             )
 
             # Step 7: Archive reports to disk
+            step_start = datetime.utcnow()
             self.logger.info("step_7_archiving_reports")
             date_str = report_date.strftime("%Y-%m-%d")
             for role, html in role_emails.items():
@@ -350,13 +371,16 @@ class PipelineOrchestrator:
                 with open(report_path, "w", encoding="utf-8") as f:
                     f.write(html)
                 result["reports_archived"].append(report_path)
+            step_duration = (datetime.utcnow() - step_start).total_seconds()
 
             self.logger.info(
                 "step_7_archiving_completed",
-                files_archived=len(result["reports_archived"])
+                files_archived=len(result["reports_archived"]),
+                duration_seconds=round(step_duration, 2)
             )
 
             # Step 8: Send emails per role
+            step_start = datetime.utcnow()
             self.logger.info("step_8_email_delivery_started")
             email_service = GraphEmailService()
             settings = get_settings()
@@ -398,17 +422,24 @@ class PipelineOrchestrator:
                     recipients=recipients.total_recipients
                 )
 
+            step_duration = (datetime.utcnow() - step_start).total_seconds()
             self.logger.info(
                 "step_8_email_delivery_completed",
-                emails_sent=len([r for r in result["emails_sent"].values() if r.get("status") == "ok"])
+                emails_sent=len([r for r in result["emails_sent"].values() if r.get("status") == "ok"]),
+                duration_seconds=round(step_duration, 2)
             )
 
             # Step 9: Update Run record
+            step_start = datetime.utcnow()
             latest_run.articles_classified = articles_classified
             latest_run.status = RunStatus.COMPLETED
             db.commit()
+            step_duration = (datetime.utcnow() - step_start).total_seconds()
 
-            self.logger.info("step_9_run_updated", run_id=latest_run.id)
+            self.logger.info(
+                "step_9_run_updated",
+                duration_seconds=round(step_duration, 2)
+            )
 
             # Calculate duration
             end_time = datetime.utcnow()
@@ -416,13 +447,14 @@ class PipelineOrchestrator:
 
             result["status"] = "completed"
 
+            # Summary log with all metrics
             self.logger.info(
-                "pipeline_with_email_completed",
-                run_id=latest_run.id,
+                "pipeline_summary",
+                total_duration=round(duration, 2),
                 articles_collected=articles_collected,
                 articles_classified=articles_classified,
-                emails_sent=len([r for r in result["emails_sent"].values() if r.get("status") == "ok"]),
-                duration_seconds=round(duration, 2)
+                emails_sent_count=len([r for r in result["emails_sent"].values() if r.get("status") == "ok"]),
+                reports_archived_count=len(result["reports_archived"])
             )
 
             return result
@@ -463,6 +495,9 @@ class PipelineOrchestrator:
             return result
 
         finally:
+            # Unbind context variables
+            import structlog
+            structlog.contextvars.unbind_contextvars("run_id")
             db.close()
 
     async def _send_admin_alert(self, error_msg: str, result: dict):

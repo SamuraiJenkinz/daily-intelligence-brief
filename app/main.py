@@ -9,8 +9,8 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import RedirectResponse, JSONResponse
 from sqlalchemy import text
 
 from app.database import Base, engine, SessionLocal
@@ -60,6 +60,27 @@ app = FastAPI(
 # Register API routers
 app.include_router(admin_router)
 app.include_router(pipeline_router)
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """
+    Global exception handler for unhandled exceptions.
+
+    Logs all exceptions with full context and returns a generic
+    error response to avoid exposing internal details.
+    """
+    logger.error(
+        "unhandled_exception",
+        path=str(request.url.path),
+        method=request.method,
+        error=str(exc),
+        exc_info=True
+    )
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"}
+    )
 
 
 @app.get("/api/health", tags=["Health"])
