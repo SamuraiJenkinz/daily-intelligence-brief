@@ -65,6 +65,11 @@ class Settings(BaseSettings):
     # Admin email for failure alerts
     admin_email: str = ""
 
+    # Azure Blob Storage (for database backups)
+    azure_storage_connection_string: str = ""
+    azure_storage_container: str = "mdinsights-backups"
+    backup_retention_days: int = 30
+
     def is_azure_openai_configured(self) -> bool:
         """Check if Azure OpenAI is fully configured."""
         return bool(
@@ -85,6 +90,10 @@ class Settings(BaseSettings):
     def is_apify_configured(self) -> bool:
         """Check if Apify is configured."""
         return bool(self.apify_token)
+
+    def is_azure_storage_configured(self) -> bool:
+        """Check if Azure Blob Storage is configured."""
+        return bool(self.azure_storage_connection_string)
 
     def _parse_recipient_list(self, recipients_str: str) -> list[str]:
         """
