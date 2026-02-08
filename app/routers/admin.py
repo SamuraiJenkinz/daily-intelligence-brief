@@ -19,7 +19,9 @@ from app.services.classifier import RoleClassificationService
 from app.services.reporter import RoleReportService
 from app.services.pipeline import PipelineOrchestrator
 from app.database import SessionLocal
-from app.models import Run
+from app.models import Run, Source, NewsArticle
+from datetime import datetime, date
+from sqlalchemy import func
 
 
 logger = structlog.get_logger(__name__)
@@ -33,6 +35,76 @@ jinja_env = Environment(
     loader=FileSystemLoader(str(templates_dir)),
     autoescape=True
 )
+
+
+@router.get("", response_class=HTMLResponse)
+def get_admin_dashboard():
+    """
+    Serve admin dashboard landing page.
+
+    Shows system status summary including:
+    - Source counts (total and enabled)
+    - Articles collected today
+    - Last run status
+    - Recent runs table
+
+    Returns:
+        HTML dashboard page with system statistics
+    """
+    db = SessionLocal()
+
+    try:
+        # Get source counts
+        total_sources = db.query(Source).count()
+        active_sources = db.query(Source).filter(Source.enabled == True).count()
+
+        # Get articles from today
+        today = date.today()
+        articles_today = db.query(NewsArticle).filter(
+            func.date(NewsArticle.published_at) == today
+        ).count()
+
+        # Get last run
+        last_run = db.query(Run).order_by(Run.id.desc()).first()
+
+        # Get recent runs (last 10)
+        runs = db.query(Run).order_by(Run.id.desc()).limit(10).all()
+
+        # Format data for template
+        runs_data = []
+        for run in runs:
+            runs_data.append({
+                'id': run.id,
+                'status': run.status.value,
+                'created_at': run.created_at.strftime('%Y-%m-%d %H:%M:%S') if run.created_at else None,
+                'completed_at': run.completed_at.strftime('%Y-%m-%d %H:%M:%S') if run.completed_at else None,
+                'articles_collected': run.articles_collected,
+                'articles_classified': run.articles_classified,
+                'error_message': run.error_message
+            })
+
+        last_run_data = None
+        if last_run:
+            last_run_data = {
+                'status': last_run.status.value,
+                'created_at': last_run.created_at.strftime('%Y-%m-%d %H:%M:%S') if last_run.created_at else None
+            }
+
+        # Render template
+        template = jinja_env.get_template('admin/dashboard.html')
+        html = template.render(
+            active_sources=active_sources,
+            total_sources=total_sources,
+            articles_today=articles_today,
+            today_date=today.strftime('%Y-%m-%d'),
+            last_run=last_run_data,
+            runs=runs_data
+        )
+
+        return HTMLResponse(content=html)
+
+    finally:
+        db.close()
 
 
 @router.get("/trigger", response_class=HTMLResponse)

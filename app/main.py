@@ -158,8 +158,8 @@ def health_check() -> dict:
 
 @app.get("/", include_in_schema=False)
 def root() -> RedirectResponse:
-    """Redirect root to API documentation."""
-    return RedirectResponse(url="/docs")
+    """Redirect root to admin dashboard."""
+    return RedirectResponse(url="/admin")
 
 
 if __name__ == "__main__":
