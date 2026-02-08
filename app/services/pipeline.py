@@ -17,6 +17,7 @@ from app.services.collector import ApifyCollector
 from app.services.classifier import RoleClassificationService
 from app.services.reporter import RoleReportService
 from app.services.emailer import GraphEmailService
+from app.services.health_monitor import SourceHealthMonitor
 from app.config import get_settings
 
 
@@ -105,6 +106,21 @@ class PipelineOrchestrator:
 
             result["run_id"] = latest_run.id
             self.logger.info("run_identified", run_id=latest_run.id)
+
+            # Step 1b: Source health check
+            self.logger.info("step_1b_health_check_started")
+            health_monitor = SourceHealthMonitor()
+            health_results = health_monitor.check_all_sources(db)
+            alerts = [r for r in health_results if r["alert"]]
+
+            if alerts:
+                # Log alert summary
+                alert_summary = health_monitor.format_alert_summary(alerts)
+                self.logger.warning("source_health_alerts", alert_count=len(alerts), summary=alert_summary)
+                result["health_alerts"] = len(alerts)
+            else:
+                self.logger.info("step_1b_health_check_passed", sources_checked=len(health_results))
+                result["health_alerts"] = 0
 
             # Step 2: Query collected articles for this run
             self.logger.info("step_2_querying_articles", run_id=latest_run.id)
@@ -278,6 +294,45 @@ class PipelineOrchestrator:
             structlog.contextvars.bind_contextvars(run_id=latest_run.id)
 
             self.logger.info("run_identified", run_id=latest_run.id)
+
+            # Step 1b: Source health check
+            step_start = datetime.utcnow()
+            self.logger.info("step_1b_health_check_started")
+            health_monitor = SourceHealthMonitor()
+            health_results = health_monitor.check_all_sources(db)
+            alerts = [r for r in health_results if r["alert"]]
+
+            if alerts:
+                # Log alert summary
+                alert_summary = health_monitor.format_alert_summary(alerts)
+                self.logger.warning("source_health_alerts", alert_count=len(alerts), summary=alert_summary)
+
+                # Send health alert email to admin
+                try:
+                    settings = get_settings()
+                    if settings.admin_email:
+                        alert_html = health_monitor.format_alert_email(alerts)
+                        email_service = GraphEmailService()
+                        await email_service.send_email(
+                            to_addresses=[settings.admin_email],
+                            subject=f"[MDInsights] Source Health Alert - {datetime.utcnow().strftime('%d %B %Y')}",
+                            html_body=alert_html
+                        )
+                        self.logger.info("health_alert_email_sent")
+                except Exception as alert_err:
+                    self.logger.error("health_alert_email_failed", error=str(alert_err))
+                    # Don't fail pipeline on alert failure
+
+                result["health_alerts"] = len(alerts)
+            else:
+                self.logger.info("step_1b_health_check_passed", sources_checked=len(health_results))
+                result["health_alerts"] = 0
+
+            step_duration = (datetime.utcnow() - step_start).total_seconds()
+            self.logger.info(
+                "step_1b_health_check_completed",
+                duration_seconds=round(step_duration, 2)
+            )
 
             # Step 2: Query collected articles for this run
             step_start = datetime.utcnow()
