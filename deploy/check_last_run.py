@@ -21,14 +21,53 @@ from app.services.emailer import GraphEmailService
 from app.config import get_settings
 
 
+def check_backup_status():
+    """
+    Check if database backups are recent.
+
+    Returns:
+        list[str]: Issues detected (empty if OK)
+    """
+    issues = []
+    backup_dir = "data/backups"
+
+    if not os.path.isdir(backup_dir):
+        issues.append(f"Backup directory {backup_dir}/ does not exist")
+        return issues
+
+    # Find most recent backup file
+    backup_files = [
+        f for f in os.listdir(backup_dir)
+        if f.startswith("mdinsights_") and f.endswith(".db")
+    ]
+
+    if not backup_files:
+        issues.append("No backup files found in data/backups/")
+        return issues
+
+    # Get most recent backup
+    backup_paths = [os.path.join(backup_dir, f) for f in backup_files]
+    latest_backup = max(backup_paths, key=os.path.getmtime)
+    backup_age_hours = (datetime.now().timestamp() - os.path.getmtime(latest_backup)) / 3600
+
+    # Allow 36 hours (1.5 days) for timing variance
+    if backup_age_hours > 36:
+        issues.append(
+            f"Latest backup is {backup_age_hours:.1f} hours old (expected <36h): {os.path.basename(latest_backup)}"
+        )
+
+    return issues
+
+
 def check_last_run():
     """
     Check if today's pipeline run completed successfully.
 
-    Checks three independent signals:
+    Checks four independent signals:
     1. Database Run record from today with COMPLETED status
     2. Log file exists for today
     3. Archived reports exist for today
+    4. Database backup is recent (<36h old)
 
     Returns:
         list[str]: Issues detected (empty if OK)
@@ -77,6 +116,10 @@ def check_last_run():
         if not os.path.isfile(report_path):
             issues.append(f"Missing report: {report_path}")
             break  # One missing report is enough to flag
+
+    # Check 4: Backup freshness
+    backup_issues = check_backup_status()
+    issues.extend(backup_issues)
 
     return issues
 
@@ -148,4 +191,5 @@ if __name__ == "__main__":
         print("  ✓ Database Run record from today with COMPLETED status")
         print("  ✓ Log file exists for today")
         print("  ✓ Archived reports exist for today")
+        print("  ✓ Database backup is recent (<36h old)")
         sys.exit(0)

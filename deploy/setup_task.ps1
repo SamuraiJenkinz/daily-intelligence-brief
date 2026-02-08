@@ -36,6 +36,9 @@ param(
     [string]$TaskName = "MDInsights Daily Pipeline",
     [string]$TriggerTime = "06:00",
     [string]$MonitorTime = "09:00",
+    [string]$BackupTime = "07:00",
+    [string]$DriftDay = "Monday",
+    [string]$DriftTime = "08:00",
     [string]$ProjectPath = ""
 )
 
@@ -50,6 +53,8 @@ Write-Host ""
 Write-Host "Project path: $ProjectPath" -ForegroundColor Yellow
 Write-Host "Task name: $TaskName" -ForegroundColor Yellow
 Write-Host "Pipeline time: $TriggerTime" -ForegroundColor Yellow
+Write-Host "Backup time: $BackupTime" -ForegroundColor Yellow
+Write-Host "Drift check: $DriftDay at $DriftTime" -ForegroundColor Yellow
 Write-Host "Monitor time: $MonitorTime" -ForegroundColor Yellow
 Write-Host ""
 
@@ -60,6 +65,8 @@ $BatchScript = Join-Path $ProjectPath "deploy\run_mdinsights.bat"
 $VenvActivate = Join-Path $ProjectPath "venv\Scripts\activate.bat"
 $AppMain = Join-Path $ProjectPath "app\main.py"
 $MonitorScript = Join-Path $ProjectPath "deploy\check_last_run.py"
+$BackupScript = Join-Path $ProjectPath "scripts\backup_db.py"
+$DriftScript = Join-Path $ProjectPath "scripts\check_drift.py"
 $PythonExe = Join-Path $ProjectPath "venv\Scripts\python.exe"
 
 if (-not (Test-Path $BatchScript)) {
@@ -89,6 +96,18 @@ if (-not (Test-Path $MonitorScript)) {
 if (-not (Test-Path $PythonExe)) {
     Write-Error "Python executable not found: $PythonExe"
     Write-Host "Please install dependencies: .\venv\Scripts\pip install -r requirements.txt" -ForegroundColor Red
+    exit 1
+}
+
+if (-not (Test-Path $BackupScript)) {
+    Write-Error "Backup script not found: $BackupScript"
+    Write-Host "Please ensure scripts\backup_db.py exists" -ForegroundColor Red
+    exit 1
+}
+
+if (-not (Test-Path $DriftScript)) {
+    Write-Error "Drift check script not found: $DriftScript"
+    Write-Host "Please ensure scripts\check_drift.py exists" -ForegroundColor Red
     exit 1
 }
 
@@ -171,6 +190,77 @@ try {
     exit 1
 }
 
+# Create the backup task
+Write-Host "Creating backup task..." -ForegroundColor Gray
+
+$BackupAction = New-ScheduledTaskAction `
+    -Execute "cmd.exe" `
+    -Argument "/c `"$PythonExe`" `"$BackupScript`"" `
+    -WorkingDirectory $ProjectPath
+
+$BackupTrigger = New-ScheduledTaskTrigger -Daily -At $BackupTime
+
+$BackupSettings = New-ScheduledTaskSettingsSet `
+    -AllowStartIfOnBatteries `
+    -DontStopIfGoingOnBatteries `
+    -StartWhenAvailable `
+    -ExecutionTimeLimit (New-TimeSpan -Minutes 30)
+
+# Register the backup task (update if exists)
+$BackupTaskName = "$TaskName - Backup"
+
+try {
+    Register-ScheduledTask `
+        -TaskName $BackupTaskName `
+        -Action $BackupAction `
+        -Trigger $BackupTrigger `
+        -Settings $BackupSettings `
+        -Principal $Principal `
+        -Force `
+        -ErrorAction Stop | Out-Null
+
+    Write-Host "✓ Backup task registered: $BackupTaskName" -ForegroundColor Green
+} catch {
+    Write-Error "Failed to register backup task: $_"
+    exit 1
+}
+
+# Create the drift check task
+Write-Host "Creating drift check task..." -ForegroundColor Gray
+
+$DriftAction = New-ScheduledTaskAction `
+    -Execute "cmd.exe" `
+    -Argument "/c `"$PythonExe`" `"$DriftScript`"" `
+    -WorkingDirectory $ProjectPath
+
+# Convert day name to day of week for trigger
+$DriftTrigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek $DriftDay -At $DriftTime
+
+$DriftSettings = New-ScheduledTaskSettingsSet `
+    -AllowStartIfOnBatteries `
+    -DontStopIfGoingOnBatteries `
+    -StartWhenAvailable `
+    -ExecutionTimeLimit (New-TimeSpan -Minutes 10)
+
+# Register the drift check task (update if exists)
+$DriftTaskName = "$TaskName - Drift Check"
+
+try {
+    Register-ScheduledTask `
+        -TaskName $DriftTaskName `
+        -Action $DriftAction `
+        -Trigger $DriftTrigger `
+        -Settings $DriftSettings `
+        -Principal $Principal `
+        -Force `
+        -ErrorAction Stop | Out-Null
+
+    Write-Host "✓ Drift check task registered: $DriftTaskName" -ForegroundColor Green
+} catch {
+    Write-Error "Failed to register drift check task: $_"
+    exit 1
+}
+
 Write-Host ""
 Write-Host "Setup Complete!" -ForegroundColor Green
 Write-Host "===============" -ForegroundColor Green
@@ -180,6 +270,16 @@ Write-Host "  Name: $TaskName" -ForegroundColor White
 Write-Host "  Trigger: Daily at $TriggerTime" -ForegroundColor White
 Write-Host "  Script: $BatchScript" -ForegroundColor White
 Write-Host "  Logs: $ProjectPath\data\logs\mdinsights_YYYY-MM-DD.log" -ForegroundColor White
+Write-Host ""
+Write-Host "Backup Task:" -ForegroundColor Cyan
+Write-Host "  Name: $BackupTaskName" -ForegroundColor White
+Write-Host "  Trigger: Daily at $BackupTime" -ForegroundColor White
+Write-Host "  Script: $BackupScript" -ForegroundColor White
+Write-Host ""
+Write-Host "Drift Check Task:" -ForegroundColor Cyan
+Write-Host "  Name: $DriftTaskName" -ForegroundColor White
+Write-Host "  Trigger: Weekly on $DriftDay at $DriftTime" -ForegroundColor White
+Write-Host "  Script: $DriftScript" -ForegroundColor White
 Write-Host ""
 Write-Host "Monitor Task:" -ForegroundColor Cyan
 Write-Host "  Name: $MonitorTaskName" -ForegroundColor White
@@ -192,10 +292,11 @@ Write-Host "  Check status: schtasks /query /tn `"$TaskName`" /v" -ForegroundCol
 Write-Host "  View logs: type `"$ProjectPath\data\logs\mdinsights_*.log`"" -ForegroundColor White
 Write-Host ""
 Write-Host "Task Scheduler features:" -ForegroundColor Cyan
+Write-Host "  ✓ 4 tasks registered: Pipeline (06:00), Backup (07:00), Drift (Mon 08:00), Monitor (09:00)" -ForegroundColor White
 Write-Host "  ✓ Runs as SYSTEM with highest privileges" -ForegroundColor White
 Write-Host "  ✓ Runs whether user is logged on or not" -ForegroundColor White
 Write-Host "  ✓ Starts when available (catches up if machine was off)" -ForegroundColor White
-Write-Host "  ✓ Network required (needs Apify, Azure OpenAI, Graph API)" -ForegroundColor White
-Write-Host "  ✓ 2-hour execution limit with 2 restart attempts" -ForegroundColor White
-Write-Host "  ✓ Monitor task verifies pipeline ran (alerts admin if stale)" -ForegroundColor White
+Write-Host "  ✓ Network required for pipeline (Apify, Azure OpenAI, Graph API)" -ForegroundColor White
+Write-Host "  ✓ 2-hour pipeline limit, 30-min backup limit, 10-min drift limit" -ForegroundColor White
+Write-Host "  ✓ Monitor task verifies pipeline + backup ran (alerts admin if stale)" -ForegroundColor White
 Write-Host ""
