@@ -1,0 +1,80 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Recipient Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-1">
+                <i class="bi bi-people"></i>
+                Recipient Management
+            </h1>
+            <p class="text-muted">
+                Configure email recipients for each role's daily intelligence brief
+            </p>
+        </div>
+    </div>
+
+    <!-- Info Alert -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info d-flex align-items-start" role="alert">
+                <i class="bi bi-info-circle-fill me-2 mt-1"></i>
+                <div>
+                    <strong>Configuration Note:</strong>
+                    Changes are saved to the <code>.env</code> file and take effect on the next pipeline run.
+                    Email addresses should be comma-separated (e.g., <code>user1@marsh.com, user2@marsh.com</code>).
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Role Cards Grid -->
+    <div class="row g-4">
+        <!-- Brokers Card -->
+        <div class="col-md-6">
+            <div id="recipient-card-Brokers">
+                {% include 'admin/partials/recipient_card.html' with role='Brokers', recipients=recipients['Brokers'], edit=False %}
+            </div>
+        </div>
+
+        <!-- Leadership Card -->
+        <div class="col-md-6">
+            <div id="recipient-card-Leadership">
+                {% include 'admin/partials/recipient_card.html' with role='Leadership', recipients=recipients['Leadership'], edit=False %}
+            </div>
+        </div>
+
+        <!-- Compliance Card -->
+        <div class="col-md-6">
+            <div id="recipient-card-Compliance">
+                {% include 'admin/partials/recipient_card.html' with role='Compliance', recipients=recipients['Compliance'], edit=False %}
+            </div>
+        </div>
+
+        <!-- Underwriting Card -->
+        <div class="col-md-6">
+            <div id="recipient-card-Underwriting">
+                {% include 'admin/partials/recipient_card.html' with role='Underwriting', recipients=recipients['Underwriting'], edit=False %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Auto-hide success messages after 3 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert-success');
+            alerts.forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 3000);
+    });
+</script>
+{% endblock %}

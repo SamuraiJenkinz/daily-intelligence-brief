@@ -1,0 +1,193 @@
+{% if not edit %}
+{# Display Mode #}
+{% set role_colors = {
+    'Brokers': 'primary',
+    'Leadership': 'purple',
+    'Compliance': 'success',
+    'Underwriting': 'warning'
+} %}
+{% set color = role_colors.get(role, 'secondary') %}
+
+<div class="card h-100">
+    <div class="card-header bg-{{ color }} text-white d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-people-fill"></i>
+            {{ role }}
+        </h5>
+        <button
+            class="btn btn-sm btn-light"
+            hx-get="/admin/recipients/{{ role }}/edit"
+            hx-target="#recipient-card-{{ role }}"
+            hx-swap="innerHTML"
+        >
+            <i class="bi bi-pencil"></i>
+            Edit
+        </button>
+    </div>
+    <div class="card-body">
+        {% if recipients.has_recipients %}
+            <!-- TO Recipients -->
+            <div class="mb-3">
+                <strong class="text-muted d-block mb-2">
+                    <i class="bi bi-envelope"></i> TO:
+                </strong>
+                {% if recipients.to %}
+                    <div class="d-flex flex-wrap gap-1">
+                        {% for email in recipients.to %}
+                            <span class="badge bg-primary">{{ email }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <span class="text-muted fst-italic">None</span>
+                {% endif %}
+            </div>
+
+            <!-- CC Recipients -->
+            <div class="mb-3">
+                <strong class="text-muted d-block mb-2">
+                    <i class="bi bi-envelope"></i> CC:
+                </strong>
+                {% if recipients.cc %}
+                    <div class="d-flex flex-wrap gap-1">
+                        {% for email in recipients.cc %}
+                            <span class="badge bg-secondary">{{ email }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <span class="text-muted fst-italic">None</span>
+                {% endif %}
+            </div>
+
+            <!-- BCC Recipients -->
+            <div class="mb-0">
+                <strong class="text-muted d-block mb-2">
+                    <i class="bi bi-envelope"></i> BCC:
+                </strong>
+                {% if recipients.bcc %}
+                    <div class="d-flex flex-wrap gap-1">
+                        {% for email in recipients.bcc %}
+                            <span class="badge bg-dark">{{ email }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <span class="text-muted fst-italic">None</span>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="alert alert-warning mb-0" role="alert">
+                <i class="bi bi-exclamation-triangle"></i>
+                No recipients configured. Emails will be skipped for this role.
+            </div>
+        {% endif %}
+    </div>
+    <div class="card-footer bg-light text-muted small">
+        <i class="bi bi-info-circle"></i>
+        Total recipients: {{ recipients.total_recipients }}
+    </div>
+</div>
+
+{% else %}
+{# Edit Mode #}
+{% set role_colors = {
+    'Brokers': 'primary',
+    'Leadership': 'purple',
+    'Compliance': 'success',
+    'Underwriting': 'warning'
+} %}
+{% set color = role_colors.get(role, 'secondary') %}
+
+<div class="card h-100">
+    <div class="card-header bg-{{ color }} text-white">
+        <h5 class="card-title mb-0">
+            <i class="bi bi-pencil-square"></i>
+            Edit {{ role }} Recipients
+        </h5>
+    </div>
+    <div class="card-body">
+        <form
+            hx-post="/admin/recipients/{{ role }}"
+            hx-target="#recipient-card-{{ role }}"
+            hx-swap="innerHTML"
+        >
+            <!-- TO Field -->
+            <div class="mb-3">
+                <label for="{{ role }}-to" class="form-label">
+                    <strong>TO Recipients</strong>
+                    <span class="text-danger">*</span>
+                </label>
+                <textarea
+                    class="form-control {% if errors and 'to' in errors %}is-invalid{% endif %}"
+                    id="{{ role }}-to"
+                    name="to"
+                    rows="2"
+                    placeholder="email1@marsh.com, email2@marsh.com"
+                >{{ form_data.to if form_data else '' }}</textarea>
+                {% if errors and 'to' in errors %}
+                    <div class="invalid-feedback">{{ errors.to }}</div>
+                {% endif %}
+                <small class="form-text text-muted">
+                    Primary recipients (comma-separated email addresses)
+                </small>
+            </div>
+
+            <!-- CC Field -->
+            <div class="mb-3">
+                <label for="{{ role }}-cc" class="form-label">
+                    <strong>CC Recipients</strong>
+                </label>
+                <textarea
+                    class="form-control {% if errors and 'cc' in errors %}is-invalid{% endif %}"
+                    id="{{ role }}-cc"
+                    name="cc"
+                    rows="2"
+                    placeholder="email1@marsh.com, email2@marsh.com"
+                >{{ form_data.cc if form_data else '' }}</textarea>
+                {% if errors and 'cc' in errors %}
+                    <div class="invalid-feedback">{{ errors.cc }}</div>
+                {% endif %}
+                <small class="form-text text-muted">
+                    Carbon copy recipients (optional)
+                </small>
+            </div>
+
+            <!-- BCC Field -->
+            <div class="mb-3">
+                <label for="{{ role }}-bcc" class="form-label">
+                    <strong>BCC Recipients</strong>
+                </label>
+                <textarea
+                    class="form-control {% if errors and 'bcc' in errors %}is-invalid{% endif %}"
+                    id="{{ role }}-bcc"
+                    name="bcc"
+                    rows="2"
+                    placeholder="email1@marsh.com, email2@marsh.com"
+                >{{ form_data.bcc if form_data else '' }}</textarea>
+                {% if errors and 'bcc' in errors %}
+                    <div class="invalid-feedback">{{ errors.bcc }}</div>
+                {% endif %}
+                <small class="form-text text-muted">
+                    Blind carbon copy recipients (optional)
+                </small>
+            </div>
+
+            <!-- Buttons -->
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-{{ color }}">
+                    <i class="bi bi-check-circle"></i>
+                    Save Changes
+                </button>
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    hx-get="/admin/recipients"
+                    hx-target="body"
+                    hx-swap="innerHTML"
+                >
+                    <i class="bi bi-x-circle"></i>
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
