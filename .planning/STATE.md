@@ -5,24 +5,24 @@
 See: .planning/PROJECT.md (updated 2026-02-06)
 
 **Core value:** Each audience at Marsh receives only the intelligence relevant to their decisions, priority-ranked and AI-summarised, delivered daily with zero manual effort.
-**Current focus:** Phase 5 - Automated Delivery System
+**Current focus:** Phase 6 - Admin Dashboard
 
 ## Current Position
 
-Phase: 5 of 8 COMPLETE (Automated Delivery System)
-Plan: 4/4 complete
-Status: Phase 5 COMPLETE — Daily automated delivery with Task Scheduler, monitoring, and alerts
-Last activity: 2026-02-07 — Completed 05-04-PLAN.md
-Verified: 2026-02-07 — Phase 5 VERIFIED (5/5 must-haves passed)
+Phase: 6 of 8 IN PROGRESS (Admin Dashboard)
+Plan: 1/5 complete
+Status: Building admin interface with Bootstrap 5 + HTMX
+Last activity: 2026-02-08 — Completed 06-01-PLAN.md
+Verified: Not yet verified
 
-Progress: [███████░░░] 73.9% (Phase 1: 5/5, Phase 2: 6/6, Phase 3: 3/3, Phase 4: 7/7, Phase 5: 4/4)
+Progress: [████████░░] 76.5% (Phase 1: 5/5, Phase 2: 6/6, Phase 3: 3/3, Phase 4: 7/7, Phase 5: 4/4, Phase 6: 1/5)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 25
-- Average duration: 4.1 minutes
-- Total execution time: 1.61 hours
+- Total plans completed: 26
+- Average duration: 4.4 minutes
+- Total execution time: 1.86 hours
 
 **By Phase:**
 
@@ -33,15 +33,17 @@ Progress: [███████░░░] 73.9% (Phase 1: 5/5, Phase 2: 6/6, Ph
 | 03 | 3/3 | 5.5 min | 1.8 min |
 | 04 | 7/7 | 24 min | 3.4 min |
 | 05 | 4/4 | 43.7 min | 10.9 min |
+| 06 | 1/5 | 15 min | 15 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-07 (7.5min), 05-01 (2.4min), 05-02 (17min), 05-03 (21.7min), 05-04 (2.6min)
-- Trend: Phase 5 complete with full automation infrastructure
+- Last 5 plans: 05-01 (2.4min), 05-02 (17min), 05-03 (21.7min), 05-04 (2.6min), 06-01 (15min)
+- Trend: Phase 6 started - admin dashboard foundation with Bootstrap 5 + HTMX
 - **Phase 1 complete**: Vertical slice operational
 - **Phase 2 complete**: 20 sources, semantic dedup, health monitoring, pipeline integrated
 - **Phase 3 complete**: 9-dimension classification (entities, impact, category, region, business line)
 - **Phase 4 complete**: 7/7 plans complete (role filtering, exec summaries, aggregation, template integration)
 - **Phase 5 complete**: 4/4 plans complete (email infrastructure, template, pipeline integration, Task Scheduler automation)
+- **Phase 6 in progress**: 1/5 plans complete (base template and dashboard landing page)
 
 *Updated after each plan completion*
 
@@ -114,6 +116,11 @@ Recent decisions affecting current work:
 - **SYSTEM principal with highest privileges** (05-04): Runs whether user is logged on or not. Matches BrasilIntel pattern. Required for automated execution.
 - **Network-required flag with 2 restart attempts** (05-04): Pipeline requires internet for Apify, Azure OpenAI, and Graph API. Restarts handle transient network failures.
 - **Daily execution at 06:00** (05-04): 2 hours before market open (08:00) ensures brief is ready when Marsh teams arrive. Allows time for collection, classification, and delivery.
+- **Bootstrap 5.3.3 + HTMX 2.0.4** (06-01): Latest stable versions from CDN for admin dashboard. No build step required.
+- **CDN-only approach** (06-01): All CSS/JS from CDN (Bootstrap, HTMX, Bootstrap Icons) for zero build complexity.
+- **Responsive sidebar at 768px** (06-01): Standard Bootstrap md breakpoint, sidebar collapses to hamburger menu on mobile.
+- **Admin dashboard as root** (06-01): Root / redirects to /admin (not /docs) making admin interface the primary entry point.
+- **Jinja2 template inheritance** (06-01): base.html provides master layout, all admin pages extend it for consistent navigation and branding.
 
 ### Pending Todos
 
@@ -121,11 +128,11 @@ None yet.
 
 ### Blockers/Concerns
 
-None - Phase 5 complete, system ready for production deployment
+None - Phase 6 proceeding smoothly with admin dashboard foundation in place
 
 ## Session Continuity
 
-Last session: 2026-02-07
-Stopped at: Completed 05-04-PLAN.md — Task Scheduler automation with monitoring
+Last session: 2026-02-08
+Stopped at: Completed 06-01-PLAN.md — Admin dashboard foundation (base template + landing page)
 Resume file: None
-Next: Phase 6 or later phases as needed
+Next: Phase 6 remaining plans (06-02 through 06-05) or later phases as needed
