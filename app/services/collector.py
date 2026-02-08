@@ -4,10 +4,18 @@ Apify-based news collection service for MDInsights.
 Orchestrates scraping from multiple enabled sources, stores raw articles
 in database for subsequent classification.
 """
+import logging
 from datetime import datetime
 from typing import List, Dict, Any
 from apify_client import ApifyClient
 import structlog
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_random_exponential,
+    retry_if_exception_type,
+    before_sleep_log
+)
 
 from app.database import SessionLocal
 from app.models import NewsArticle, Source, Run, RunStatus, SourceType
@@ -155,6 +163,13 @@ class ApifyCollector:
         finally:
             db.close()
 
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_random_exponential(multiplier=1, min=4, max=30),
+        retry=retry_if_exception_type((ConnectionError, TimeoutError, Exception)),
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+        reraise=True
+    )
     def _scrape_source(self, source: Source) -> List[Dict[str, Any]]:
         """
         Scrape articles from a single source.

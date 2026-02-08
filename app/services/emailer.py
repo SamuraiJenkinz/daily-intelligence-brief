@@ -5,11 +5,19 @@ Uses daemon authentication (ClientSecretCredential) for automated
 email sending without user interaction. Requires Mail.Send application
 permission with admin consent in Azure AD.
 """
+import logging
 from typing import Any
 
 import httpx
 import structlog
 from azure.identity import ClientSecretCredential
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_random_exponential,
+    retry_if_exception_type,
+    before_sleep_log
+)
 
 from app.config import get_settings
 
@@ -45,6 +53,13 @@ class GraphEmailService:
             )
             self.sender_email = settings.sender_email
 
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_random_exponential(multiplier=1, min=2, max=10),
+        retry=retry_if_exception_type((httpx.TimeoutException, httpx.NetworkError, ConnectionError)),
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+        reraise=True
+    )
     async def send_email(
         self,
         to_addresses: list[str],
@@ -75,71 +90,72 @@ class GraphEmailService:
         if not to_addresses:
             return {"status": "error", "message": "No recipients specified"}
 
-        try:
-            # Get access token
-            token = self.credential.get_token("https://graph.microsoft.com/.default")
+        # Get access token
+        token = self.credential.get_token("https://graph.microsoft.com/.default")
 
-            # Build message payload
-            message_payload = {
-                "message": {
-                    "subject": subject,
-                    "body": {
-                        "contentType": "HTML",
-                        "content": html_body
-                    },
-                    "toRecipients": [
-                        {"emailAddress": {"address": addr}} for addr in to_addresses
-                    ]
+        # Build message payload
+        message_payload = {
+            "message": {
+                "subject": subject,
+                "body": {
+                    "contentType": "HTML",
+                    "content": html_body
                 },
-                "saveToSentItems": save_to_sent
-            }
-
-            # Add CC recipients if provided
-            if cc_addresses:
-                message_payload["message"]["ccRecipients"] = [
-                    {"emailAddress": {"address": addr}} for addr in cc_addresses
+                "toRecipients": [
+                    {"emailAddress": {"address": addr}} for addr in to_addresses
                 ]
+            },
+            "saveToSentItems": save_to_sent
+        }
 
-            # Add BCC recipients if provided
-            if bcc_addresses:
-                message_payload["message"]["bccRecipients"] = [
-                    {"emailAddress": {"address": addr}} for addr in bcc_addresses
-                ]
+        # Add CC recipients if provided
+        if cc_addresses:
+            message_payload["message"]["ccRecipients"] = [
+                {"emailAddress": {"address": addr}} for addr in cc_addresses
+            ]
 
-            # Send via Graph API
-            logger.info(
-                "Sending email",
-                recipient_count=len(to_addresses),
-                subject=subject,
+        # Add BCC recipients if provided
+        if bcc_addresses:
+            message_payload["message"]["bccRecipients"] = [
+                {"emailAddress": {"address": addr}} for addr in bcc_addresses
+            ]
+
+        # Send via Graph API
+        logger.info(
+            "Sending email",
+            recipient_count=len(to_addresses),
+            subject=subject,
+        )
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"https://graph.microsoft.com/v1.0/users/{self.sender_email}/sendMail",
+                headers={
+                    "Authorization": f"Bearer {token.token}",
+                    "Content-Type": "application/json"
+                },
+                json=message_payload,
+                timeout=30.0
             )
 
-            async with httpx.AsyncClient() as client:
-                response = await client.post(
-                    f"https://graph.microsoft.com/v1.0/users/{self.sender_email}/sendMail",
-                    headers={
-                        "Authorization": f"Bearer {token.token}",
-                        "Content-Type": "application/json"
-                    },
-                    json=message_payload,
-                    timeout=30.0
-                )
-
-                if response.status_code == 202:
-                    logger.info("Email sent successfully")
-                    return {
-                        "status": "ok",
-                        "recipients": len(to_addresses),
-                        "cc": len(cc_addresses) if cc_addresses else 0,
-                        "bcc": len(bcc_addresses) if bcc_addresses else 0,
-                    }
-                else:
-                    error_msg = f"Graph API error {response.status_code}: {response.text}"
-                    logger.error("Email send failed", error=error_msg)
-                    return {"status": "error", "message": error_msg}
-
-        except Exception as e:
-            logger.error("Failed to send email", error=str(e))
-            return {"status": "error", "message": str(e)}
+            if response.status_code == 202:
+                logger.info("Email sent successfully")
+                return {
+                    "status": "ok",
+                    "recipients": len(to_addresses),
+                    "cc": len(cc_addresses) if cc_addresses else 0,
+                    "bcc": len(bcc_addresses) if bcc_addresses else 0,
+                }
+            elif response.status_code >= 500:
+                # Server error - raise to trigger retry
+                error_msg = f"Graph API error {response.status_code}: {response.text}"
+                logger.error("Email send failed - server error", error=error_msg)
+                raise httpx.NetworkError(error_msg)
+            else:
+                # Client error (4xx) - don't retry
+                error_msg = f"Graph API error {response.status_code}: {response.text}"
+                logger.error("Email send failed - client error", error=error_msg)
+                return {"status": "error", "message": error_msg}
 
     async def health_check_async(self) -> dict[str, Any]:
         """

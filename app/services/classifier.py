@@ -5,10 +5,18 @@ Uses GPT-4o with structured output parsing to classify articles by role,
 priority, summary, and sentiment with guaranteed schema compliance.
 """
 import json
+import logging
 from typing import List
 import structlog
-from openai import AzureOpenAI
+from openai import AzureOpenAI, APITimeoutError, APIConnectionError
 from sqlalchemy.orm import Session
+from tenacity import (
+    retry,
+    stop_after_attempt,
+    wait_random_exponential,
+    retry_if_exception_type,
+    before_sleep_log
+)
 
 from app.schemas.classification import ArticleClassification
 from app.models.news_article import NewsArticle
@@ -131,6 +139,13 @@ class RoleClassificationService:
         self.deployment = deployment
         self.logger = structlog.get_logger(__name__)
 
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_random_exponential(multiplier=1, min=2, max=15),
+        retry=retry_if_exception_type((ConnectionError, TimeoutError, APITimeoutError, APIConnectionError)),
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+        reraise=True
+    )
     def classify_article(self, title: str, description: str, source: str) -> ArticleClassification:
         """
         Classify a single article using Azure OpenAI structured outputs.

@@ -19,6 +19,7 @@ from app.models import news_article, source, run  # noqa: F401
 from app.config import get_settings
 from app.routers.admin import router as admin_router
 from app.routers.pipeline import router as pipeline_router
+from app.logging_config import configure_logging
 
 # Load environment variables from .env file
 load_dotenv()
@@ -34,6 +35,10 @@ async def lifespan(app: FastAPI):
     Creates database tables on startup,
     yields control during app lifetime, and handles cleanup on shutdown.
     """
+    # Configure logging first
+    settings = get_settings()
+    configure_logging(log_level=settings.log_level)
+
     # Startup: Create data directory and database tables
     os.makedirs("data", exist_ok=True)
     Base.metadata.create_all(bind=engine)
@@ -176,11 +181,14 @@ if __name__ == "__main__":
         from app.services.reporter import RoleReportService
         from app.services.pipeline import PipelineOrchestrator
 
+        # Configure logging first
+        settings = get_settings()
+        configure_logging(log_level=settings.log_level)
+
         # Ensure tables exist
         os.makedirs("data", exist_ok=True)
         Base.metadata.create_all(bind=engine)
 
-        settings = get_settings()
         logger = structlog.get_logger("cli")
 
         logger.info("pipeline_cli_started")

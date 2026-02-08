@@ -35,3 +35,6 @@ feedparser==6.0.12
 
 # Deduplication (semantic similarity)
 sentence-transformers>=5.0.0
+
+# Retry logic with exponential backoff
+tenacity
