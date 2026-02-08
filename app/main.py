@@ -174,6 +174,52 @@ def health_check() -> dict:
         if overall_status == "healthy":
             overall_status = "degraded"
 
+    # Azure Storage
+    if settings.is_azure_storage_configured():
+        checks["external_services"]["azure_storage"] = {
+            "status": "configured",
+            "message": "Azure Blob Storage connection configured"
+        }
+    else:
+        checks["external_services"]["azure_storage"] = {
+            "status": "info",
+            "message": "Azure Blob Storage not configured (local backups only)"
+        }
+
+    # Check backup freshness
+    backup_dir = os.path.join(settings.data_dir, "backups")
+    if os.path.isdir(backup_dir):
+        backup_files = sorted(
+            [f for f in os.listdir(backup_dir) if f.startswith("mdinsights_") and f.endswith(".db")],
+            reverse=True
+        )
+        if backup_files:
+            latest_backup = backup_files[0]
+            backup_mtime = os.path.getmtime(os.path.join(backup_dir, latest_backup))
+            backup_age_hours = (datetime.utcnow().timestamp() - backup_mtime) / 3600
+            checks["backup"] = {
+                "status": "healthy" if backup_age_hours < 36 else "warning",
+                "latest_backup": latest_backup,
+                "age_hours": round(backup_age_hours, 1),
+                "message": f"Latest backup: {latest_backup} ({round(backup_age_hours, 1)}h ago)"
+            }
+        else:
+            checks["backup"] = {"status": "warning", "message": "No backup files found"}
+    else:
+        checks["backup"] = {"status": "warning", "message": "Backup directory does not exist"}
+
+    # Check log file status
+    log_dir = os.path.join(settings.data_dir, "logs")
+    if os.path.isdir(log_dir):
+        log_files = [f for f in os.listdir(log_dir) if f.startswith("mdinsights")]
+        checks["logging"] = {
+            "status": "healthy",
+            "log_files": len(log_files),
+            "log_directory": os.path.abspath(log_dir)
+        }
+    else:
+        checks["logging"] = {"status": "warning", "message": "Log directory does not exist"}
+
     return {
         "status": overall_status,
         "service": "mdinsights",
