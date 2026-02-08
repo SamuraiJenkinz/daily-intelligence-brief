@@ -155,11 +155,11 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 07-01: Enhanced source health monitoring — statistical baseline, anomaly detection, email alerts
-- [ ] 07-02: Database backup automation — Litestream or scheduled backup to Azure Blob Storage
-- [ ] 07-03: Classification drift monitoring — track classification patterns, alert on statistical anomalies
-- [ ] 07-04: Error handling and retry logic — exponential backoff for Apify/Azure OpenAI/Graph API failures
-- [ ] 07-05: Production logging — structured logs with JSON output, log aggregation for debugging
+- [ ] 07-01-PLAN.md — Production logging + error handling (structlog JSON config, tenacity retry on collector/classifier/emailer, pipeline context binding)
+- [ ] 07-02-PLAN.md — Database backup automation (sqlite3 .backup() API, Azure Blob upload, integrity verification, retention cleanup)
+- [ ] 07-03-PLAN.md — Enhanced source health monitoring (statistical baselines with stdev, email alerts, pipeline integration)
+- [ ] 07-04-PLAN.md — Classification drift monitoring (KS test on priority, chi-square on role/category distributions, standalone script)
+- [ ] 07-05-PLAN.md — Deploy integration (Task Scheduler backup + drift tasks, enhanced monitoring, health endpoint updates)
 
 ### Phase 8: Polish and Launch
 **Goal**: Final refinements for production deployment and stakeholder handoff
