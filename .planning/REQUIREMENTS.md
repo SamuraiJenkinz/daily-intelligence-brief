@@ -7,19 +7,19 @@
 
 ### Collection
 
-- [ ] **COLL-01**: System scrapes 18+ global insurance/reinsurance news sources via Apify actors
-- [ ] **COLL-02**: System ingests RSS feeds from major publications as secondary source
-- [ ] **COLL-03**: System deduplicates articles across sources using content similarity
-- [ ] **COLL-04**: System monitors source health and alerts when a source stops returning articles
-- [ ] **COLL-05**: System stores collected articles in SQLite with timestamps and source metadata
+- [x] **COLL-01**: System scrapes 18+ global insurance/reinsurance news sources via Apify actors
+- [x] **COLL-02**: System ingests RSS feeds from major publications as secondary source
+- [x] **COLL-03**: System deduplicates articles across sources using content similarity
+- [x] **COLL-04**: System monitors source health and alerts when a source stops returning articles
+- [x] **COLL-05**: System stores collected articles in SQLite with timestamps and source metadata
 
 ### Classification
 
-- [ ] **CLSF-01**: AI assigns priority tier to each article (Critical / High / Medium / Monitor)
-- [ ] **CLSF-02**: AI tags each article with relevant audience roles (Brokers / Leadership / Compliance / Underwriting)
-- [ ] **CLSF-03**: AI extracts entities (companies, people, organisations) from each article
-- [ ] **CLSF-04**: AI assigns sentiment (positive / negative / neutral), impact level, category, region, and business line per article
-- [ ] **CLSF-05**: Classification uses Azure OpenAI GPT-4o with structured output
+- [x] **CLSF-01**: AI assigns priority tier to each article (Critical / High / Medium / Monitor)
+- [x] **CLSF-02**: AI tags each article with relevant audience roles (Brokers / Leadership / Compliance / Underwriting)
+- [x] **CLSF-03**: AI extracts entities (companies, people, organisations) from each article
+- [x] **CLSF-04**: AI assigns sentiment (positive / negative / neutral), impact level, category, region, and business line per article
+- [x] **CLSF-05**: Classification uses Azure OpenAI GPT-4o with structured output
 
 ### Report Generation
 
@@ -131,4 +131,4 @@
 
 ---
 *Requirements defined: 2026-02-06*
-*Last updated: 2026-02-08 after Phase 6 completion*
+*Last updated: 2026-02-08 after Phase 8 completion*
