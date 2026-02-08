@@ -10,19 +10,19 @@ See: .planning/PROJECT.md (updated 2026-02-06)
 ## Current Position
 
 Phase: 6 of 8 IN PROGRESS (Admin Dashboard)
-Plan: 2/5 complete
+Plan: 3/5 complete
 Status: Building admin interface with Bootstrap 5 + HTMX
-Last activity: 2026-02-08 — Completed 06-02-PLAN.md
+Last activity: 2026-02-08 — Completed 06-03-PLAN.md
 Verified: Not yet verified
 
-Progress: [████████░░] 79.5% (Phase 1: 5/5, Phase 2: 6/6, Phase 3: 3/3, Phase 4: 7/7, Phase 5: 4/4, Phase 6: 2/5)
+Progress: [████████░░] 82.1% (Phase 1: 5/5, Phase 2: 6/6, Phase 3: 3/3, Phase 4: 7/7, Phase 5: 4/4, Phase 6: 3/5)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 27
-- Average duration: 4.3 minutes
-- Total execution time: 1.92 hours
+- Total plans completed: 28
+- Average duration: 4.4 minutes
+- Total execution time: 2.00 hours
 
 **By Phase:**
 
@@ -33,17 +33,17 @@ Progress: [████████░░] 79.5% (Phase 1: 5/5, Phase 2: 6/6, Ph
 | 03 | 3/3 | 5.5 min | 1.8 min |
 | 04 | 7/7 | 24 min | 3.4 min |
 | 05 | 4/4 | 43.7 min | 10.9 min |
-| 06 | 2/5 | 18.5 min | 9.25 min |
+| 06 | 3/5 | 23.2 min | 7.7 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-02 (17min), 05-03 (21.7min), 05-04 (2.6min), 06-01 (15min), 06-02 (3.5min)
-- Trend: Phase 6 CRUD pattern established - source management complete
+- Last 5 plans: 05-03 (21.7min), 05-04 (2.6min), 06-01 (15min), 06-02 (3.5min), 06-03 (4.7min)
+- Trend: Phase 6 progressing well - archive browser and manual trigger integrated
 - **Phase 1 complete**: Vertical slice operational
 - **Phase 2 complete**: 20 sources, semantic dedup, health monitoring, pipeline integrated
 - **Phase 3 complete**: 9-dimension classification (entities, impact, category, region, business line)
 - **Phase 4 complete**: 7/7 plans complete (role filtering, exec summaries, aggregation, template integration)
 - **Phase 5 complete**: 4/4 plans complete (email infrastructure, template, pipeline integration, Task Scheduler automation)
-- **Phase 6 in progress**: 2/5 plans complete (base template, dashboard, source CRUD with HTMX)
+- **Phase 6 in progress**: 3/5 plans complete (base template, dashboard, source CRUD, archive browser, manual trigger)
 
 *Updated after each plan completion*
 
@@ -124,6 +124,11 @@ Recent decisions affecting current work:
 - **Pydantic for server-side validation** (06-02): SourceCreate/SourceUpdate schemas provide robust validation with inline error display in HTMX partials.
 - **Inline editing with row swap** (06-02): Edit button swaps display row with edit form row using HTMX outerHTML swap. Better UX than modal dialogs.
 - **HX-Request header detection** (06-02): Single GET /admin/sources endpoint serves full page on initial load, partial on HTMX requests.
+- **Archive security: multi-layer validation** (06-03): Date regex + role whitelist + Path.resolve() prevents path traversal attacks. Defense in depth approach.
+- **Reports open in new tab** (06-03): target="_blank" preserves archive browser state while viewing reports. Users can compare multiple reports.
+- **HTMX for archive filtering** (06-03): Role and month dropdowns trigger hx-get to update #archive-list without full page reload. Better UX.
+- **30s auto-refresh for runs table** (06-03): hx-trigger="every 30s" shows real-time pipeline status. Balances freshness vs server load.
+- **Keep old admin_trigger.html** (06-03): Backward compatibility for existing POST /admin/trigger-pipeline workflow during transition.
 
 ### Pending Todos
 
@@ -136,6 +141,6 @@ None - Phase 6 proceeding smoothly with admin dashboard foundation and source CR
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed 06-02-PLAN.md — Source management CRUD with HTMX
+Stopped at: Completed 06-03-PLAN.md — Report archive browser and manual trigger integration
 Resume file: None
-Next: Phase 6 remaining plans (06-03 through 06-05) - recipient management, archive browser, article search
+Next: Phase 6 remaining plans (06-04, 06-05) - article search, recipient management (if not already complete)
