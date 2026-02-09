@@ -945,11 +945,10 @@ def get_archived_report(role: str, date: str):
         logger.error("archive_access_error", role=role, date=date, error=str(e))
         raise HTTPException(status_code=404, detail="Report not found")
 
-    # Return file
+    # Return file (no filename= so browser renders inline instead of downloading)
     return FileResponse(
         path=str(resolved_path),
-        media_type="text/html",
-        filename=f"{role}_{date}.html"
+        media_type="text/html"
     )
 
 
