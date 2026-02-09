@@ -8,6 +8,7 @@ Provides endpoints for:
 - Source management
 - Recipient management
 """
+import json
 import structlog
 import re
 from typing import List, Dict, Optional
@@ -43,6 +44,7 @@ jinja_env = Environment(
     loader=FileSystemLoader(str(templates_dir)),
     autoescape=True
 )
+jinja_env.filters["fromjson"] = json.loads
 
 
 @router.get("", response_class=HTMLResponse)
