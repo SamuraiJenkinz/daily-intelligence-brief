@@ -38,7 +38,12 @@ def create_sample_articles():
             summary="Swiss Re reported Q4 2026 results showing 15% ROE, exceeding analyst expectations. "
                     "Property & Casualty reinsurance segment drove performance with strong pricing discipline. "
                     "Leadership signals continued capacity deployment in profitable segments.",
-            sentiment="positive"
+            sentiment="positive",
+            entities='[{"name": "Swiss Re", "type": "company"}, {"name": "Q4 2026", "type": "event"}]',
+            impact_level="High",
+            category="Reinsurance",
+            region="Europe",
+            business_line="Property & Casualty"
         ),
         # Critical priority - single role
         SimpleNamespace(
@@ -53,7 +58,12 @@ def create_sample_articles():
             summary="New EU directive requires critical infrastructure operators to maintain cyber insurance coverage "
                     "starting April 2026. Minimum coverage thresholds and reporting requirements specified. "
                     "Compliance teams must review portfolio for affected clients.",
-            sentiment="negative"
+            sentiment="negative",
+            entities='[{"name": "European Union", "type": "organization"}]',
+            impact_level="High",
+            category="Regulatory",
+            region="Europe",
+            business_line="Cyber"
         ),
         # High priority - multi-role
         SimpleNamespace(
@@ -68,7 +78,12 @@ def create_sample_articles():
             summary="Lloyd's cyber insurance premiums increased 20% year-over-year, with strong demand from "
                     "mid-market and enterprise clients. Brokers report pricing stabilization after 2023-2024 hardening. "
                     "Loss ratios improving as risk management standards mature.",
-            sentiment="positive"
+            sentiment="positive",
+            entities='[{"name": "Lloyd\'s", "type": "organization"}, {"name": "London", "type": "location"}]',
+            impact_level="High",
+            category="Market Trends",
+            region="United Kingdom",
+            business_line="Cyber"
         ),
         # High priority - Leadership only
         SimpleNamespace(
@@ -83,7 +98,12 @@ def create_sample_articles():
             summary="Moody's upgraded the global insurance sector outlook from negative to stable, citing "
                     "improved capital positions and sustained underwriting discipline. Reinsurance sector "
                     "particularly strong with ROE above cost of capital for third consecutive year.",
-            sentiment="positive"
+            sentiment="positive",
+            entities='[{"name": "Moody\'s", "type": "company"}]',
+            impact_level="Medium",
+            category="Ratings & Analysis",
+            region="Global",
+            business_line="Multi-line"
         ),
         # Medium priority - Underwriting focus
         SimpleNamespace(
@@ -98,7 +118,12 @@ def create_sample_articles():
             summary="New climate risk modeling platforms integrate real-time weather data with historical loss patterns. "
                     "Underwriters can now assess property exposures with greater precision for wildfire, flood, and "
                     "windstorm perils. Early adopters report 10-15% improvement in loss ratio accuracy.",
-            sentiment="positive"
+            sentiment="positive",
+            entities='[{"name": "PropertyCasualty360", "type": "company"}]',
+            impact_level="Medium",
+            category="Technology",
+            region="North America",
+            business_line="Property"
         ),
         # Medium priority - Compliance focus
         SimpleNamespace(
@@ -113,7 +138,12 @@ def create_sample_articles():
             summary="IAIS updated AML guidelines emphasize transaction monitoring for life insurance and annuity products. "
                     "New requirements for beneficial ownership verification and enhanced due diligence on high-value policies. "
                     "Implementation deadline: January 2027.",
-            sentiment="neutral"
+            sentiment="neutral",
+            entities='[{"name": "IAIS", "type": "organization"}]',
+            impact_level="Medium",
+            category="Regulatory",
+            region="Global",
+            business_line="Life & Annuity"
         ),
         # Monitor priority - market trend
         SimpleNamespace(
@@ -128,7 +158,12 @@ def create_sample_articles():
             summary="Parametric insurance products for agriculture grew 25% in 2025, driven by faster claims settlement "
                     "and transparent triggers based on weather data. Particularly strong adoption in drought-prone regions. "
                     "Brokers report client satisfaction with simplified claims process.",
-            sentiment="positive"
+            sentiment="positive",
+            entities='[]',
+            impact_level="Low",
+            category="Product Innovation",
+            region="Global",
+            business_line="Agriculture"
         ),
         # Monitor priority - tech development
         SimpleNamespace(
@@ -143,7 +178,12 @@ def create_sample_articles():
             summary="Insurance companies using AI-powered claims processing report 40% reduction in average cycle time "
                     "and 30% lower processing costs. Technology particularly effective for auto and property claims. "
                     "Customer satisfaction scores improve with faster settlement.",
-            sentiment="positive"
+            sentiment="positive",
+            entities='[]',
+            impact_level="Low",
+            category="Technology",
+            region="North America",
+            business_line="Claims"
         ),
     ]
 
