@@ -8,7 +8,7 @@ import json
 import logging
 from typing import List
 import structlog
-from openai import AzureOpenAI, APITimeoutError, APIConnectionError
+from openai import AzureOpenAI, OpenAI, APITimeoutError, APIConnectionError
 from sqlalchemy.orm import Session
 from tenacity import (
     retry,
@@ -131,11 +131,19 @@ class RoleClassificationService:
             deployment: Deployment name (e.g., "gpt-4o")
             api_version: API version supporting structured outputs (default: 2024-08-01-preview)
         """
-        self.client = AzureOpenAI(
-            azure_endpoint=endpoint,
-            api_key=api_key,
-            api_version=api_version
-        )
+        if '/deployments/' in endpoint:
+            # Corporate proxy — endpoint is the full URL, use standard client
+            base_url = endpoint.rstrip('/')
+            if base_url.endswith('/chat/completions'):
+                base_url = base_url[:-len('/chat/completions')]
+            self.client = OpenAI(base_url=base_url, api_key=api_key)
+        else:
+            # Standard Azure OpenAI endpoint
+            self.client = AzureOpenAI(
+                azure_endpoint=endpoint,
+                api_key=api_key,
+                api_version=api_version
+            )
         self.deployment = deployment
         self.logger = structlog.get_logger(__name__)
 

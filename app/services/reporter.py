@@ -11,7 +11,7 @@ from typing import List, Dict
 
 from jinja2 import Environment, FileSystemLoader
 from premailer import transform
-from openai import AzureOpenAI
+from openai import AzureOpenAI, OpenAI
 import structlog
 
 from app.models.news_article import NewsArticle
@@ -52,11 +52,20 @@ class RoleReportService:
 
         # Azure OpenAI client (same pattern as classifier.py)
         if settings.is_azure_openai_configured():
-            self.client = AzureOpenAI(
-                azure_endpoint=settings.azure_openai_endpoint,
-                api_key=settings.azure_openai_api_key,
-                api_version=settings.azure_openai_api_version
-            )
+            endpoint = settings.azure_openai_endpoint
+            if '/deployments/' in endpoint:
+                # Corporate proxy — endpoint is the full URL, use standard client
+                base_url = endpoint.rstrip('/')
+                if base_url.endswith('/chat/completions'):
+                    base_url = base_url[:-len('/chat/completions')]
+                self.client = OpenAI(base_url=base_url, api_key=settings.azure_openai_api_key)
+            else:
+                # Standard Azure OpenAI endpoint
+                self.client = AzureOpenAI(
+                    azure_endpoint=endpoint,
+                    api_key=settings.azure_openai_api_key,
+                    api_version=settings.azure_openai_api_version
+                )
             self.deployment = settings.azure_openai_deployment
         else:
             self.client = None
