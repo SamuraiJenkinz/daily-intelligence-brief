@@ -20,6 +20,8 @@ from app.services.emailer import GraphEmailService
 from app.services.health_monitor import SourceHealthMonitor
 from app.config import get_settings
 
+# Project root directory (absolute path for reliable file operations)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 logger = structlog.get_logger(__name__)
 
@@ -176,6 +178,26 @@ class PipelineOrchestrator:
             self.logger.info(
                 "step_5_report_generation_completed",
                 html_length=len(html_output)
+            )
+
+            # Step 5b: Generate per-role reports and archive to disk
+            self.logger.info("step_5b_archiving_reports")
+            role_emails = self.reporter.generate_role_emails(
+                articles=classified_articles,
+                report_date=report_date
+            )
+            date_str = report_date.strftime("%Y-%m-%d")
+            reports_archived = []
+            for role, html in role_emails.items():
+                role_dir = os.path.join(PROJECT_ROOT, "data", "reports", role.lower())
+                os.makedirs(role_dir, exist_ok=True)
+                report_path = os.path.join(role_dir, f"{date_str}.html")
+                with open(report_path, "w", encoding="utf-8") as f:
+                    f.write(html)
+                reports_archived.append(report_path)
+            self.logger.info(
+                "step_5b_archiving_completed",
+                files_archived=len(reports_archived)
             )
 
             # Step 6: Update Run record
@@ -420,7 +442,7 @@ class PipelineOrchestrator:
             self.logger.info("step_7_archiving_reports")
             date_str = report_date.strftime("%Y-%m-%d")
             for role, html in role_emails.items():
-                role_dir = os.path.join("data", "reports", role.lower())
+                role_dir = os.path.join(PROJECT_ROOT, "data", "reports", role.lower())
                 os.makedirs(role_dir, exist_ok=True)
                 report_path = os.path.join(role_dir, f"{date_str}.html")
                 with open(report_path, "w", encoding="utf-8") as f:
