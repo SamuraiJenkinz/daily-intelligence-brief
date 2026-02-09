@@ -196,7 +196,6 @@ def main():
     print("\n4. Generating HTML report...")
     report_date = datetime.now()
     html = reporter.generate_role_brief(
-        target_role="All",  # Template shows all roles with tabs
         articles=articles,
         report_date=report_date,
         company_name="Marsh"
