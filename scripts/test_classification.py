@@ -16,7 +16,7 @@ sys.path.insert(0, str(project_root))
 
 import structlog
 from sqlalchemy import desc
-from app.database import SessionLocal, init_db
+from app.database import SessionLocal, Base, engine
 from app.config import get_settings
 from app.models.news_article import NewsArticle
 from app.services.classifier import RoleClassificationService
@@ -46,8 +46,8 @@ def test_classification():
     print(f"✅ Azure OpenAI configured: {settings.azure_openai_deployment}")
     print()
 
-    # Initialize database
-    init_db()
+    # Ensure tables exist
+    Base.metadata.create_all(bind=engine)
 
     # Create database session
     db = SessionLocal()
