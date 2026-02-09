@@ -33,33 +33,16 @@
 
     <!-- Role Cards Grid -->
     <div class="row g-4">
-        <!-- Brokers Card -->
+        {% for role_name in ['Brokers', 'Leadership', 'Compliance', 'Underwriting'] %}
         <div class="col-md-6">
-            <div id="recipient-card-Brokers">
-                {% include 'admin/partials/recipient_card.html' with role='Brokers', recipients=recipients['Brokers'], edit=False %}
+            <div id="recipient-card-{{ role_name }}">
+                {% set role = role_name %}
+                {% set edit = False %}
+                {% set recipients = all_recipients[role_name] %}
+                {% include 'admin/partials/recipient_card.html' %}
             </div>
         </div>
-
-        <!-- Leadership Card -->
-        <div class="col-md-6">
-            <div id="recipient-card-Leadership">
-                {% include 'admin/partials/recipient_card.html' with role='Leadership', recipients=recipients['Leadership'], edit=False %}
-            </div>
-        </div>
-
-        <!-- Compliance Card -->
-        <div class="col-md-6">
-            <div id="recipient-card-Compliance">
-                {% include 'admin/partials/recipient_card.html' with role='Compliance', recipients=recipients['Compliance'], edit=False %}
-            </div>
-        </div>
-
-        <!-- Underwriting Card -->
-        <div class="col-md-6">
-            <div id="recipient-card-Underwriting">
-                {% include 'admin/partials/recipient_card.html' with role='Underwriting', recipients=recipients['Underwriting'], edit=False %}
-            </div>
-        </div>
+        {% endfor %}
     </div>
 </div>
 {% endblock %}

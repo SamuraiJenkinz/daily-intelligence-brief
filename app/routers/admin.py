@@ -642,11 +642,11 @@ def get_recipients_page(request: Request):
     if is_htmx:
         # Return partial (though unlikely for this endpoint)
         template = jinja_env.get_template('admin/recipients.html')
-        html = template.render(recipients=recipients, active_nav="recipients")
+        html = template.render(all_recipients=recipients, active_nav="recipients")
     else:
         # Return full page
         template = jinja_env.get_template('admin/recipients.html')
-        html = template.render(recipients=recipients, active_nav="recipients")
+        html = template.render(all_recipients=recipients, active_nav="recipients")
 
     return HTMLResponse(content=html)
 
