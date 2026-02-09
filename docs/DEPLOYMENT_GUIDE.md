@@ -77,8 +77,8 @@ Open PowerShell as Administrator:
 cd C:\
 
 # Clone repository
-git clone https://github.com/your-org/mdinsights.git
-cd mdinsights
+git clone https://github.com/SamuraiJenkinz/daily-intelligence-brief.git
+cd daily-intelligence-brief
 
 # Verify files present
 dir
@@ -448,7 +448,7 @@ Initialize the SQLite database and seed with news sources.
 ### 7.1 Create Data Directory
 
 ```powershell
-# From project root (C:\mdinsights)
+# From project root (C:\daily-intelligence-brief)
 mkdir data
 mkdir data\logs
 ```
@@ -527,7 +527,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
 MDInsights Task Scheduler Setup
 ================================
 
-Project path: C:\mdinsights
+Project path: C:\daily-intelligence-brief
 Task name: MDInsights Daily Pipeline
 Pipeline time: 06:00
 Backup time: 07:00
@@ -630,7 +630,7 @@ To run the web server continuously:
 
 ```powershell
 # Create web server task
-$Action = New-ScheduledTaskAction -Execute "C:\mdinsights\venv\Scripts\python.exe" -Argument "-m app.main web --host 0.0.0.0 --port 8001" -WorkingDirectory "C:\mdinsights"
+$Action = New-ScheduledTaskAction -Execute "C:\daily-intelligence-brief\venv\Scripts\python.exe" -Argument "-m app.main web --host 0.0.0.0 --port 8001" -WorkingDirectory "C:\daily-intelligence-brief"
 $Trigger = New-ScheduledTaskTrigger -AtStartup
 $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -RestartCount 999 -RestartInterval (New-TimeSpan -Minutes 1)
 $Principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
@@ -901,7 +901,7 @@ Logs automatically rotate daily:
 **Manual cleanup if needed:**
 ```powershell
 # Delete logs older than 30 days
-Get-ChildItem "C:\mdinsights\data\logs" -Filter "mdinsights_*.log" | Where-Object {$_.LastWriteTime -lt (Get-Date).AddDays(-30)} | Remove-Item
+Get-ChildItem "C:\daily-intelligence-brief\data\logs" -Filter "mdinsights_*.log" | Where-Object {$_.LastWriteTime -lt (Get-Date).AddDays(-30)} | Remove-Item
 ```
 
 ### Backup Retention
@@ -1049,19 +1049,19 @@ Complete reference of all .env variables:
 **Check batch script path:**
 ```powershell
 schtasks /query /tn "MDInsights Daily Pipeline" /v /fo LIST | Select-String -Pattern "Task To Run"
-# Verify path is correct: C:\mdinsights\deploy\run_mdinsights.bat
+# Verify path is correct: C:\daily-intelligence-brief\deploy\run_mdinsights.bat
 ```
 
 **Check virtual environment:**
 ```powershell
 # Verify venv exists
-Test-Path "C:\mdinsights\venv\Scripts\python.exe"
+Test-Path "C:\daily-intelligence-brief\venv\Scripts\python.exe"
 ```
 
 **Check SYSTEM account permissions:**
 ```powershell
 # Grant SYSTEM full control
-icacls "C:\mdinsights" /grant "SYSTEM:(OI)(CI)F" /T
+icacls "C:\daily-intelligence-brief" /grant "SYSTEM:(OI)(CI)F" /T
 ```
 
 **Run batch script manually as SYSTEM:**
@@ -1069,7 +1069,7 @@ icacls "C:\mdinsights" /grant "SYSTEM:(OI)(CI)F" /T
 # Install PsExec from Sysinternals
 # Run as SYSTEM to debug
 psexec -i -s cmd.exe
-cd C:\mdinsights
+cd C:\daily-intelligence-brief
 deploy\run_mdinsights.bat
 ```
 
@@ -1143,7 +1143,7 @@ python -c "from app.config import get_settings; s = get_settings(); print(s.get_
 
 **Internal Support:**
 - Admin Dashboard: http://localhost:8001
-- Log Files: `C:\mdinsights\data\logs\`
+- Log Files: `C:\daily-intelligence-brief\data\logs\`
 - Monitor Alerts: Check ADMIN_EMAIL inbox
 
 **External Resources:**

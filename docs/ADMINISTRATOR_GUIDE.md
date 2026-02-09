@@ -930,7 +930,7 @@ schtasks /delete /tn "MDInsights Daily Pipeline - Monitor" /f
 
 **Recreate Tasks:**
 ```powershell
-cd C:\BrasilIntel\mdinsights
+cd C:\daily-intelligence-brief
 .\deploy\setup_task.ps1
 ```
 
@@ -1032,7 +1032,7 @@ COMPANY_NAME=Marsh
 
 **Method 1: Text Editor (Recommended)**
 
-1. Open File Explorer, navigate to: `C:\BrasilIntel\mdinsights`
+1. Open File Explorer, navigate to: `C:\daily-intelligence-brief`
 2. Right-click `.env` → **Edit with Notepad**
 3. Make changes
 4. Save file
