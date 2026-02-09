@@ -80,36 +80,26 @@
     <!-- Trigger Controls -->
     <div class="trigger-controls">
         <div class="row">
-            <div class="col-md-6">
-                <label for="roleSelector" class="form-label fw-semibold">Select Role</label>
-                <select id="roleSelector" class="form-select">
-                    <option value="Brokers">Brokers</option>
-                    <option value="Leadership">Leadership</option>
-                    <option value="Compliance">Compliance</option>
-                    <option value="Underwriting">Underwriting</option>
-                </select>
-                <div class="form-text">
-                    Generate report for specific role audience
-                </div>
-            </div>
-
-            <div class="col-md-6 d-flex align-items-end">
+            <div class="col-12">
+                <p class="mb-3">
+                    Runs the full pipeline for <strong>all roles</strong> (Brokers, Leadership, Compliance, Underwriting).
+                    Reports are archived individually per role.
+                </p>
                 <button
                     type="button"
-                    class="btn btn-primary btn-lg w-100"
+                    class="btn btn-primary btn-lg"
                     hx-post="/admin/trigger-pipeline"
-                    hx-include="#roleSelector"
                     hx-target="#trigger-result"
                     hx-swap="innerHTML"
                     hx-indicator=".loading-spinner"
                 >
                     <span class="button-text">
                         <i class="bi bi-play-circle-fill"></i>
-                        Generate Report Only
+                        Run Pipeline
                     </span>
                     <span class="loading-spinner">
                         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        Generating...
+                        Running pipeline...
                     </span>
                 </button>
             </div>

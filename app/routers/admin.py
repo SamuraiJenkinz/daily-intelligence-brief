@@ -129,15 +129,12 @@ def get_admin_trigger_ui():
 
 
 @router.post("/trigger-pipeline", response_class=HTMLResponse)
-def trigger_pipeline(role: str = Query(default="Brokers")):
+def trigger_pipeline():
     """
     Manually trigger complete pipeline execution.
 
-    Executes collection → classification → reporting workflow and
-    returns generated HTML report with custom headers.
-
-    Args:
-        role: Target role for report (Brokers, Leadership, Compliance, Underwriting)
+    Executes collection → classification → reporting workflow for all roles
+    and returns generated HTML report with custom headers.
 
     Returns:
         HTMLResponse with generated report
@@ -148,7 +145,7 @@ def trigger_pipeline(role: str = Query(default="Brokers")):
     settings = get_settings()
 
     try:
-        logger.info("manual_trigger_started", role=role)
+        logger.info("manual_trigger_started")
 
         # Validate configuration
         if not settings.is_apify_configured():
