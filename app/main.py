@@ -71,10 +71,10 @@ async def global_exception_handler(request: Request, exc: Exception):
     error response to avoid exposing internal details.
     """
     logger.error(
-        "unhandled_exception",
-        path=str(request.url.path),
-        method=request.method,
-        error=str(exc),
+        "unhandled_exception: %s %s - %s",
+        request.method,
+        str(request.url.path),
+        str(exc),
         exc_info=True
     )
     return JSONResponse(

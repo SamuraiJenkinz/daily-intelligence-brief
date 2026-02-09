@@ -84,7 +84,7 @@ def get_admin_dashboard():
             runs_data.append({
                 'id': run.id,
                 'status': run.status.value,
-                'created_at': run.created_at.strftime('%Y-%m-%d %H:%M:%S') if run.created_at else None,
+                'created_at': run.started_at.strftime('%Y-%m-%d %H:%M:%S') if run.started_at else None,
                 'completed_at': run.completed_at.strftime('%Y-%m-%d %H:%M:%S') if run.completed_at else None,
                 'articles_collected': run.articles_collected,
                 'articles_classified': run.articles_classified,
@@ -95,7 +95,7 @@ def get_admin_dashboard():
         if last_run:
             last_run_data = {
                 'status': last_run.status.value,
-                'created_at': last_run.created_at.strftime('%Y-%m-%d %H:%M:%S') if last_run.created_at else None
+                'created_at': last_run.started_at.strftime('%Y-%m-%d %H:%M:%S') if last_run.started_at else None
             }
 
         # Render template
@@ -257,7 +257,7 @@ def get_recent_runs() -> List[Dict]:
             {
                 "id": run.id,
                 "status": run.status.value,
-                "created_at": run.created_at.isoformat() if run.created_at else None,
+                "created_at": run.started_at.isoformat() if run.started_at else None,
                 "completed_at": run.completed_at.isoformat() if run.completed_at else None,
                 "articles_collected": run.articles_collected,
                 "articles_classified": run.articles_classified,
@@ -985,7 +985,7 @@ def get_runs_table():
                     'pending': '<span class="badge bg-secondary">Pending</span>'
                 }.get(run.status.value, f'<span class="badge bg-secondary">{run.status.value}</span>')
 
-                created = run.created_at.strftime('%Y-%m-%d %H:%M:%S') if run.created_at else 'N/A'
+                created = run.started_at.strftime('%Y-%m-%d %H:%M:%S') if run.started_at else 'N/A'
                 completed = run.completed_at.strftime('%Y-%m-%d %H:%M:%S') if run.completed_at else 'N/A'
 
                 error_cell = ''
