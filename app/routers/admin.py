@@ -181,7 +181,7 @@ def trigger_pipeline(role: str = Query(default="Brokers")):
         )
 
         # Execute pipeline
-        result = orchestrator.run_full_pipeline(role=role)
+        result = orchestrator.run_full_pipeline()
 
         # Check if pipeline succeeded
         if result["status"] != "completed":
