@@ -79,30 +79,48 @@
 
     <!-- Trigger Controls -->
     <div class="trigger-controls">
-        <div class="row">
-            <div class="col-12">
-                <p class="mb-3">
-                    Runs the full pipeline for <strong>all roles</strong> (Brokers, Leadership, Compliance, Underwriting).
-                    Reports are archived individually per role.
-                </p>
-                <button
-                    type="button"
-                    class="btn btn-primary btn-lg"
-                    hx-post="/admin/trigger-pipeline"
-                    hx-target="#trigger-result"
-                    hx-swap="innerHTML"
-                    hx-indicator=".loading-spinner"
-                >
-                    <span class="button-text">
-                        <i class="bi bi-play-circle-fill"></i>
-                        Run Pipeline
-                    </span>
-                    <span class="loading-spinner">
-                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                        Running pipeline...
-                    </span>
-                </button>
-            </div>
+        <p class="mb-3">
+            Runs the full pipeline for <strong>all roles</strong> (Brokers, Leadership, Compliance, Underwriting).
+            Reports are archived individually per role.
+        </p>
+        <div class="d-flex gap-3 flex-wrap">
+            <button
+                id="btn-generate"
+                type="button"
+                class="btn btn-primary btn-lg"
+                hx-post="/admin/trigger-pipeline"
+                hx-target="#trigger-result"
+                hx-swap="innerHTML"
+                hx-indicator="#btn-generate"
+            >
+                <span class="button-text">
+                    <i class="bi bi-play-circle-fill"></i>
+                    Run Pipeline
+                </span>
+                <span class="loading-spinner">
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Running pipeline...
+                </span>
+            </button>
+
+            <button
+                id="btn-email"
+                type="button"
+                class="btn btn-success btn-lg"
+                hx-post="/admin/trigger-pipeline-email"
+                hx-target="#trigger-result"
+                hx-swap="innerHTML"
+                hx-indicator="#btn-email"
+            >
+                <span class="button-text">
+                    <i class="bi bi-envelope-fill"></i>
+                    Run Pipeline + Send Emails
+                </span>
+                <span class="loading-spinner">
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    Running pipeline &amp; sending emails...
+                </span>
+            </button>
         </div>
 
         <!-- Result Area -->
@@ -141,13 +159,26 @@
     // Handle successful trigger
     document.body.addEventListener('htmx:afterSwap', function(evt) {
         if (evt.detail.target.id === 'trigger-result') {
-            // Check response headers for success
             const xhr = evt.detail.xhr;
             if (xhr && xhr.status === 200 && xhr.getResponseHeader('X-MDInsights-Run-ID')) {
-                // Success - show success message
                 const runId = xhr.getResponseHeader('X-MDInsights-Run-ID');
                 const articlesCollected = xhr.getResponseHeader('X-Articles-Collected');
                 const articlesClassified = xhr.getResponseHeader('X-Articles-Classified');
+                const emailsSent = xhr.getResponseHeader('X-Emails-Sent');
+                const reportsArchived = xhr.getResponseHeader('X-Reports-Archived');
+
+                let emailInfo = '';
+                if (emailsSent && emailsSent !== 'null') {
+                    try {
+                        const emails = JSON.parse(emailsSent);
+                        const emailLines = Object.entries(emails).map(([role, status]) =>
+                            `<strong>${role}:</strong> ${status}`
+                        ).join('<br>');
+                        if (emailLines) {
+                            emailInfo = `<hr><h6>Email Delivery</h6><p class="mb-0">${emailLines}</p>`;
+                        }
+                    } catch(e) {}
+                }
 
                 evt.detail.target.innerHTML = `
                     <div class="alert alert-success" role="alert">
@@ -160,7 +191,9 @@
                             <strong>Run ID:</strong> ${runId}<br>
                             <strong>Articles Collected:</strong> ${articlesCollected}<br>
                             <strong>Articles Classified:</strong> ${articlesClassified}
+                            ${reportsArchived ? '<br><strong>Reports Archived:</strong> ' + reportsArchived : ''}
                         </p>
+                        ${emailInfo}
                         <p class="mt-3 mb-0">
                             <a href="/admin/archive" class="btn btn-sm btn-outline-success">
                                 <i class="bi bi-archive"></i>

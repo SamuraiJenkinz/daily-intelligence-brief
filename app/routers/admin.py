@@ -239,6 +239,97 @@ def trigger_pipeline():
         )
 
 
+@router.post("/trigger-pipeline-email", response_class=HTMLResponse)
+async def trigger_pipeline_with_email():
+    """
+    Manually trigger complete pipeline with email delivery.
+
+    Executes collection → classification → reporting → email workflow
+    for all roles.
+
+    Returns:
+        HTMLResponse with pipeline result summary
+    """
+    settings = get_settings()
+
+    try:
+        logger.info("manual_trigger_with_email_started")
+
+        # Validate configuration
+        if not settings.is_apify_configured():
+            raise HTTPException(
+                status_code=500,
+                detail="Apify not configured. Set APIFY_TOKEN in .env"
+            )
+
+        if not settings.is_azure_openai_configured():
+            raise HTTPException(
+                status_code=500,
+                detail="Azure OpenAI not configured. Set credentials in .env"
+            )
+
+        if not settings.is_graph_configured():
+            raise HTTPException(
+                status_code=500,
+                detail="Microsoft Graph not configured. Set GRAPH_TENANT_ID, GRAPH_CLIENT_ID, GRAPH_CLIENT_SECRET, and GRAPH_SENDER_EMAIL in .env"
+            )
+
+        # Initialize services
+        collector = ApifyCollector(apify_token=settings.apify_token)
+        classifier = RoleClassificationService(
+            endpoint=settings.azure_openai_endpoint,
+            api_key=settings.azure_openai_api_key,
+            deployment=settings.azure_openai_deployment,
+            api_version=settings.azure_openai_api_version
+        )
+        reporter = RoleReportService()
+
+        orchestrator = PipelineOrchestrator(
+            collector=collector,
+            classifier=classifier,
+            reporter=reporter
+        )
+
+        # Execute full pipeline with email delivery
+        result = await orchestrator.run_full_pipeline_with_email()
+
+        if result["status"] != "completed":
+            error_msg = result.get("error", "Unknown error")
+            logger.error("manual_trigger_email_failed", error=error_msg)
+            raise HTTPException(
+                status_code=500,
+                detail=f"Pipeline execution failed: {error_msg}"
+            )
+
+        logger.info(
+            "manual_trigger_email_completed",
+            run_id=result["run_id"],
+            articles_collected=result["articles_collected"],
+            articles_classified=result["articles_classified"],
+            emails_sent=result.get("emails_sent", {})
+        )
+
+        return HTMLResponse(
+            content=result.get("html_output", ""),
+            headers={
+                "X-MDInsights-Run-ID": str(result["run_id"]),
+                "X-Articles-Collected": str(result["articles_collected"]),
+                "X-Articles-Classified": str(result["articles_classified"]),
+                "X-Emails-Sent": json.dumps(result.get("emails_sent", {})),
+                "X-Reports-Archived": str(len(result.get("reports_archived", [])))
+            }
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("manual_trigger_email_error", error=str(e), exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Pipeline execution error: {str(e)}"
+        )
+
+
 @router.get("/runs")
 def get_recent_runs() -> List[Dict]:
     """
