@@ -302,7 +302,7 @@ $WebServerSettings = New-ScheduledTaskSettingsSet `
     -StartWhenAvailable `
     -ExecutionTimeLimit (New-TimeSpan -Days 9999) `
     -RestartCount 3 `
-    -RestartInterval (New-TimeSpan -Seconds 30)
+    -RestartInterval (New-TimeSpan -Minutes 1)
 
 # Disable the execution time limit (run indefinitely)
 $WebServerSettings.ExecutionTimeLimit = "PT0S"
@@ -368,7 +368,7 @@ Write-Host "  ✓ 5 tasks registered: Web Server (startup), Pipeline (06:00), Ba
 Write-Host "  ✓ Runs as SYSTEM with highest privileges" -ForegroundColor White
 Write-Host "  ✓ Runs whether user is logged on or not" -ForegroundColor White
 Write-Host "  ✓ Starts when available (catches up if machine was off)" -ForegroundColor White
-Write-Host "  ✓ Web server runs indefinitely with auto-restart on failure (30s delay, 3 retries)" -ForegroundColor White
+Write-Host "  ✓ Web server runs indefinitely with auto-restart on failure (1 min delay, 3 retries)" -ForegroundColor White
 Write-Host "  ✓ Network required for pipeline (Apify, Azure OpenAI, Graph API)" -ForegroundColor White
 Write-Host "  ✓ 2-hour pipeline limit, 30-min backup limit, 10-min drift limit" -ForegroundColor White
 Write-Host "  ✓ Monitor task verifies pipeline + backup ran (alerts admin if stale)" -ForegroundColor White
