@@ -1,11 +1,14 @@
 <#
 .SYNOPSIS
-    Creates Windows Task Scheduler task for MDInsights daily pipeline.
+    Creates Windows Task Scheduler tasks for MDInsights pipeline and web server.
 
 .DESCRIPTION
-    Registers a scheduled task that runs the MDInsights pipeline daily at 06:00.
-    Also registers a secondary monitoring task that runs at 09:00 to verify
-    the pipeline completed successfully (detects scheduler-level failures).
+    Registers scheduled tasks for the MDInsights system:
+    - Daily pipeline (collect, classify, email)
+    - Daily database backup
+    - Weekly classification drift check
+    - Daily pipeline monitor
+    - Web server (admin UI) running as a persistent service
 
 .PARAMETER TaskName
     Name of the scheduled task (default: "MDInsights Daily Pipeline")
@@ -19,9 +22,12 @@
 .PARAMETER ProjectPath
     Path to MDInsights project root (default: auto-detect from script location)
 
+.PARAMETER WebServerPort
+    Port for the admin UI web server (default: 8001)
+
 .EXAMPLE
     .\setup_task.ps1
-    Creates scheduled tasks with default settings (06:00 pipeline, 09:00 monitor)
+    Creates all scheduled tasks with default settings
 
 .EXAMPLE
     .\setup_task.ps1 -TriggerTime "05:30"
@@ -30,6 +36,10 @@
 .EXAMPLE
     .\setup_task.ps1 -TaskName "MDInsights Test" -TriggerTime "14:00"
     Creates test task with custom name running at 14:00
+
+.EXAMPLE
+    .\setup_task.ps1 -WebServerPort 9000
+    Runs the admin UI web server on port 9000 instead of default 8001
 #>
 
 param(
@@ -39,7 +49,8 @@ param(
     [string]$BackupTime = "07:00",
     [string]$DriftDay = "Monday",
     [string]$DriftTime = "08:00",
-    [string]$ProjectPath = ""
+    [string]$ProjectPath = "",
+    [int]$WebServerPort = 8001
 )
 
 # Auto-detect project path from script location
@@ -56,6 +67,7 @@ Write-Host "Pipeline time: $TriggerTime" -ForegroundColor Yellow
 Write-Host "Backup time: $BackupTime" -ForegroundColor Yellow
 Write-Host "Drift check: $DriftDay at $DriftTime" -ForegroundColor Yellow
 Write-Host "Monitor time: $MonitorTime" -ForegroundColor Yellow
+Write-Host "Web server port: $WebServerPort" -ForegroundColor Yellow
 Write-Host ""
 
 # Validate project structure
@@ -261,6 +273,58 @@ try {
     exit 1
 }
 
+# Create the web server task (persistent admin UI)
+Write-Host "Creating web server task..." -ForegroundColor Gray
+
+$WebServerAction = New-ScheduledTaskAction `
+    -Execute "cmd.exe" `
+    -Argument "/c `"$PythonExe`" -m app.main" `
+    -WorkingDirectory $ProjectPath
+
+# Trigger at system startup
+$WebServerTrigger = New-ScheduledTaskTrigger -AtStartup
+
+# Set PORT environment variable if non-default
+if ($WebServerPort -ne 8001) {
+    # Write port to .env if not already there
+    $EnvFile = Join-Path $ProjectPath ".env"
+    if (Test-Path $EnvFile) {
+        $envContent = Get-Content $EnvFile -Raw -ErrorAction SilentlyContinue
+        if ($envContent -notmatch "(?m)^PORT=") {
+            Add-Content -Path $EnvFile -Value "PORT=$WebServerPort"
+        }
+    }
+}
+
+$WebServerSettings = New-ScheduledTaskSettingsSet `
+    -AllowStartIfOnBatteries `
+    -DontStopIfGoingOnBatteries `
+    -StartWhenAvailable `
+    -ExecutionTimeLimit (New-TimeSpan -Days 9999) `
+    -RestartCount 3 `
+    -RestartInterval (New-TimeSpan -Seconds 30)
+
+# Disable the execution time limit (run indefinitely)
+$WebServerSettings.ExecutionTimeLimit = "PT0S"
+
+$WebServerTaskName = "$TaskName - Web Server"
+
+try {
+    Register-ScheduledTask `
+        -TaskName $WebServerTaskName `
+        -Action $WebServerAction `
+        -Trigger $WebServerTrigger `
+        -Settings $WebServerSettings `
+        -Principal $Principal `
+        -Force `
+        -ErrorAction Stop | Out-Null
+
+    Write-Host "✓ Web server task registered: $WebServerTaskName" -ForegroundColor Green
+} catch {
+    Write-Error "Failed to register web server task: $_"
+    exit 1
+}
+
 Write-Host ""
 Write-Host "Setup Complete!" -ForegroundColor Green
 Write-Host "===============" -ForegroundColor Green
@@ -286,16 +350,25 @@ Write-Host "  Name: $MonitorTaskName" -ForegroundColor White
 Write-Host "  Trigger: Daily at $MonitorTime" -ForegroundColor White
 Write-Host "  Script: $MonitorScript" -ForegroundColor White
 Write-Host ""
+Write-Host "Web Server Task:" -ForegroundColor Cyan
+Write-Host "  Name: $WebServerTaskName" -ForegroundColor White
+Write-Host "  Trigger: At system startup" -ForegroundColor White
+Write-Host "  Port: $WebServerPort" -ForegroundColor White
+Write-Host "  URL: http://localhost:$WebServerPort/admin" -ForegroundColor White
+Write-Host ""
 Write-Host "Testing:" -ForegroundColor Cyan
 Write-Host "  Run now: schtasks /run /tn `"$TaskName`"" -ForegroundColor White
+Write-Host "  Start web server: schtasks /run /tn `"$WebServerTaskName`"" -ForegroundColor White
+Write-Host "  Stop web server: schtasks /end /tn `"$WebServerTaskName`"" -ForegroundColor White
 Write-Host "  Check status: schtasks /query /tn `"$TaskName`" /v" -ForegroundColor White
 Write-Host "  View logs: type `"$ProjectPath\data\logs\mdinsights_*.log`"" -ForegroundColor White
 Write-Host ""
 Write-Host "Task Scheduler features:" -ForegroundColor Cyan
-Write-Host "  ✓ 4 tasks registered: Pipeline (06:00), Backup (07:00), Drift (Mon 08:00), Monitor (09:00)" -ForegroundColor White
+Write-Host "  ✓ 5 tasks registered: Web Server (startup), Pipeline (06:00), Backup (07:00), Drift (Mon 08:00), Monitor (09:00)" -ForegroundColor White
 Write-Host "  ✓ Runs as SYSTEM with highest privileges" -ForegroundColor White
 Write-Host "  ✓ Runs whether user is logged on or not" -ForegroundColor White
 Write-Host "  ✓ Starts when available (catches up if machine was off)" -ForegroundColor White
+Write-Host "  ✓ Web server runs indefinitely with auto-restart on failure (30s delay, 3 retries)" -ForegroundColor White
 Write-Host "  ✓ Network required for pipeline (Apify, Azure OpenAI, Graph API)" -ForegroundColor White
 Write-Host "  ✓ 2-hour pipeline limit, 30-min backup limit, 10-min drift limit" -ForegroundColor White
 Write-Host "  ✓ Monitor task verifies pipeline + backup ran (alerts admin if stale)" -ForegroundColor White
