@@ -55,9 +55,15 @@ class ApifyCollector:
         self.apify_client = ApifyClient(apify_token)
         self.logger = logger.bind(service="collector")
 
-    def collect_from_sources(self) -> int:
+    def collect_from_sources(self, source_name_filter: list = None) -> int:
         """
         Collect articles from all enabled sources.
+
+        Args:
+            source_name_filter: Optional list of source names to collect from.
+                                When provided, only sources with these names are queried.
+                                Used by the Factiva-fallback path to limit collection to
+                                insurance-focused sources only.
 
         Returns:
             Number of articles collected
@@ -77,8 +83,11 @@ class ApifyCollector:
 
             self.logger.info("collection_started", run_id=run.id)
 
-            # Query enabled sources
-            sources = db.query(Source).filter(Source.enabled == True).all()
+            # Query enabled sources (optionally filtered by name)
+            query = db.query(Source).filter(Source.enabled == True)
+            if source_name_filter:
+                query = query.filter(Source.name.in_(source_name_filter))
+            sources = query.all()
 
             if not sources:
                 self.logger.warning("no_enabled_sources")
@@ -250,6 +259,7 @@ class ApifyCollector:
                     source_url=article_data.get("url"),
                     source_name=article_data["source_name"],
                     published_at=article_data.get("published_at"),
+                    collector_source=article_data.get("collector_source", "Apify/RSS"),
                     # Classification fields remain NULL until 01-03
                     roles=None,
                     priority=None,
@@ -276,3 +286,47 @@ class ApifyCollector:
                 exc_info=True
             )
             raise
+
+    def store_factiva_articles(self, articles: List[Dict[str, Any]]) -> int:
+        """
+        Store pre-collected Factiva articles.
+
+        Creates a Run record and stores the articles returned by FactivaCollector.
+        Factiva articles already carry collector_source="Factiva" in their dicts,
+        so _store_articles() sets that field automatically.
+
+        Args:
+            articles: List of normalized article dicts from FactivaCollector.collect()
+
+        Returns:
+            Number of articles stored
+
+        Raises:
+            Exception: If storage fails (Run marked as FAILED)
+        """
+        db = SessionLocal()
+        run = None
+        try:
+            run = Run(status=RunStatus.RUNNING)
+            db.add(run)
+            db.commit()
+            db.refresh(run)
+
+            self._store_articles(db, run.id, articles)
+
+            run.status = RunStatus.COMPLETED
+            run.completed_at = datetime.utcnow()
+            run.articles_collected = len(articles)
+            db.commit()
+
+            self.logger.info("factiva_articles_stored", run_id=run.id, count=len(articles))
+            return len(articles)
+        except Exception as e:
+            self.logger.error("factiva_store_failed", error=str(e), exc_info=True)
+            if run:
+                run.status = RunStatus.FAILED
+                run.error_message = str(e)
+                db.commit()
+            raise
+        finally:
+            db.close()

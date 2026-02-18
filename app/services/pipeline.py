@@ -20,9 +20,21 @@ from app.services.emailer import GraphEmailService
 from app.services.health_monitor import SourceHealthMonitor
 from app.config import get_settings
 from app.auth.token_manager import TokenManager
+from app.collectors.factiva import FactivaCollector
+from app.models.factiva_config import FactivaConfig
+from app.models.api_event import ApiEvent, ApiEventType
 
 # Project root directory (absolute path for reliable file operations)
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Insurance-focused Apify/RSS sources for fallback collection.
+# Only these sources run when Factiva is unavailable — keeps fallback brief focused.
+INSURANCE_FALLBACK_SOURCES = [
+    "Reinsurance News",
+    "Insurance Journal",
+    "Artemis",
+    "Lloyd's List",
+]
 
 logger = structlog.get_logger(__name__)
 
@@ -88,6 +100,7 @@ class PipelineOrchestrator:
             "articles_classified": 0,
             "html_output": None,
             "degraded_auth": True,
+            "collection_source": "Apify/RSS",
             "status": "failed",
             "error": None
         }
@@ -128,14 +141,81 @@ class PipelineOrchestrator:
                 )
             result["degraded_auth"] = degraded_auth
 
-            # Step 1: Collect articles (collector creates Run internally)
+            # Step 1: Collect articles — Factiva primary, Apify/RSS fallback
             self.logger.info("step_1_collection_started")
-            articles_collected = self.collector.collect_from_sources()
+
+            factiva_collector = FactivaCollector()
+            factiva_used = False
+            collection_source = "Apify/RSS"
+            articles_collected = 0
+
+            if factiva_collector.is_configured():
+                try:
+                    factiva_config = db.query(FactivaConfig).filter(FactivaConfig.id == 1).first()
+                    if factiva_config and factiva_config.enabled:
+                        query_params = {
+                            "industry_codes": factiva_config.industry_codes or "",
+                            "company_codes": factiva_config.company_codes or "",
+                            "keywords": factiva_config.keywords or "",
+                            "page_size": factiva_config.page_size or 25,
+                        }
+                        self.logger.info("factiva_collection_starting", **query_params)
+
+                        factiva_articles = factiva_collector.collect(query_params)
+
+                        if factiva_articles:
+                            # URL-dedup against today's existing articles
+                            from datetime import date as date_type
+                            from sqlalchemy import func as sqla_func
+                            today = date_type.today()
+                            existing_urls = set(
+                                url for (url,) in db.query(NewsArticle.source_url).filter(
+                                    sqla_func.date(NewsArticle.created_at) == today,
+                                    NewsArticle.source_url.isnot(None)
+                                ).all()
+                            )
+                            factiva_articles = [a for a in factiva_articles if a.get("url") not in existing_urls]
+
+                            # Within-batch semantic dedup
+                            if len(factiva_articles) > 1:
+                                from app.services.deduplicator import ArticleDeduplicator
+                                deduplicator = ArticleDeduplicator()
+                                pre_count = len(factiva_articles)
+                                factiva_articles = deduplicator.deduplicate(factiva_articles)
+                                self.logger.info("factiva_dedup_complete",
+                                                 before=pre_count, after=len(factiva_articles))
+
+                            articles_collected = self.collector.store_factiva_articles(factiva_articles)
+                            factiva_used = True
+                            collection_source = "Factiva"
+                            self.logger.info("factiva_collection_completed", articles=articles_collected)
+                        else:
+                            self.logger.warning("factiva_returned_zero_articles")
+                            raise Exception("Factiva returned no articles")
+                    else:
+                        self.logger.info("factiva_disabled_or_unconfigured")
+                        # Fall through to Apify/RSS
+                except Exception as e:
+                    self.logger.warning("factiva_failed_falling_back",
+                                        error=str(e), source="Apify/RSS")
+                    factiva_collector._record_event(
+                        ApiEventType.NEWS_FALLBACK, False, f"Fallback to Apify/RSS: {str(e)[:400]}"
+                    )
+
+            if not factiva_used:
+                # Fallback: run insurance-focused Apify/RSS sources only
+                self.logger.info("step_1_fallback_collection", sources=INSURANCE_FALLBACK_SOURCES)
+                articles_collected = self.collector.collect_from_sources(
+                    source_name_filter=INSURANCE_FALLBACK_SOURCES
+                )
+
             result["articles_collected"] = articles_collected
+            result["collection_source"] = collection_source
 
             self.logger.info(
                 "step_1_collection_completed",
-                articles_collected=articles_collected
+                articles_collected=articles_collected,
+                collection_source=collection_source
             )
 
             # Query latest Run to get run_id
@@ -260,6 +340,7 @@ class PipelineOrchestrator:
                 articles_collected=articles_collected,
                 articles_classified=articles_classified,
                 degraded_auth=degraded_auth,
+                collection_source=collection_source,
                 duration_seconds=round(duration, 2)
             )
 
@@ -323,6 +404,7 @@ class PipelineOrchestrator:
             "reports_archived": [],
             "html_output": None,
             "degraded_auth": True,
+            "collection_source": "Apify/RSS",
             "status": "failed",
             "error": None
         }
@@ -359,16 +441,83 @@ class PipelineOrchestrator:
                 )
             result["degraded_auth"] = degraded_auth
 
-            # Step 1: Collect articles (collector creates Run internally)
+            # Step 1: Collect articles — Factiva primary, Apify/RSS fallback
             step_start = datetime.utcnow()
             self.logger.info("step_1_collection_started")
-            articles_collected = self.collector.collect_from_sources()
-            result["articles_collected"] = articles_collected
-            step_duration = (datetime.utcnow() - step_start).total_seconds()
 
+            factiva_collector = FactivaCollector()
+            factiva_used = False
+            collection_source = "Apify/RSS"
+            articles_collected = 0
+
+            if factiva_collector.is_configured():
+                try:
+                    factiva_config = db.query(FactivaConfig).filter(FactivaConfig.id == 1).first()
+                    if factiva_config and factiva_config.enabled:
+                        query_params = {
+                            "industry_codes": factiva_config.industry_codes or "",
+                            "company_codes": factiva_config.company_codes or "",
+                            "keywords": factiva_config.keywords or "",
+                            "page_size": factiva_config.page_size or 25,
+                        }
+                        self.logger.info("factiva_collection_starting", **query_params)
+
+                        factiva_articles = factiva_collector.collect(query_params)
+
+                        if factiva_articles:
+                            # URL-dedup against today's existing articles
+                            from datetime import date as date_type
+                            from sqlalchemy import func as sqla_func
+                            today = date_type.today()
+                            existing_urls = set(
+                                url for (url,) in db.query(NewsArticle.source_url).filter(
+                                    sqla_func.date(NewsArticle.created_at) == today,
+                                    NewsArticle.source_url.isnot(None)
+                                ).all()
+                            )
+                            factiva_articles = [a for a in factiva_articles if a.get("url") not in existing_urls]
+
+                            # Within-batch semantic dedup
+                            if len(factiva_articles) > 1:
+                                from app.services.deduplicator import ArticleDeduplicator
+                                deduplicator = ArticleDeduplicator()
+                                pre_count = len(factiva_articles)
+                                factiva_articles = deduplicator.deduplicate(factiva_articles)
+                                self.logger.info("factiva_dedup_complete",
+                                                 before=pre_count, after=len(factiva_articles))
+
+                            articles_collected = self.collector.store_factiva_articles(factiva_articles)
+                            factiva_used = True
+                            collection_source = "Factiva"
+                            self.logger.info("factiva_collection_completed", articles=articles_collected)
+                        else:
+                            self.logger.warning("factiva_returned_zero_articles")
+                            raise Exception("Factiva returned no articles")
+                    else:
+                        self.logger.info("factiva_disabled_or_unconfigured")
+                        # Fall through to Apify/RSS
+                except Exception as e:
+                    self.logger.warning("factiva_failed_falling_back",
+                                        error=str(e), source="Apify/RSS")
+                    factiva_collector._record_event(
+                        ApiEventType.NEWS_FALLBACK, False, f"Fallback to Apify/RSS: {str(e)[:400]}"
+                    )
+
+            if not factiva_used:
+                # Fallback: run insurance-focused Apify/RSS sources only
+                self.logger.info("step_1_fallback_collection", sources=INSURANCE_FALLBACK_SOURCES)
+                articles_collected = self.collector.collect_from_sources(
+                    source_name_filter=INSURANCE_FALLBACK_SOURCES
+                )
+
+            result["articles_collected"] = articles_collected
+            result["collection_source"] = collection_source
+
+            step_duration = (datetime.utcnow() - step_start).total_seconds()
             self.logger.info(
                 "step_1_collection_completed",
                 articles_collected=articles_collected,
+                collection_source=collection_source,
                 duration_seconds=round(step_duration, 2)
             )
 
@@ -603,6 +752,7 @@ class PipelineOrchestrator:
                 articles_collected=articles_collected,
                 articles_classified=articles_classified,
                 degraded_auth=degraded_auth,
+                collection_source=collection_source,
                 emails_sent_count=len([r for r in result["emails_sent"].values() if r.get("status") == "ok"]),
                 reports_archived_count=len(result["reports_archived"])
             )
