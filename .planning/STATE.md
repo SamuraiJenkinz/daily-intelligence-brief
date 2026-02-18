@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 
 ## Current Position
 
-Phase: 9 of 13 (OAuth2 Token Management) — VERIFIED ✓
-Plan: 2 of 2 in current phase
-Status: Phase complete — verified (5/5 must-haves passed), requirements AUTH-01/02/03 marked Complete
-Last activity: 2026-02-18 — Phase 9 executed, verified, and closed
+Phase: 10 of 13 (Factiva News Collection) — In progress
+Plan: 1 of 3 in current phase
+Status: In progress — 10-01 complete (FactivaCollector + DB schema)
+Last activity: 2026-02-18 — Completed 10-01-PLAN.md (FactivaCollector foundation)
 
-Progress: v1.0 [██████████] 100% | v1.1 [██░░░░░░░░] 17% (2/12 plans)
+Progress: v1.0 [██████████] 100% | v1.1 [███░░░░░░░] 25% (3/12 plans)
 
 ## Performance Metrics
 
@@ -25,7 +25,7 @@ Progress: v1.0 [██████████] 100% | v1.1 [██░░░░�
 
 **v1.1 Baseline:**
 - Plans planned: 12 across 5 phases
-- Completed: 2 (09-01, 09-02)
+- Completed: 3 (09-01, 09-02, 10-01)
 
 *Updated after each plan completion*
 
@@ -55,6 +55,14 @@ Phase 9 plan 02 decisions:
 - Step 0 auth prefix avoids renumbering existing steps 1-9
 - asyncio.run() used in sync run_full_pipeline for token acquisition
 
+Phase 10 plan 01 decisions:
+- Sync httpx.Client (not async) — matches existing ApifyCollector pattern
+- X-Api-Key only header — Factiva news endpoint does not require JWT Bearer
+- collector_source default "Apify/RSS" — backward-compatible for all pre-Phase-10 articles
+- Per-article fetch failures fall back to snippet, not hard errors — pipeline gets max coverage
+- MAX_ARTICLES=100 hard cap with pageSize100 link follow — avoids N-API-call loop
+- Migration in lifespan() with try/except — startup never blocked by schema failure
+
 ### Pending Todos
 
 None.
@@ -65,7 +73,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-18
-Stopped at: Phase 9 complete — verified ✓, requirements complete, roadmap updated
+Last session: 2026-02-18T18:51:21Z
+Stopped at: Completed 10-01-PLAN.md — FactivaCollector foundation complete
 Resume file: None
-Next: `/gsd:discuss-phase 10` or `/gsd:plan-phase 10` to start Factiva News Collection
+Next: Execute 10-02-PLAN.md (pipeline integration: wire FactivaCollector into PipelineOrchestrator)
