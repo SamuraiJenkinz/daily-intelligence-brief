@@ -297,6 +297,10 @@ if __name__ == "__main__":
                 run_id=result.get("run_id")
             )
             sys.exit(1)
+    elif len(sys.argv) > 1 and sys.argv[1] == "test-auth":
+        # CLI mode: validate JWT token acquisition against staging endpoint
+        import subprocess
+        sys.exit(subprocess.call([sys.executable, "scripts/test_auth.py"]))
     else:
         # Web server mode (default)
         import uvicorn
