@@ -31,7 +31,14 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 
 ### Active
 
-(Pending next milestone — run `/gsd:new-milestone` to define)
+- [ ] Factiva/Dow Jones as primary news source via MMC Core API Recent News endpoint
+- [ ] Equity price data inline with news stories via MMC Core API Equity Price endpoint
+- [ ] Enterprise email delivery via MMC Core API Email endpoint (replacing Graph API)
+- [ ] OAuth2 client credentials token management for API authentication
+- [ ] Graceful fallback to Apify/RSS when Factiva is unavailable
+- [ ] Graceful fallback to Graph API when enterprise email is unavailable
+- [ ] Entity-to-ticker mapping for automatic equity price enrichment
+- [ ] Admin dashboard updates for enterprise API configuration and status
 
 ### Out of Scope
 
@@ -41,6 +48,10 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 - Brazilian insurer monitoring — that's BrasilIntel's domain
 - Social media monitoring — traditional media and wire services only
 - Historical trend analytics — build archive first, add analytics after 6+ months data
+- coreapi-access-management (full scope) — only using client credentials grant for token acquisition
+- coreapi-data — deferred to future milestone
+- Dedicated equity market data section — equity data shown inline with stories only
+- Historical stock quotes — Equity Price API provides current quotes only
 
 ## Context
 
@@ -62,10 +73,15 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 - Windows Server on AWS (production), Windows 11 (development)
 - 9,769 lines of Python across 175 files
 
-**Enterprise API Access (in progress):**
-- MMC Core API platform (Apigee) — app registration PR submitted for staging access
-- Proxies requested: coreapi-access-management, coreapi-recent-news, coreapi-equity-price, coreapi-data, coreapi-email
-- Potential to supplement Apify scraping with enterprise Factiva/Dow Jones news feed
+**Enterprise API Access (staging access available):**
+- MMC Core API platform (Apigee) — staging credentials in hand
+- v1.1 scope: coreapi-recent-news, coreapi-equity-price, coreapi-email + access-management (auth only)
+- Deferred: coreapi-data, coreapi-access-management (full scope)
+- API docs: NewsAPI.pdf, equityref.pdf, emailref.pdf, wtjref.pdf (Access Management)
+- Auth: X-Api-Key for News/Equity, JWT Bearer + X-Api-Key for Email
+- Client credentials grant via Access Management API for JWT token acquisition
+- Non-prod host: mmc-dallas-int-non-prod-ingress.mgti.mmc.com
+- Prod host: mmc-dallas-int-prod-ingress.mgti.mmc.com
 
 **Audience Roles:**
 
@@ -75,6 +91,17 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 | Leadership | M&A activity, financial results, strategic signals | Acquisitions, earnings, market forecasts |
 | Compliance | Regulatory developments, legal changes, coverage gaps | FCA reform, ransomware bans, war clauses |
 | Underwriting | Loss trends, cat events, reserve adequacy, rate movements | Storm losses, combined ratios, softening signals |
+
+## Current Milestone: v1.1 Enterprise API Integration
+
+**Goal:** Integrate MMC Core API platform to make Factiva the primary news source, enrich briefs with inline equity price data, and switch email delivery to enterprise proxy — all with graceful fallback to existing infrastructure.
+
+**Target features:**
+- Factiva/Dow Jones as primary news feed (Apify becomes fallback)
+- Inline equity price/change data alongside relevant articles
+- Enterprise email delivery replacing Microsoft Graph API
+- OAuth2 client credentials token management
+- Admin dashboard enterprise API status and configuration
 
 ## Constraints
 
@@ -100,6 +127,11 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 | sqlite3 .backup() API | Safe online backups without exclusive locks | ✓ Good |
 | Statistical health thresholds | Adapts to source variability with standard deviation-based alerting | ✓ Good |
 | FTS5 with BM25 ranking | Fast full-text search with relevance ranking in SQLite | ✓ Good |
+| Factiva as primary news source | Enterprise Dow Jones feed more reliable and comprehensive than web scraping | — Pending |
+| Equity data inline (not separate section) | Price context alongside stories is more actionable than a dedicated market section | — Pending |
+| Enterprise email with Graph fallback | Corporate API platform preferred, but Graph API proven and reliable as backup | — Pending |
+| Client credentials grant for auth | Server-side cron pipeline, no user interaction needed | — Pending |
+| Graceful fallback for all enterprise APIs | Production reliability requires fallback to proven v1.0 infrastructure | — Pending |
 
 ---
-*Last updated: 2026-02-17 after v1.0 milestone*
+*Last updated: 2026-02-18 after v1.1 milestone start*
