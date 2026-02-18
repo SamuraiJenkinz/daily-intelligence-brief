@@ -78,36 +78,36 @@ Deferred to future milestones. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Pending | Pending |
-| AUTH-02 | Pending | Pending |
-| AUTH-03 | Pending | Pending |
-| NEWS-01 | Pending | Pending |
-| NEWS-02 | Pending | Pending |
-| NEWS-03 | Pending | Pending |
-| NEWS-04 | Pending | Pending |
-| NEWS-05 | Pending | Pending |
-| NEWS-06 | Pending | Pending |
-| EQTY-01 | Pending | Pending |
-| EQTY-02 | Pending | Pending |
-| EQTY-03 | Pending | Pending |
-| EQTY-04 | Pending | Pending |
-| MAIL-01 | Pending | Pending |
-| MAIL-02 | Pending | Pending |
-| MAIL-03 | Pending | Pending |
-| MAIL-04 | Pending | Pending |
-| FALL-01 | Pending | Pending |
-| FALL-02 | Pending | Pending |
-| FALL-03 | Pending | Pending |
-| FALL-04 | Pending | Pending |
-| ADMN-01 | Pending | Pending |
-| ADMN-02 | Pending | Pending |
-| ADMN-03 | Pending | Pending |
+| AUTH-01 | Phase 9 | Pending |
+| AUTH-02 | Phase 9 | Pending |
+| AUTH-03 | Phase 9 | Pending |
+| NEWS-01 | Phase 10 | Pending |
+| NEWS-02 | Phase 10 | Pending |
+| NEWS-03 | Phase 10 | Pending |
+| NEWS-04 | Phase 10 | Pending |
+| NEWS-05 | Phase 10 | Pending |
+| NEWS-06 | Phase 10 | Pending |
+| EQTY-01 | Phase 11 | Pending |
+| EQTY-02 | Phase 11 | Pending |
+| EQTY-03 | Phase 11 | Pending |
+| EQTY-04 | Phase 11 | Pending |
+| MAIL-01 | Phase 12 | Pending |
+| MAIL-02 | Phase 12 | Pending |
+| MAIL-03 | Phase 12 | Pending |
+| MAIL-04 | Phase 12 | Pending |
+| FALL-01 | Phase 10 | Pending |
+| FALL-02 | Phase 12 | Pending |
+| FALL-03 | Phase 11 | Pending |
+| FALL-04 | Phase 13 | Pending |
+| ADMN-01 | Phase 13 | Pending |
+| ADMN-02 | Phase 13 | Pending |
+| ADMN-03 | Phase 13 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 24 total
-- Mapped to phases: 0 (pending roadmap creation)
-- Unmapped: 24
+- Mapped to phases: 24
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-18*
-*Last updated: 2026-02-18 after initial definition*
+*Last updated: 2026-02-18 — traceability complete after roadmap creation*

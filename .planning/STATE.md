@@ -5,16 +5,29 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** Each audience at Marsh receives only the intelligence relevant to their decisions, priority-ranked and AI-summarised, delivered daily with zero manual effort.
-**Current focus:** v1.1 Enterprise API Integration
+**Current focus:** Phase 9 — OAuth2 Token Management (v1.1 start)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements for v1.1
-Last activity: 2026-02-18 — Milestone v1.1 started
+Phase: 9 of 13 (OAuth2 Token Management)
+Plan: 0 of 2 in current phase
+Status: Ready to plan
+Last activity: 2026-02-18 — Roadmap created for v1.1 Enterprise API Integration
 
-Progress: v1.0 [██████████] 100% (39/39 plans, 8/8 phases)
+Progress: v1.0 [██████████] 100% | v1.1 [░░░░░░░░░░] 0% (0/12 plans)
+
+## Performance Metrics
+
+**Velocity (v1.0):**
+- Total plans completed: 39
+- Total phases: 8
+- Shipped: 9 days (Feb 6-15, 2026)
+
+**v1.1 Baseline:**
+- Plans planned: 12 across 5 phases
+- Completed: 0
+
+*Updated after each plan completion*
 
 ## Accumulated Context
 
@@ -22,17 +35,26 @@ Progress: v1.0 [██████████] 100% (39/39 plans, 8/8 phases)
 
 Decisions are logged in PROJECT.md Key Decisions table.
 
+Key decisions for v1.1:
+- Factiva as primary news source (enterprise Dow Jones feed)
+- Equity data inline with stories (not a separate section)
+- Enterprise email with Graph API fallback (reliability)
+- Client credentials grant only (server-side pipeline, no user interaction)
+- Graceful fallback for all three enterprise APIs
+
 ### Pending Todos
 
 None.
 
 ### Blockers/Concerns
 
-None.
+- Staging credentials in hand (mmc-dallas-int-non-prod-ingress.mgti.mmc.com) — validate in Phase 9
+- Auth: X-Api-Key for News/Equity, JWT Bearer + X-Api-Key for Email — Phase 9 establishes JWT layer
+- PDF API docs on disk: NewsAPI.pdf, emailref.pdf, equityref.pdf, wtjref.pdf — read during planning
 
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Milestone v1.1 initialization — defining requirements
+Stopped at: Roadmap created — v1.1 phases 9-13 defined, 24 requirements mapped
 Resume file: None
-Next: Define requirements, then create roadmap
+Next: `/gsd:plan-phase 9` to plan OAuth2 Token Management
