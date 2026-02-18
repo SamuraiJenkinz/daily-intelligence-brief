@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 
 ## Current Position
 
-Phase: 10 of 13 (Factiva News Collection) — In progress
-Plan: 2 of 3 in current phase
-Status: In progress — 10-02 complete (Pipeline integration + source attribution)
-Last activity: 2026-02-18 — Completed 10-02-PLAN.md (Factiva-primary pipeline integration)
+Phase: 10 of 13 (Factiva News Collection) — COMPLETE
+Plan: 3 of 3 in current phase (all plans done)
+Status: Phase 10 complete — next phase is 11 (Email Delivery)
+Last activity: 2026-02-18 — Completed 10-03-PLAN.md (Factiva admin config UI)
 
-Progress: v1.0 [██████████] 100% | v1.1 [████░░░░░░] 33% (4/12 plans)
+Progress: v1.0 [██████████] 100% | v1.1 [█████░░░░░] 42% (5/12 plans)
 
 ## Performance Metrics
 
@@ -70,6 +70,12 @@ Phase 10 plan 02 decisions:
 - URL dedup uses date(created_at) == today — handles pipeline reruns within same day
 - collector_source=None treated as "Apify/RSS" via getattr fallback — backward-compatible without migration
 
+Phase 10 plan 03 decisions:
+- Staging Factiva API validation deferred — no credentials on dev machine; validate on deployment machine with MMC_API_BASE_URL + MMC_API_KEY set; run GET /coreapi/recent-news/v1/industries to confirm i83/i8311/i8312/i831
+- Hidden input + checkbox pattern for boolean: hidden field with value="false" before checkbox ensures form always submits "enabled" key; FastAPI last-value-wins reads true when checkbox checked
+- page_size validated against whitelist (10/25/50/100) in POST route — values outside coerced to 25
+- Industry code reference table embedded inline in admin page — docs-as-UI for operator guidance
+
 ### Pending Todos
 
 None.
@@ -77,10 +83,11 @@ None.
 ### Blockers/Concerns
 
 - Staging credentials still needed to run scripts/test_auth.py against the real endpoint
+- Industry codes i83, i8311, i8312, i831 are inferred — validate against /coreapi/recent-news/v1/industries on deployment machine before production to avoid empty result sets
 
 ## Session Continuity
 
-Last session: 2026-02-18T19:10:30Z
-Stopped at: Completed 10-02-PLAN.md — Factiva-primary pipeline integration complete
+Last session: 2026-02-18
+Stopped at: Completed 10-03-PLAN.md — Factiva admin config UI complete; Phase 10 fully done
 Resume file: None
-Next: Execute 10-03-PLAN.md (Factiva admin config UI — FactivaConfig row editing)
+Next: Execute Phase 11 (Email Delivery) — begin with 11-01-PLAN.md
