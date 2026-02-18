@@ -15,7 +15,7 @@ from sqlalchemy import text
 
 from app.database import Base, engine, SessionLocal
 # Import models to register them with Base.metadata before create_all
-from app.models import news_article, source, run  # noqa: F401
+from app.models import news_article, source, run, api_event  # noqa: F401
 from app.config import get_settings
 from app.routers.admin import router as admin_router
 from app.routers.pipeline import router as pipeline_router
@@ -186,6 +186,32 @@ def health_check() -> dict:
             "message": "Azure Blob Storage not configured (local backups only)"
         }
 
+    # MMC Core API Authentication (OAuth2 JWT — required for Phase 12 enterprise email)
+    # Missing is NOT degraded — enterprise email falls back to Graph API gracefully
+    if settings.is_mmc_auth_configured():
+        checks["external_services"]["mmc_auth"] = {
+            "status": "configured",
+            "message": "MMC Core API OAuth2 credentials present"
+        }
+    else:
+        checks["external_services"]["mmc_auth"] = {
+            "status": "info",
+            "message": "MMC Core API auth not configured (enterprise email will use Graph API fallback)"
+        }
+
+    # MMC Core API Key (X-Api-Key — required for Phase 10 Factiva and Phase 11 equity)
+    # Missing is NOT degraded — these phases have their own fallback sources
+    if settings.is_mmc_api_key_configured():
+        checks["external_services"]["mmc_api_key"] = {
+            "status": "configured",
+            "message": "MMC Core API X-Api-Key present"
+        }
+    else:
+        checks["external_services"]["mmc_api_key"] = {
+            "status": "info",
+            "message": "MMC Core API key not configured (Factiva/equity will use fallback sources)"
+        }
+
     # Check backup freshness
     backup_dir = os.path.join(settings.data_dir, "backups")
     if os.path.isdir(backup_dir):
@@ -270,10 +296,19 @@ if __name__ == "__main__":
         )
         reporter = RoleReportService()
 
+        # Initialize MMC Core API token manager
+        from app.auth.token_manager import TokenManager
+        token_manager = TokenManager()
+        if token_manager.is_configured():
+            logger.info("mmc_auth_configured", base_url=settings.mmc_api_base_url)
+        else:
+            logger.info("mmc_auth_not_configured", message="Enterprise APIs will use fallback methods")
+
         orchestrator = PipelineOrchestrator(
             collector=collector,
             classifier=classifier,
-            reporter=reporter
+            reporter=reporter,
+            token_manager=token_manager
         )
 
         # Run async pipeline
@@ -286,6 +321,7 @@ if __name__ == "__main__":
                 run_id=result["run_id"],
                 articles=result["articles_collected"],
                 classified=result["articles_classified"],
+                degraded_auth=result.get("degraded_auth", True),
                 emails=result.get("emails_sent", {}),
                 archived=result.get("reports_archived", [])
             )
