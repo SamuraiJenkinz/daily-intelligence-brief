@@ -35,6 +35,9 @@ class NewsArticle(Base):
     source_name = Column(String(255), nullable=True)
     published_at = Column(DateTime, nullable=True)
 
+    # Source attribution: "Factiva" or "Apify/RSS" (Phase 10)
+    collector_source = Column(String(20), nullable=True, default="Apify/RSS")
+
     # Classification results (populated by Azure OpenAI)
     # JSON array stored as string: ["Brokers", "Leadership", ...]
     roles = Column(Text, nullable=True)  # JSON array of role strings

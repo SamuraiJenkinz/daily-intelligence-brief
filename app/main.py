@@ -16,6 +16,7 @@ from sqlalchemy import text
 from app.database import Base, engine, SessionLocal
 # Import models to register them with Base.metadata before create_all
 from app.models import news_article, source, run, api_event  # noqa: F401
+from app.models import factiva_config  # noqa: F401
 from app.config import get_settings
 from app.routers.admin import router as admin_router
 from app.routers.pipeline import router as pipeline_router
@@ -43,6 +44,38 @@ async def lifespan(app: FastAPI):
     os.makedirs("data", exist_ok=True)
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created successfully")
+
+    # Phase 10 startup migration: add collector_source column and seed factiva_config
+    try:
+        with SessionLocal() as session:
+            # Check if collector_source column exists on news_articles
+            result = session.execute(text("PRAGMA table_info(news_articles)"))
+            columns = [row[1] for row in result.fetchall()]
+            if "collector_source" not in columns:
+                session.execute(
+                    text("ALTER TABLE news_articles ADD COLUMN collector_source TEXT DEFAULT 'Apify/RSS'")
+                )
+                session.commit()
+                logger.info("startup_migration: added collector_source column to news_articles")
+            else:
+                logger.info("startup_migration: collector_source column already exists")
+
+            # Seed default factiva_config row if none exists
+            result = session.execute(text("SELECT COUNT(*) FROM factiva_config WHERE id = 1"))
+            count = result.scalar()
+            if not count:
+                session.execute(text(
+                    "INSERT OR IGNORE INTO factiva_config "
+                    "(id, industry_codes, company_codes, keywords, page_size, enabled) "
+                    "VALUES (1, 'i82,i832', 'MM', 'insurance reinsurance', 25, 1)"
+                ))
+                session.commit()
+                logger.info("startup_migration: seeded default factiva_config row")
+            else:
+                logger.info("startup_migration: factiva_config row already exists")
+    except Exception as exc:
+        logger.error("startup_migration_failed: %s", str(exc))
+        # Migration failure does NOT block startup
 
     yield
 

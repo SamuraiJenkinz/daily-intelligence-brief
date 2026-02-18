@@ -7,6 +7,7 @@ from app.models.news_article import NewsArticle
 from app.models.source import Source, SourceType
 from app.models.run import Run, RunStatus
 from app.models.api_event import ApiEvent, ApiEventType
+from app.models.factiva_config import FactivaConfig
 
 __all__ = [
     "NewsArticle",
@@ -16,4 +17,5 @@ __all__ = [
     "RunStatus",
     "ApiEvent",
     "ApiEventType",
+    "FactivaConfig",
 ]
