@@ -15,12 +15,12 @@ Requirements for enterprise API integration milestone. Each maps to roadmap phas
 
 ### News Collection
 
-- [ ] **NEWS-01**: System searches Factiva for insurance industry news via /coreapi/recent-news/v1/search
-- [ ] **NEWS-02**: System uses Factiva industry and company codes for targeted insurance/reinsurance queries
-- [ ] **NEWS-03**: System extracts article content (headline, snippet, plaintext, publication date, source URL)
-- [ ] **NEWS-04**: System deduplicates Factiva articles against existing article store
-- [ ] **NEWS-05**: Factiva articles flow through existing AI classification pipeline unchanged
-- [ ] **NEWS-06**: Factiva is the primary news source; Apify/RSS run as secondary fallback
+- [x] **NEWS-01**: System searches Factiva for insurance industry news via /coreapi/recent-news/v1/search
+- [x] **NEWS-02**: System uses Factiva industry and company codes for targeted insurance/reinsurance queries
+- [x] **NEWS-03**: System extracts article content (headline, snippet, plaintext, publication date, source URL)
+- [x] **NEWS-04**: System deduplicates Factiva articles against existing article store
+- [x] **NEWS-05**: Factiva articles flow through existing AI classification pipeline unchanged
+- [x] **NEWS-06**: Factiva is the primary news source; Apify/RSS run as secondary fallback
 
 ### Equity Enrichment
 
@@ -38,7 +38,7 @@ Requirements for enterprise API integration milestone. Each maps to roadmap phas
 
 ### Fallback & Reliability
 
-- [ ] **FALL-01**: When Factiva API is unavailable, pipeline falls back to Apify + RSS collection
+- [x] **FALL-01**: When Factiva API is unavailable, pipeline falls back to Apify + RSS collection
 - [ ] **FALL-02**: When enterprise email API is unavailable, pipeline falls back to Graph API delivery
 - [ ] **FALL-03**: When Equity Price API is unavailable, briefs generate without price data
 - [ ] **FALL-04**: All fallback events are logged with structured logging and visible in admin dashboard
@@ -81,12 +81,12 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | AUTH-01 | Phase 9 | Complete |
 | AUTH-02 | Phase 9 | Complete |
 | AUTH-03 | Phase 9 | Complete |
-| NEWS-01 | Phase 10 | Pending |
-| NEWS-02 | Phase 10 | Pending |
-| NEWS-03 | Phase 10 | Pending |
-| NEWS-04 | Phase 10 | Pending |
-| NEWS-05 | Phase 10 | Pending |
-| NEWS-06 | Phase 10 | Pending |
+| NEWS-01 | Phase 10 | Complete |
+| NEWS-02 | Phase 10 | Complete |
+| NEWS-03 | Phase 10 | Complete |
+| NEWS-04 | Phase 10 | Complete |
+| NEWS-05 | Phase 10 | Complete |
+| NEWS-06 | Phase 10 | Complete |
 | EQTY-01 | Phase 11 | Pending |
 | EQTY-02 | Phase 11 | Pending |
 | EQTY-03 | Phase 11 | Pending |
@@ -95,7 +95,7 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | MAIL-02 | Phase 12 | Pending |
 | MAIL-03 | Phase 12 | Pending |
 | MAIL-04 | Phase 12 | Pending |
-| FALL-01 | Phase 10 | Pending |
+| FALL-01 | Phase 10 | Complete |
 | FALL-02 | Phase 12 | Pending |
 | FALL-03 | Phase 11 | Pending |
 | FALL-04 | Phase 13 | Pending |
@@ -110,4 +110,4 @@ Deferred to future milestones. Tracked but not in current roadmap.
 
 ---
 *Requirements defined: 2026-02-18*
-*Last updated: 2026-02-18 — Phase 9 requirements (AUTH-01/02/03) marked Complete*
+*Last updated: 2026-02-18 — Phase 10 requirements (NEWS-01/02/03/04/05/06, FALL-01) marked Complete*

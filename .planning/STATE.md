@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** Each audience at Marsh receives only the intelligence relevant to their decisions, priority-ranked and AI-summarised, delivered daily with zero manual effort.
-**Current focus:** Phase 10 — Factiva News Collection (next up)
+**Current focus:** Phase 11 — Equity Price Enrichment (next up)
 
 ## Current Position
 
-Phase: 10 of 13 (Factiva News Collection) — COMPLETE
-Plan: 3 of 3 in current phase (all plans done)
-Status: Phase 10 complete — next phase is 11 (Email Delivery)
-Last activity: 2026-02-18 — Completed 10-03-PLAN.md (Factiva admin config UI)
+Phase: 10 of 13 (Factiva News Collection) — VERIFIED ✓
+Plan: 3 of 3 in current phase
+Status: Phase complete — verified (5/5 must-haves passed), requirements NEWS-01/02/03/04/05/06 + FALL-01 marked Complete
+Last activity: 2026-02-18 — Phase 10 executed, verified, and closed
 
 Progress: v1.0 [██████████] 100% | v1.1 [█████░░░░░] 42% (5/12 plans)
 
@@ -25,7 +25,7 @@ Progress: v1.0 [██████████] 100% | v1.1 [█████░�
 
 **v1.1 Baseline:**
 - Plans planned: 12 across 5 phases
-- Completed: 3 (09-01, 09-02, 10-01)
+- Completed: 5 (09-01, 09-02, 10-01, 10-02, 10-03)
 
 *Updated after each plan completion*
 
@@ -71,10 +71,10 @@ Phase 10 plan 02 decisions:
 - collector_source=None treated as "Apify/RSS" via getattr fallback — backward-compatible without migration
 
 Phase 10 plan 03 decisions:
-- Staging Factiva API validation deferred — no credentials on dev machine; validate on deployment machine with MMC_API_BASE_URL + MMC_API_KEY set; run GET /coreapi/recent-news/v1/industries to confirm i83/i8311/i8312/i831
-- Hidden input + checkbox pattern for boolean: hidden field with value="false" before checkbox ensures form always submits "enabled" key; FastAPI last-value-wins reads true when checkbox checked
-- page_size validated against whitelist (10/25/50/100) in POST route — values outside coerced to 25
-- Industry code reference table embedded inline in admin page — docs-as-UI for operator guidance
+- Staging Factiva API validation deferred — no credentials on dev machine; validate on deployment machine
+- Hidden input + checkbox pattern for boolean (enabled field)
+- page_size validated against whitelist (10/25/50/100) in POST route
+- Industry code reference table embedded inline in admin page
 
 ### Pending Todos
 
@@ -83,11 +83,11 @@ None.
 ### Blockers/Concerns
 
 - Staging credentials still needed to run scripts/test_auth.py against the real endpoint
-- Industry codes i83, i8311, i8312, i831 are inferred — validate against /coreapi/recent-news/v1/industries on deployment machine before production to avoid empty result sets
+- Industry codes i83, i8311, i8312, i831 are inferred — validate against /coreapi/recent-news/v1/industries on deployment machine before production
 
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 10-03-PLAN.md — Factiva admin config UI complete; Phase 10 fully done
+Stopped at: Phase 10 complete — verified ✓, requirements complete, roadmap updated
 Resume file: None
-Next: Execute Phase 11 (Email Delivery) — begin with 11-01-PLAN.md
+Next: `/gsd:discuss-phase 11` or `/gsd:plan-phase 11` to start Equity Price Enrichment

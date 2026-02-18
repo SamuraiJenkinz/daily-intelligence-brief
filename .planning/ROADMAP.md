@@ -28,7 +28,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full details.
 **Milestone Goal:** Replace web scraping with Factiva as the primary news source, enrich briefs with inline equity price data, switch email delivery to the MMC Core API enterprise proxy, and surface API health in the admin dashboard — all with graceful fallback to the proven v1.0 infrastructure.
 
 - [x] **Phase 9: OAuth2 Token Management** — Acquire and cache JWT tokens for the MMC Core API platform
-- [ ] **Phase 10: Factiva News Collection** — Factiva as primary news source with Apify/RSS fallback
+- [x] **Phase 10: Factiva News Collection** — Factiva as primary news source with Apify/RSS fallback
 - [ ] **Phase 11: Equity Price Enrichment** — Inline price data for tracked companies in the brief
 - [ ] **Phase 12: Enterprise Email Delivery** — Send briefs via MMC Core API email with Graph API fallback
 - [ ] **Phase 13: Admin Dashboard Enterprise Status** — API health, credential config, source attribution, fallback log
@@ -75,9 +75,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 10-01-PLAN.md — FactivaCollector module, FactivaConfig model, collector_source field, startup migration
-- [ ] 10-02-PLAN.md — Pipeline integration with Factiva-primary/Apify-fallback, source attribution in reporter and templates
-- [ ] 10-03-PLAN.md — Admin Factiva config UI and staging endpoint validation
+- [x] 10-01-PLAN.md — FactivaCollector module, FactivaConfig model, collector_source field, startup migration
+- [x] 10-02-PLAN.md — Pipeline integration with Factiva-primary/Apify-fallback, source attribution in reporter and templates
+- [x] 10-03-PLAN.md — Admin Factiva config UI and staging endpoint validation
 
 ---
 
@@ -164,9 +164,9 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13
 | 7. Production Hardening | v1.0 | 5/5 | Complete | 2026-02-08 |
 | 8. Polish and Launch | v1.0 | 4/4 | Complete | 2026-02-08 |
 | 9. OAuth2 Token Management | v1.1 | 2/2 | Complete | 2026-02-18 |
-| 10. Factiva News Collection | v1.1 | 0/3 | Not started | - |
+| 10. Factiva News Collection | v1.1 | 3/3 | Complete | 2026-02-18 |
 | 11. Equity Price Enrichment | v1.1 | 0/3 | Not started | - |
 | 12. Enterprise Email Delivery | v1.1 | 0/2 | Not started | - |
 | 13. Admin Dashboard Enterprise Status | v1.1 | 0/2 | Not started | - |
 
-**Total:** 41/51 plans complete (v1.0 done, v1.1 Phase 9 complete)
+**Total:** 44/51 plans complete (v1.0 done, v1.1 Phases 9-10 complete)
