@@ -37,7 +37,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full details.
 
 #### Phase 9: OAuth2 Token Management
 
-**Goal**: The pipeline can authenticate to the MMC Core API platform, acquiring and refreshing JWT tokens automatically without human intervention.
+**Goal**: The pipeline can authenticate to the MMC Core API platform, acquiring and refreshing JWT tokens automatically without human intervention. JWT is required for Email delivery (Phase 12); Factiva and Equity APIs use X-Api-Key only (no JWT). This phase builds the auth foundation that Phases 10-13 depend on.
 
 **Depends on**: Phase 8 (existing production pipeline)
 
@@ -49,11 +49,11 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full details.
 3. When token acquisition fails, the pipeline logs the failure with structured context, sets a degraded-auth flag, and continues using v1.0 delivery (Graph API) rather than halting.
 4. A standalone test command demonstrates successful token acquisition and refresh against the staging endpoint.
 
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 09-01: Implement OAuth2 client credentials token manager (acquire, cache, auto-refresh, structured failure logging)
-- [ ] 09-02: Integrate token manager into pipeline startup with fallback flag propagation
+- [ ] 09-01-PLAN.md — TokenManager module, ApiEvent model, config extension, and auth test command
+- [ ] 09-02-PLAN.md — Integrate token manager into pipeline startup with degraded-auth flag and health check reporting
 
 ---
 
@@ -151,7 +151,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 9 → 10 → 11 → 12 → 13
+Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
