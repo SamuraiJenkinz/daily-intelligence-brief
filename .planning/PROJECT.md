@@ -2,7 +2,7 @@
 
 ## What This Is
 
-AI-powered daily intelligence brief for the global insurance and reinsurance market, replacing Marsh's outsourced "Daily Insights" product. The system scrapes news from 18+ global sources, uses GPT-4o to classify, prioritise, summarise, and route articles by audience role, then generates and delivers separate tailored HTML briefs to Brokers, Leadership, Compliance, and Underwriting teams each morning before market open.
+AI-powered daily intelligence brief for the global insurance and reinsurance market, replacing Marsh's outsourced "Daily Insights" product. The system scrapes news from 20+ global sources, uses GPT-4o to classify, prioritise, summarise, and route articles by audience role, then generates and delivers tailored HTML briefs to Brokers, Leadership, Compliance, and Underwriting teams each morning before market open. Includes a full admin dashboard for source/recipient management and report archive.
 
 ## Core Value
 
@@ -12,25 +12,26 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ News collection from 20+ global insurance/reinsurance sources via Apify + RSS — v1.0
+- ✓ AI classification: priority, audience roles, entities, sentiment, impact, category, region, business line — v1.0
+- ✓ Role-based brief generation: tabbed HTML reports for Brokers, Leadership, Compliance, Underwriting — v1.0
+- ✓ AI-generated executive summary per role — v1.0
+- ✓ Priority classification: Critical / High / Medium / Monitor — v1.0
+- ✓ Entity tracking across editions with mention counts — v1.0
+- ✓ Sector heatmap with directional signals — v1.0
+- ✓ "What to Watch" forward-looking section with timeframes — v1.0
+- ✓ Sentiment and impact tagging per story — v1.0
+- ✓ Market pulse bar with at-a-glance sector indicators — v1.0
+- ✓ Daily morning email delivery via Microsoft Graph API — v1.0
+- ✓ Full admin dashboard: sources, recipients, roles, report history — v1.0
+- ✓ SQLite storage with deduplication — v1.0
+- ✓ Windows Task Scheduler automation — v1.0
+- ✓ Author attribution: Kevin Taylor, Colleague Technology Services — v1.0
+- ✓ Production hardening: structured logging, retry logic, backup, health monitoring — v1.0
 
 ### Active
 
-- [ ] News collection from 18+ global insurance/reinsurance sources via Apify + web scraping
-- [ ] AI classification of each article: priority level, audience roles, entities, sentiment, impact, category, region, business line
-- [ ] Role-based brief generation: separate tailored HTML reports for Brokers, Leadership, Compliance, Underwriting
-- [ ] AI-generated executive summary per role
-- [ ] Priority classification: Critical / High / Medium / Monitor
-- [ ] Entity tracking across editions with mention counts
-- [ ] Sector heatmap with directional signals
-- [ ] "What to Watch" forward-looking section with timeframes
-- [ ] Sentiment and impact tagging per story
-- [ ] Market pulse bar with at-a-glance sector indicators
-- [ ] Daily morning email delivery via Microsoft Graph API (separate email per role)
-- [ ] Full admin dashboard: manage sources, recipients, roles, view report history
-- [ ] SQLite storage with deduplication
-- [ ] Windows Task Scheduler automation for daily morning runs
-- [ ] Author attribution: Kevin Taylor, Colleague Technology Services
+(Pending next milestone — run `/gsd:new-milestone` to define)
 
 ### Out of Scope
 
@@ -40,29 +41,31 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 - Brazilian insurer monitoring — that's BrasilIntel's domain
 - Social media monitoring — traditional media and wire services only
 - Historical trend analytics — build archive first, add analytics after 6+ months data
-- PDF attachment — HTML email is the primary format (PDF can be v2)
 
 ## Context
 
 **Business Context:**
-- Current state: "Marsh Daily Insights" — a 27-page outsourced daily email with ~10 unranked articles from Bloomberg, Reuters, Business Insurance, The Insurer. No intelligence layer, no prioritisation, no role relevance, no summarisation.
-- Target state: AI-powered brief that leapfrogs the current product — priority-classified, role-targeted, entity-tracked, forward-looking.
-- Prototype exists: `RefChyt/prototype_daily_intelligence_brief.html` demonstrates the target output with live Feb 6, 2026 data.
-- Assessment document exists: `RefChyt/Daily_Insights_Replacement_Analysis.html` — the business case for senior leadership.
+- v1.0 shipped Feb 2026, replacing the outsourced 27-page "Marsh Daily Insights" with an AI-powered system
+- Prototype validated the concept with live data before development began
+- System is production-ready with admin dashboard, automated delivery, and monitoring
 
 **Sister Project:**
-- BrasilIntel (v1.0 shipped) monitors 897 Brazilian insurers. MDInsights reuses the same architectural patterns and tech stack but targets global insurance/reinsurance news for a different audience.
+- BrasilIntel (v1.0 shipped) monitors 897 Brazilian insurers. MDInsights reuses the same architectural patterns and tech stack.
 
 **Technical Environment:**
-- Corporate M365 Exchange Online (Graph API for email)
-- Azure AD for authentication
-- Azure OpenAI (corporate LLM deployment)
-- Apify account for web scraping
-- Windows Server on AWS (production)
-- Windows 11 (development)
+- Python 3.11+, FastAPI, SQLite, Jinja2
+- Azure OpenAI GPT-4o for classification and summarisation
+- Apify SDK for web scraping, feedparser for RSS
+- Microsoft Graph SDK for email delivery
+- Bootstrap 5.3.3 + HTMX 2.0.4 for admin dashboard
+- structlog for structured logging, tenacity for retry logic
+- Windows Server on AWS (production), Windows 11 (development)
+- 9,769 lines of Python across 175 files
 
-**Target Sources (from prototype):**
-- Reinsurance News, Insurance Journal, Insurance Business, GlobeNewsWire, Bloomberg, Reuters, Business Insurance, The Insurer, Artemis, S&P Global, Moody's, Fitch Ratings, AM Best, Lloyd's List, and others
+**Enterprise API Access (in progress):**
+- MMC Core API platform (Apigee) — app registration PR submitted for staging access
+- Proxies requested: coreapi-access-management, coreapi-recent-news, coreapi-equity-price, coreapi-data, coreapi-email
+- Potential to supplement Apify scraping with enterprise Factiva/Dow Jones news feed
 
 **Audience Roles:**
 
@@ -86,12 +89,17 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Separate emails per role | Each audience gets only relevant content — core value proposition | — Pending |
-| Reuse BrasilIntel tech stack | Proven patterns, reduced learning curve, shared deployment infrastructure | — Pending |
-| Apify + web scraping for collection | Same method that produced the working prototype | — Pending |
-| Full admin dashboard | Manage sources, recipients, roles, and report history via web UI | — Pending |
-| Daily morning delivery only | Sufficient for senior management audience, avoids alert fatigue | — Pending |
-| HTML email (no PDF for v1) | Mobile-responsive, faster to generate, prototype already demonstrates quality | — Pending |
+| Separate emails per role | Each audience gets only relevant content — core value proposition | ✓ Good |
+| Reuse BrasilIntel tech stack | Proven patterns, reduced learning curve, shared deployment infrastructure | ✓ Good |
+| Apify + web scraping for collection | Same method that produced the working prototype | ✓ Good |
+| Full admin dashboard | Manage sources, recipients, roles, and report history via web UI | ✓ Good |
+| Daily morning delivery only | Sufficient for senior management audience, avoids alert fatigue | ✓ Good |
+| HTML email (no PDF for v1) | Mobile-responsive, faster to generate, prototype already demonstrates quality | ✓ Good |
+| Bootstrap 5.3.3 + HTMX 2.0.4 | CDN-only, zero build step, latest stable versions | ✓ Good |
+| structlog + tenacity | Structured JSON logging with mature retry library | ✓ Good |
+| sqlite3 .backup() API | Safe online backups without exclusive locks | ✓ Good |
+| Statistical health thresholds | Adapts to source variability with standard deviation-based alerting | ✓ Good |
+| FTS5 with BM25 ranking | Fast full-text search with relevance ranking in SQLite | ✓ Good |
 
 ---
-*Last updated: 2026-02-06 after initialization*
+*Last updated: 2026-02-17 after v1.0 milestone*
