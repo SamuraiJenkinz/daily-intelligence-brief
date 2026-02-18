@@ -70,6 +70,15 @@ class Settings(BaseSettings):
     azure_storage_container: str = "mdinsights-backups"
     backup_retention_days: int = 30
 
+    # MMC Core API (Enterprise Integration)
+    # Used for Factiva news (X-Api-Key), equity prices (X-Api-Key),
+    # and enterprise email delivery (JWT Bearer + X-Api-Key)
+    mmc_api_base_url: str = ""
+    mmc_api_client_id: str = ""
+    mmc_api_client_secret: str = ""
+    mmc_api_key: str = ""
+    mmc_api_token_path: str = "/coreapi/access-management/v1/token"
+
     def is_azure_openai_configured(self) -> bool:
         """Check if Azure OpenAI is fully configured."""
         return bool(
@@ -94,6 +103,25 @@ class Settings(BaseSettings):
     def is_azure_storage_configured(self) -> bool:
         """Check if Azure Blob Storage is configured."""
         return bool(self.azure_storage_connection_string)
+
+    def is_mmc_auth_configured(self) -> bool:
+        """Check if MMC Core API OAuth2 (JWT) auth is fully configured.
+
+        Required for the Email API (Phase 12) which uses Bearer + X-Api-Key.
+        """
+        return bool(
+            self.mmc_api_base_url
+            and self.mmc_api_client_id
+            and self.mmc_api_client_secret
+        )
+
+    def is_mmc_api_key_configured(self) -> bool:
+        """Check if MMC Core API X-Api-Key is configured.
+
+        Required for Factiva news (Phase 10) and equity prices (Phase 11)
+        which use X-Api-Key only (no JWT needed).
+        """
+        return bool(self.mmc_api_base_url and self.mmc_api_key)
 
     def _parse_recipient_list(self, recipients_str: str) -> list[str]:
         """
