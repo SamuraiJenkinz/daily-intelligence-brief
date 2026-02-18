@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 ## Current Position
 
 Phase: 10 of 13 (Factiva News Collection) — In progress
-Plan: 1 of 3 in current phase
-Status: In progress — 10-01 complete (FactivaCollector + DB schema)
-Last activity: 2026-02-18 — Completed 10-01-PLAN.md (FactivaCollector foundation)
+Plan: 2 of 3 in current phase
+Status: In progress — 10-02 complete (Pipeline integration + source attribution)
+Last activity: 2026-02-18 — Completed 10-02-PLAN.md (Factiva-primary pipeline integration)
 
-Progress: v1.0 [██████████] 100% | v1.1 [███░░░░░░░] 25% (3/12 plans)
+Progress: v1.0 [██████████] 100% | v1.1 [████░░░░░░] 33% (4/12 plans)
 
 ## Performance Metrics
 
@@ -63,6 +63,13 @@ Phase 10 plan 01 decisions:
 - MAX_ARTICLES=100 hard cap with pageSize100 link follow — avoids N-API-call loop
 - Migration in lifespan() with try/except — startup never blocked by schema failure
 
+Phase 10 plan 02 decisions:
+- INSURANCE_FALLBACK_SOURCES hardcoded list (Reinsurance News, Insurance Journal, Artemis, Lloyd's List) — keeps fallback brief insurance-focused
+- Zero Factiva articles triggers fallback — zero results signals API/query breakage, not low volume
+- store_factiva_articles() creates its own Run record — Factiva collection independently traceable
+- URL dedup uses date(created_at) == today — handles pipeline reruns within same day
+- collector_source=None treated as "Apify/RSS" via getattr fallback — backward-compatible without migration
+
 ### Pending Todos
 
 None.
@@ -73,7 +80,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-18T18:51:21Z
-Stopped at: Completed 10-01-PLAN.md — FactivaCollector foundation complete
+Last session: 2026-02-18T19:10:30Z
+Stopped at: Completed 10-02-PLAN.md — Factiva-primary pipeline integration complete
 Resume file: None
-Next: Execute 10-02-PLAN.md (pipeline integration: wire FactivaCollector into PipelineOrchestrator)
+Next: Execute 10-03-PLAN.md (Factiva admin config UI — FactivaConfig row editing)
