@@ -27,6 +27,7 @@ from app.services.search import ArticleSearchService
 from app.database import SessionLocal
 from app.models import Run, Source, NewsArticle
 from app.models.source import SourceType
+from app.models.factiva_config import FactivaConfig
 from app.schemas.admin import SourceCreate, SourceUpdate
 from datetime import datetime, date
 from sqlalchemy import func
@@ -1128,6 +1129,131 @@ def get_runs_table():
 
         return HTMLResponse(content=html)
 
+    finally:
+        db.close()
+
+
+@router.get("/factiva", response_class=HTMLResponse)
+def get_factiva_config():
+    """
+    Serve Factiva query configuration page.
+
+    Displays the current FactivaConfig row (id=1) with form controls for
+    industry codes, company codes, keywords, page size, and enabled toggle.
+
+    Returns:
+        HTML Factiva configuration page
+    """
+    db = SessionLocal()
+    try:
+        config = db.query(FactivaConfig).filter(FactivaConfig.id == 1).first()
+        if not config:
+            # Seed default if missing (startup migration normally handles this)
+            config = FactivaConfig(
+                id=1,
+                industry_codes="i82,i832",
+                company_codes="MM",
+                keywords="insurance reinsurance",
+                page_size=25,
+                enabled=True,
+            )
+            db.add(config)
+            db.commit()
+            db.refresh(config)
+
+        template = jinja_env.get_template("admin/factiva.html")
+        return HTMLResponse(template.render(
+            config=config,
+            active_nav="factiva",
+            success=None,
+            error=None,
+        ))
+    finally:
+        db.close()
+
+
+@router.post("/factiva", response_class=HTMLResponse)
+def update_factiva_config(
+    industry_codes: str = Form(""),
+    company_codes: str = Form(""),
+    keywords: str = Form(""),
+    page_size: int = Form(25),
+    enabled: str = Form("false"),
+):
+    """
+    Update Factiva query configuration.
+
+    Persists changes to the factiva_config DB table (row id=1). Changes take
+    effect on the next pipeline run.
+
+    Note: The enabled field uses a hidden+checkbox pair — the hidden field sends
+    "false" when the checkbox is unchecked, and "true" when checked (checkbox
+    value overrides hidden input in form submission order).
+
+    Args:
+        industry_codes: Comma-separated Factiva industry codes (e.g. "i82,i832")
+        company_codes: Comma-separated Factiva company codes (e.g. "MM")
+        keywords: Free-text search keywords (e.g. "insurance reinsurance")
+        page_size: Articles per search page (10, 25, 50, or 100)
+        enabled: "true" or "false" string from hidden+checkbox field pair
+
+    Returns:
+        HTML Factiva configuration page with success or error message
+    """
+    db = SessionLocal()
+    config = None
+    try:
+        config = db.query(FactivaConfig).filter(FactivaConfig.id == 1).first()
+        if not config:
+            config = FactivaConfig(id=1)
+            db.add(config)
+
+        # Validate page_size
+        if page_size not in (10, 25, 50, 100):
+            page_size = 25
+
+        # Clean comma-separated inputs — strip whitespace, remove empty entries
+        config.industry_codes = ",".join(
+            c.strip() for c in industry_codes.split(",") if c.strip()
+        )
+        config.company_codes = ",".join(
+            c.strip() for c in company_codes.split(",") if c.strip()
+        )
+        config.keywords = keywords.strip()
+        config.page_size = page_size
+        # Convert string "true"/"false" from hidden+checkbox pair to bool
+        config.enabled = enabled.lower() in ("true", "on", "1", "yes")
+        config.updated_at = datetime.utcnow()
+
+        db.commit()
+        db.refresh(config)
+
+        logger.info(
+            "factiva_config_updated",
+            industry_codes=config.industry_codes,
+            company_codes=config.company_codes,
+            keywords=config.keywords,
+            page_size=config.page_size,
+            enabled=config.enabled,
+        )
+
+        template = jinja_env.get_template("admin/factiva.html")
+        return HTMLResponse(template.render(
+            config=config,
+            active_nav="factiva",
+            success="Factiva configuration saved successfully.",
+            error=None,
+        ))
+
+    except Exception as e:
+        logger.error("factiva_config_update_failed", error=str(e))
+        template = jinja_env.get_template("admin/factiva.html")
+        return HTMLResponse(template.render(
+            config=config if config else FactivaConfig(id=1),
+            active_nav="factiva",
+            success=None,
+            error=f"Failed to save configuration: {str(e)}",
+        ))
     finally:
         db.close()
 

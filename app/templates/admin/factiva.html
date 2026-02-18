@@ -1,0 +1,254 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Factiva Configuration{% endblock %}
+
+{% block extra_head %}
+<style>
+    .factiva-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .factiva-header h3 {
+        color: var(--marsh-blue);
+        margin-bottom: 0.25rem;
+    }
+
+    .field-hint {
+        font-size: 0.8125rem;
+        color: #6c757d;
+        margin-top: 0.375rem;
+    }
+
+    .reference-table td:first-child {
+        font-family: monospace;
+        font-weight: 600;
+        color: var(--marsh-blue);
+    }
+
+    .status-confirmed {
+        color: #198754;
+        font-size: 0.875rem;
+    }
+
+    .status-inferred {
+        color: #fd7e14;
+        font-size: 0.875rem;
+    }
+
+    .form-check-input {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Header -->
+    <div class="row mb-4 factiva-header">
+        <div class="col-12">
+            <h3><i class="bi bi-newspaper"></i> Factiva News Collection</h3>
+            <p class="text-muted mb-0">Configure Factiva API query parameters for insurance/reinsurance news collection.</p>
+        </div>
+    </div>
+
+    <!-- Success / Error alerts -->
+    {% if success %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>{{ success }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <!-- Configuration Form Card -->
+    <div class="card mb-4">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <h5 class="mb-0"><i class="bi bi-sliders me-2"></i>Query Parameters</h5>
+            {% if config.enabled %}
+            <span class="badge bg-success"><i class="bi bi-circle-fill me-1" style="font-size:0.6rem;"></i>Collection Enabled</span>
+            {% else %}
+            <span class="badge bg-secondary"><i class="bi bi-circle-fill me-1" style="font-size:0.6rem;"></i>Collection Disabled</span>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <form method="POST" action="/admin/factiva">
+
+                <div class="mb-3">
+                    <label for="industry_codes" class="form-label fw-semibold">Industry Codes</label>
+                    <input
+                        type="text"
+                        id="industry_codes"
+                        name="industry_codes"
+                        class="form-control"
+                        value="{{ config.industry_codes or '' }}"
+                        placeholder="i82,i832,i8311"
+                    >
+                    <div class="field-hint">
+                        Comma-separated Factiva industry codes. Common codes: <code>i82</code> (Insurance),
+                        <code>i832</code> (Insurance Brokering), <code>i83</code> (Reinsurance).
+                        See the reference table below for confirmed codes.
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="company_codes" class="form-label fw-semibold">Company Codes</label>
+                    <input
+                        type="text"
+                        id="company_codes"
+                        name="company_codes"
+                        class="form-control"
+                        value="{{ config.company_codes or '' }}"
+                        placeholder="MM"
+                    >
+                    <div class="field-hint">
+                        Comma-separated Factiva company/entity codes.
+                        <code>MM</code> = Marsh &amp; McLennan Companies.
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="keywords" class="form-label fw-semibold">Keywords</label>
+                    <input
+                        type="text"
+                        id="keywords"
+                        name="keywords"
+                        class="form-control"
+                        value="{{ config.keywords or '' }}"
+                        placeholder="insurance reinsurance"
+                    >
+                    <div class="field-hint">
+                        Free-text search keywords used alongside industry and company codes.
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="page_size" class="form-label fw-semibold">Results Per Page</label>
+                    <select id="page_size" name="page_size" class="form-select" style="max-width: 200px;">
+                        <option value="10" {{ 'selected' if config.page_size == 10 }}>10</option>
+                        <option value="25" {{ 'selected' if config.page_size == 25 else ('selected' if not config.page_size) }}>25 (default)</option>
+                        <option value="50" {{ 'selected' if config.page_size == 50 }}>50</option>
+                        <option value="100" {{ 'selected' if config.page_size == 100 }}>100</option>
+                    </select>
+                    <div class="field-hint">
+                        Articles per API call. Higher values reduce HTTP requests but increase response time.
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="form-check">
+                        <!-- Hidden field ensures a value is always submitted even when checkbox is unchecked -->
+                        <input type="hidden" name="enabled" value="false">
+                        <input
+                            type="checkbox"
+                            id="enabled"
+                            name="enabled"
+                            value="true"
+                            class="form-check-input"
+                            {{ 'checked' if config.enabled }}
+                        >
+                        <label class="form-check-label fw-semibold" for="enabled">
+                            Enable Factiva Collection
+                        </label>
+                    </div>
+                    <div class="field-hint ms-4">
+                        When disabled, the pipeline automatically falls back to Apify/RSS collection.
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 align-items-center">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save me-1"></i> Save Configuration
+                    </button>
+                    {% if config.updated_at %}
+                    <small class="text-muted">
+                        Last saved: {{ config.updated_at.strftime('%Y-%m-%d %H:%M UTC') if config.updated_at else 'Never' }}
+                    </small>
+                    {% endif %}
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Reference: Industry Codes -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-table me-2"></i>Reference: Insurance Industry Codes</h5>
+        </div>
+        <div class="card-body">
+            <p class="text-muted mb-3">
+                Use <code>GET /coreapi/recent-news/v1/industries</code> (with <code>X-Api-Key</code> header)
+                against the staging endpoint to retrieve the authoritative list of valid codes.
+            </p>
+            <div class="table-responsive">
+                <table class="table table-sm table-striped reference-table mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Code</th>
+                            <th>Description</th>
+                            <th>Validation Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>i82</td>
+                            <td>Insurance</td>
+                            <td><span class="status-confirmed"><i class="bi bi-check-circle-fill me-1"></i>Confirmed parent code</span></td>
+                        </tr>
+                        <tr>
+                            <td>i832</td>
+                            <td>Insurance Brokering</td>
+                            <td><span class="status-confirmed"><i class="bi bi-check-circle-fill me-1"></i>Confirmed (NewsAPI.pdf example)</span></td>
+                        </tr>
+                        <tr>
+                            <td>i8311</td>
+                            <td>Property/Casualty Insurance</td>
+                            <td><span class="status-inferred"><i class="bi bi-question-circle-fill me-1"></i>Inferred — validate against staging</span></td>
+                        </tr>
+                        <tr>
+                            <td>i8312</td>
+                            <td>Life/Health Insurance</td>
+                            <td><span class="status-inferred"><i class="bi bi-question-circle-fill me-1"></i>Inferred — validate against staging</span></td>
+                        </tr>
+                        <tr>
+                            <td>i83</td>
+                            <td>Reinsurance</td>
+                            <td><span class="status-inferred"><i class="bi bi-question-circle-fill me-1"></i>Inferred — validate against staging</span></td>
+                        </tr>
+                        <tr>
+                            <td>i831</td>
+                            <td>Property/Casualty Reinsurance</td>
+                            <td><span class="status-inferred"><i class="bi bi-question-circle-fill me-1"></i>Inferred — validate against staging</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-3 p-3 bg-light rounded">
+                <strong>Staging validation command:</strong>
+                <pre class="mb-0 mt-1" style="font-size: 0.8rem;"><code>python -c "
+from app.collectors.factiva import FactivaCollector
+import httpx
+fc = FactivaCollector()
+if fc.is_configured():
+    url = f'{fc.base_url}/coreapi/recent-news/v1/industries'
+    r = httpx.get(url, headers=fc._build_headers(), timeout=30)
+    print(f'Status: {r.status_code}')
+    for item in r.json()[:20]:
+        print(item)
+else:
+    print('Not configured — set MMC_API_BASE_URL and MMC_API_KEY in .env')
+"</code></pre>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
