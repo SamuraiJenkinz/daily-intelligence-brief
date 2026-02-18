@@ -19,6 +19,7 @@ from app.services.reporter import RoleReportService
 from app.services.emailer import GraphEmailService
 from app.services.health_monitor import SourceHealthMonitor
 from app.config import get_settings
+from app.auth.token_manager import TokenManager
 
 # Project root directory (absolute path for reliable file operations)
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -38,7 +39,8 @@ class PipelineOrchestrator:
         self,
         collector: ApifyCollector,
         classifier: RoleClassificationService,
-        reporter: RoleReportService
+        reporter: RoleReportService,
+        token_manager: Optional[TokenManager] = None
     ):
         """
         Initialize pipeline orchestrator with service dependencies.
@@ -47,10 +49,14 @@ class PipelineOrchestrator:
             collector: ApifyCollector for news collection
             classifier: RoleClassificationService for article classification
             reporter: RoleReportService for HTML report generation
+            token_manager: Optional TokenManager for MMC Core API JWT auth.
+                           When None (default), pipeline runs without enterprise
+                           auth (degraded_auth=True, Graph API fallback for email).
         """
         self.collector = collector
         self.classifier = classifier
         self.reporter = reporter
+        self.token_manager = token_manager
         self.logger = logger.bind(service="pipeline")
 
     def run_full_pipeline(self) -> Dict:
@@ -58,6 +64,7 @@ class PipelineOrchestrator:
         Execute complete pipeline from collection to report generation.
 
         Steps:
+        0. Authenticate to MMC Core API (optional — degrades gracefully if not configured)
         1. Collect articles from enabled sources (creates Run internally)
         2. Query collected articles for classification
         3. Classify articles with Azure OpenAI
@@ -70,6 +77,7 @@ class PipelineOrchestrator:
                 - articles_collected: Number of articles collected
                 - articles_classified: Number of articles classified
                 - html_output: Generated HTML report
+                - degraded_auth: True if JWT unavailable (Graph API fallback for email)
                 - status: Pipeline status (completed/failed)
                 - error: Error message if failed
         """
@@ -79,6 +87,7 @@ class PipelineOrchestrator:
             "articles_collected": 0,
             "articles_classified": 0,
             "html_output": None,
+            "degraded_auth": True,
             "status": "failed",
             "error": None
         }
@@ -86,6 +95,38 @@ class PipelineOrchestrator:
         try:
             self.logger.info("pipeline_started")
             start_time = datetime.utcnow()
+
+            # Step 0: Authenticate to MMC Core API
+            # degraded_auth defaults to True (safe: Graph API fallback)
+            # Auth failure NEVER blocks the pipeline — logs warning and continues
+            degraded_auth = True
+            if self.token_manager and self.token_manager.is_configured():
+                self.logger.info("step_0_auth_started")
+                import asyncio as _asyncio
+                try:
+                    loop = _asyncio.get_event_loop()
+                    if loop.is_running():
+                        # If already in async context, create a task
+                        token = None  # run_full_pipeline is sync; token_manager is async
+                    else:
+                        token = loop.run_until_complete(self.token_manager.get_token())
+                except RuntimeError:
+                    token = _asyncio.run(self.token_manager.get_token())
+                if token:
+                    degraded_auth = False
+                    self.logger.info("step_0_auth_completed", degraded_auth=False)
+                else:
+                    self.logger.warning(
+                        "step_0_auth_failed",
+                        degraded_auth=True,
+                        message="JWT acquisition failed, email will use Graph API fallback"
+                    )
+            else:
+                self.logger.info(
+                    "step_0_auth_skipped",
+                    reason="MMC auth not configured" if not self.token_manager else "TokenManager not configured"
+                )
+            result["degraded_auth"] = degraded_auth
 
             # Step 1: Collect articles (collector creates Run internally)
             self.logger.info("step_1_collection_started")
@@ -218,6 +259,7 @@ class PipelineOrchestrator:
                 run_id=latest_run.id,
                 articles_collected=articles_collected,
                 articles_classified=articles_classified,
+                degraded_auth=degraded_auth,
                 duration_seconds=round(duration, 2)
             )
 
@@ -257,6 +299,7 @@ class PipelineOrchestrator:
         Execute complete pipeline from collection to email delivery.
 
         Steps:
+        0. Authenticate to MMC Core API (optional — degrades gracefully if not configured)
         1. Collect articles from enabled sources (creates Run internally)
         2. Query collected articles for classification
         3. Classify articles with Azure OpenAI
@@ -264,7 +307,7 @@ class PipelineOrchestrator:
         5. Generate unified HTML report for browser
         6. Generate per-role emails
         7. Archive reports to disk
-        8. Send emails per role
+        8. Send emails per role (uses Graph API; Phase 12 will check degraded_auth flag)
         9. Update Run record with final status
 
         Returns:
@@ -279,6 +322,7 @@ class PipelineOrchestrator:
             "emails_sent": {},
             "reports_archived": [],
             "html_output": None,
+            "degraded_auth": True,
             "status": "failed",
             "error": None
         }
@@ -286,6 +330,34 @@ class PipelineOrchestrator:
         try:
             self.logger.info("pipeline_with_email_started")
             start_time = datetime.utcnow()
+
+            # Step 0: Authenticate to MMC Core API
+            # degraded_auth defaults to True (safe: Graph API fallback)
+            # Auth failure NEVER blocks the pipeline — logs warning and continues
+            # Phase 12 will check degraded_auth to choose between enterprise email
+            # and Graph API fallback.
+            degraded_auth = True
+            if self.token_manager and self.token_manager.is_configured():
+                step_start = datetime.utcnow()
+                self.logger.info("step_0_auth_started")
+                token = await self.token_manager.get_token()
+                if token:
+                    degraded_auth = False
+                    self.logger.info("step_0_auth_completed", degraded_auth=False)
+                else:
+                    self.logger.warning(
+                        "step_0_auth_failed",
+                        degraded_auth=True,
+                        message="JWT acquisition failed, email will use Graph API fallback"
+                    )
+                step_duration = (datetime.utcnow() - step_start).total_seconds()
+                self.logger.info("step_0_auth_duration", duration_seconds=round(step_duration, 2))
+            else:
+                self.logger.info(
+                    "step_0_auth_skipped",
+                    reason="MMC auth not configured" if not self.token_manager else "TokenManager not configured"
+                )
+            result["degraded_auth"] = degraded_auth
 
             # Step 1: Collect articles (collector creates Run internally)
             step_start = datetime.utcnow()
@@ -530,6 +602,7 @@ class PipelineOrchestrator:
                 total_duration=round(duration, 2),
                 articles_collected=articles_collected,
                 articles_classified=articles_classified,
+                degraded_auth=degraded_auth,
                 emails_sent_count=len([r for r in result["emails_sent"].values() if r.get("status") == "ok"]),
                 reports_archived_count=len(result["reports_archived"])
             )
