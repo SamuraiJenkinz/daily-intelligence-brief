@@ -72,12 +72,12 @@ Plans:
 4. When Factiva returns an error or is unreachable, the pipeline automatically collects from Apify/RSS instead, logs a structured fallback event, and the brief generates normally.
 5. Each article record in the database carries a source field indicating whether it came from Factiva or Apify/RSS.
 
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 10-01: Implement Factiva news client (API query construction with industry/company codes, response parsing, article extraction)
-- [ ] 10-02: Integrate Factiva client as primary collector with Apify/RSS fallback and per-article source attribution
-- [ ] 10-03: Configure and validate insurance/reinsurance query parameters against staging Factiva endpoint
+- [ ] 10-01-PLAN.md — FactivaCollector module, FactivaConfig model, collector_source field, startup migration
+- [ ] 10-02-PLAN.md — Pipeline integration with Factiva-primary/Apify-fallback, source attribution in reporter and templates
+- [ ] 10-03-PLAN.md — Admin Factiva config UI and staging endpoint validation
 
 ---
 
