@@ -27,7 +27,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full details.
 
 **Milestone Goal:** Replace web scraping with Factiva as the primary news source, enrich briefs with inline equity price data, switch email delivery to the MMC Core API enterprise proxy, and surface API health in the admin dashboard — all with graceful fallback to the proven v1.0 infrastructure.
 
-- [ ] **Phase 9: OAuth2 Token Management** — Acquire and cache JWT tokens for the MMC Core API platform
+- [x] **Phase 9: OAuth2 Token Management** — Acquire and cache JWT tokens for the MMC Core API platform
 - [ ] **Phase 10: Factiva News Collection** — Factiva as primary news source with Apify/RSS fallback
 - [ ] **Phase 11: Equity Price Enrichment** — Inline price data for tracked companies in the brief
 - [ ] **Phase 12: Enterprise Email Delivery** — Send briefs via MMC Core API email with Graph API fallback
@@ -52,8 +52,8 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full details.
 **Plans:** 2 plans
 
 Plans:
-- [ ] 09-01-PLAN.md — TokenManager module, ApiEvent model, config extension, and auth test command
-- [ ] 09-02-PLAN.md — Integrate token manager into pipeline startup with degraded-auth flag and health check reporting
+- [x] 09-01-PLAN.md — TokenManager module, ApiEvent model, config extension, and auth test command
+- [x] 09-02-PLAN.md — Integrate token manager into pipeline startup with degraded-auth flag and health check reporting
 
 ---
 
@@ -163,10 +163,10 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13
 | 6. Admin Dashboard | v1.0 | 5/5 | Complete | 2026-02-08 |
 | 7. Production Hardening | v1.0 | 5/5 | Complete | 2026-02-08 |
 | 8. Polish and Launch | v1.0 | 4/4 | Complete | 2026-02-08 |
-| 9. OAuth2 Token Management | v1.1 | 0/2 | Not started | - |
+| 9. OAuth2 Token Management | v1.1 | 2/2 | Complete | 2026-02-18 |
 | 10. Factiva News Collection | v1.1 | 0/3 | Not started | - |
 | 11. Equity Price Enrichment | v1.1 | 0/3 | Not started | - |
 | 12. Enterprise Email Delivery | v1.1 | 0/2 | Not started | - |
 | 13. Admin Dashboard Enterprise Status | v1.1 | 0/2 | Not started | - |
 
-**Total:** 39/51 plans complete (v1.0 done, v1.1 starting)
+**Total:** 41/51 plans complete (v1.0 done, v1.1 Phase 9 complete)

@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** Each audience at Marsh receives only the intelligence relevant to their decisions, priority-ranked and AI-summarised, delivered daily with zero manual effort.
-**Current focus:** Phase 9 — OAuth2 Token Management (v1.1, plan 1 of 2 complete)
+**Current focus:** Phase 9 — OAuth2 Token Management (v1.1, phase complete)
 
 ## Current Position
 
 Phase: 9 of 13 (OAuth2 Token Management)
-Plan: 1 of 2 in current phase
-Status: In progress — Plan 01 complete, Plan 02 pending
-Last activity: 2026-02-18 — Completed 09-01-PLAN.md (auth foundation)
+Plan: 2 of 2 in current phase
+Status: Phase complete — both plans done, ready for Phase 10
+Last activity: 2026-02-18 — Completed 09-02-PLAN.md (pipeline integration)
 
-Progress: v1.0 [██████████] 100% | v1.1 [█░░░░░░░░░] 8% (1/12 plans)
+Progress: v1.0 [██████████] 100% | v1.1 [██░░░░░░░░] 17% (2/12 plans)
 
 ## Performance Metrics
 
@@ -25,7 +25,7 @@ Progress: v1.0 [██████████] 100% | v1.1 [█░░░░░�
 
 **v1.1 Baseline:**
 - Plans planned: 12 across 5 phases
-- Completed: 1 (09-01)
+- Completed: 2 (09-01, 09-02)
 
 *Updated after each plan completion*
 
@@ -49,6 +49,12 @@ Phase 9 plan 01 decisions:
 - _record_event() isolates its own DB session; failures are swallowed to protect token flow
 - test_auth.py shows first 8 + last 4 chars of token only (security without opacity)
 
+Phase 9 plan 02 decisions:
+- degraded_auth defaults to True — safe: Graph API fallback always available
+- MMC auth/key missing in health check returns status=info not warning (optional features)
+- Step 0 auth prefix avoids renumbering existing steps 1-9
+- asyncio.run() used in sync run_full_pipeline for token acquisition
+
 ### Pending Todos
 
 None.
@@ -56,11 +62,10 @@ None.
 ### Blockers/Concerns
 
 - Staging credentials still needed to run scripts/test_auth.py against the real endpoint
-- Phase 9 Plan 02 covers token refresh scheduling and integration tests — depends on Plan 01 (complete)
 
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 09-01-PLAN.md — auth foundation (TokenManager, ApiEvent, test script)
+Stopped at: Completed 09-02-PLAN.md — pipeline auth integration (TokenManager wired into pipeline)
 Resume file: None
-Next: Execute 09-02-PLAN.md (token refresh scheduling and integration validation)
+Next: Plan Phase 10 (Factiva News Integration)
