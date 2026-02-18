@@ -83,6 +83,16 @@ def get_admin_dashboard():
         # Format data for template
         runs_data = []
         for run in runs:
+            # Query per-run source breakdown (Factiva vs Apify/RSS article counts)
+            source_counts = db.query(
+                NewsArticle.collector_source,
+                func.count(NewsArticle.id)
+            ).filter(
+                NewsArticle.run_id == run.id
+            ).group_by(NewsArticle.collector_source).all()
+
+            source_breakdown = {(src or 'Apify/RSS'): count for src, count in source_counts}
+
             runs_data.append({
                 'id': run.id,
                 'status': run.status.value,
@@ -90,7 +100,8 @@ def get_admin_dashboard():
                 'completed_at': run.completed_at.strftime('%Y-%m-%d %H:%M:%S') if run.completed_at else None,
                 'articles_collected': run.articles_collected,
                 'articles_classified': run.articles_classified,
-                'error_message': run.error_message
+                'error_message': run.error_message,
+                'source_breakdown': source_breakdown,
             })
 
         last_run_data = None

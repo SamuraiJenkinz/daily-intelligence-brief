@@ -87,9 +87,12 @@ class RoleReportService:
         # Filter articles that include this role
         role_articles = [a for a in articles if role in a.get('roles', [])]
 
-        # Sort by priority using PRIORITY_ORDER
-        # Unknown priorities get value 4 (sorted after Monitor)
-        role_articles.sort(key=lambda a: PRIORITY_ORDER.get(a.get('priority'), 4))
+        # Sort by priority using PRIORITY_ORDER, then Factiva articles first within each priority.
+        # Unknown priorities get value 4 (sorted after Monitor).
+        role_articles.sort(key=lambda a: (
+            PRIORITY_ORDER.get(a.get('priority'), 4),
+            0 if a.get('collector_source') == 'Factiva' else 1
+        ))
 
         return role_articles
 
@@ -129,6 +132,7 @@ class RoleReportService:
                 'category': article.category,
                 'region': article.region,
                 'business_line': article.business_line,
+                'collector_source': getattr(article, 'collector_source', None) or 'Apify/RSS',
             }
             prepared.append(article_dict)
         return prepared
