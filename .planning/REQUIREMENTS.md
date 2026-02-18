@@ -9,9 +9,9 @@ Requirements for enterprise API integration milestone. Each maps to roadmap phas
 
 ### Authentication
 
-- [ ] **AUTH-01**: System acquires JWT tokens via OAuth2 client credentials grant from Access Management API
-- [ ] **AUTH-02**: System caches tokens and auto-refreshes before expiry
-- [ ] **AUTH-03**: Token acquisition failures are logged and don't block the pipeline (fallback to v1.0 delivery)
+- [x] **AUTH-01**: System acquires JWT tokens via OAuth2 client credentials grant from Access Management API
+- [x] **AUTH-02**: System caches tokens and auto-refreshes before expiry
+- [x] **AUTH-03**: Token acquisition failures are logged and don't block the pipeline (fallback to v1.0 delivery)
 
 ### News Collection
 
@@ -78,9 +78,9 @@ Deferred to future milestones. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 9 | Pending |
-| AUTH-02 | Phase 9 | Pending |
-| AUTH-03 | Phase 9 | Pending |
+| AUTH-01 | Phase 9 | Complete |
+| AUTH-02 | Phase 9 | Complete |
+| AUTH-03 | Phase 9 | Complete |
 | NEWS-01 | Phase 10 | Pending |
 | NEWS-02 | Phase 10 | Pending |
 | NEWS-03 | Phase 10 | Pending |
@@ -110,4 +110,4 @@ Deferred to future milestones. Tracked but not in current roadmap.
 
 ---
 *Requirements defined: 2026-02-18*
-*Last updated: 2026-02-18 — traceability complete after roadmap creation*
+*Last updated: 2026-02-18 — Phase 9 requirements (AUTH-01/02/03) marked Complete*
