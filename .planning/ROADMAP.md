@@ -140,11 +140,11 @@ Plans:
 3. The report archive view shows a source badge per article (Factiva or Apify/RSS) without additional clicks.
 4. A fallback event log in the dashboard lists each fallback trigger with the affected API, timestamp, and reason from structured log data.
 
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 13-01: Add enterprise API status panel and credential configuration UI to admin dashboard
-- [ ] 13-02: Add article source attribution display in report archive and fallback event log view
+- [ ] 13-01-PLAN.md — Enterprise API status panel, fallback event log, and credential configuration page
+- [ ] 13-02-PLAN.md — Per-article source attribution badges in search results
 
 ---
 
