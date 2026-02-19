@@ -29,7 +29,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full details.
 
 - [x] **Phase 9: OAuth2 Token Management** — Acquire and cache JWT tokens for the MMC Core API platform
 - [x] **Phase 10: Factiva News Collection** — Factiva as primary news source with Apify/RSS fallback
-- [ ] **Phase 11: Equity Price Enrichment** — Inline price data for tracked companies in the brief
+- [x] **Phase 11: Equity Price Enrichment** — Inline price data for tracked companies in the brief
 - [ ] **Phase 12: Enterprise Email Delivery** — Send briefs via MMC Core API email with Graph API fallback
 - [ ] **Phase 13: Admin Dashboard Enterprise Status** — API health, credential config, source attribution, fallback log
 
@@ -98,9 +98,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 11-01-PLAN.md — EquityTicker model, EquityPriceClient API client, admin equity mapping UI
-- [ ] 11-02-PLAN.md — Pipeline Step 3b equity enrichment and reporter equity_data passthrough
-- [ ] 11-03-PLAN.md — Inline equity price display in browser and email brief templates
+- [x] 11-01-PLAN.md — EquityTicker model, EquityPriceClient API client, admin equity mapping UI
+- [x] 11-02-PLAN.md — Pipeline Step 3b equity enrichment and reporter equity_data passthrough
+- [x] 11-03-PLAN.md — Inline equity price display in browser and email brief templates
 
 ---
 
@@ -165,8 +165,8 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13
 | 8. Polish and Launch | v1.0 | 4/4 | Complete | 2026-02-08 |
 | 9. OAuth2 Token Management | v1.1 | 2/2 | Complete | 2026-02-18 |
 | 10. Factiva News Collection | v1.1 | 3/3 | Complete | 2026-02-18 |
-| 11. Equity Price Enrichment | v1.1 | 0/3 | Not started | - |
+| 11. Equity Price Enrichment | v1.1 | 3/3 | Complete | 2026-02-19 |
 | 12. Enterprise Email Delivery | v1.1 | 0/2 | Not started | - |
 | 13. Admin Dashboard Enterprise Status | v1.1 | 0/2 | Not started | - |
 
-**Total:** 44/51 plans complete (v1.0 done, v1.1 Phases 9-10 complete)
+**Total:** 47/51 plans complete (v1.0 done, v1.1 Phases 9-11 complete)

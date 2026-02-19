@@ -24,10 +24,10 @@ Requirements for enterprise API integration milestone. Each maps to roadmap phas
 
 ### Equity Enrichment
 
-- [ ] **EQTY-01**: System maintains a configurable mapping of tracked entities to ticker symbols and exchanges
-- [ ] **EQTY-02**: System fetches current equity prices for entities mentioned in classified articles
-- [ ] **EQTY-03**: Equity data (price, change, percent) appears inline with relevant stories in the brief
-- [ ] **EQTY-04**: Missing or failed equity lookups don't break the brief
+- [x] **EQTY-01**: System maintains a configurable mapping of tracked entities to ticker symbols and exchanges
+- [x] **EQTY-02**: System fetches current equity prices for entities mentioned in classified articles
+- [x] **EQTY-03**: Equity data (price, change, percent) appears inline with relevant stories in the brief
+- [x] **EQTY-04**: Missing or failed equity lookups don't break the brief
 
 ### Email Delivery
 
@@ -40,7 +40,7 @@ Requirements for enterprise API integration milestone. Each maps to roadmap phas
 
 - [x] **FALL-01**: When Factiva API is unavailable, pipeline falls back to Apify + RSS collection
 - [ ] **FALL-02**: When enterprise email API is unavailable, pipeline falls back to Graph API delivery
-- [ ] **FALL-03**: When Equity Price API is unavailable, briefs generate without price data
+- [x] **FALL-03**: When Equity Price API is unavailable, briefs generate without price data
 - [ ] **FALL-04**: All fallback events are logged with structured logging and visible in admin dashboard
 
 ### Admin Dashboard
@@ -87,17 +87,17 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | NEWS-04 | Phase 10 | Complete |
 | NEWS-05 | Phase 10 | Complete |
 | NEWS-06 | Phase 10 | Complete |
-| EQTY-01 | Phase 11 | Pending |
-| EQTY-02 | Phase 11 | Pending |
-| EQTY-03 | Phase 11 | Pending |
-| EQTY-04 | Phase 11 | Pending |
+| EQTY-01 | Phase 11 | Complete |
+| EQTY-02 | Phase 11 | Complete |
+| EQTY-03 | Phase 11 | Complete |
+| EQTY-04 | Phase 11 | Complete |
 | MAIL-01 | Phase 12 | Pending |
 | MAIL-02 | Phase 12 | Pending |
 | MAIL-03 | Phase 12 | Pending |
 | MAIL-04 | Phase 12 | Pending |
 | FALL-01 | Phase 10 | Complete |
 | FALL-02 | Phase 12 | Pending |
-| FALL-03 | Phase 11 | Pending |
+| FALL-03 | Phase 11 | Complete |
 | FALL-04 | Phase 13 | Pending |
 | ADMN-01 | Phase 13 | Pending |
 | ADMN-02 | Phase 13 | Pending |
@@ -110,4 +110,4 @@ Deferred to future milestones. Tracked but not in current roadmap.
 
 ---
 *Requirements defined: 2026-02-18*
-*Last updated: 2026-02-18 — Phase 10 requirements (NEWS-01/02/03/04/05/06, FALL-01) marked Complete*
+*Last updated: 2026-02-19 — Phase 11 requirements (EQTY-01/02/03/04, FALL-03) marked Complete*
