@@ -118,11 +118,11 @@ Plans:
 3. When the enterprise email endpoint errors or is unreachable, the pipeline retries, then falls back to Microsoft Graph API delivery and logs a structured fallback event.
 4. Each delivery attempt outcome (enterprise success, fallback triggered, complete failure) is stored per-send in the database.
 
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 12-01: Implement enterprise email client (POST /coreapi/email/v1, JWT Bearer + X-Api-Key, sender impersonation, HTML body)
-- [ ] 12-02: Integrate enterprise email client into delivery pipeline with Graph API fallback and outcome recording
+- [ ] 12-01-PLAN.md — EnterpriseEmailClient module, enterprise email config fields, .env.example documentation
+- [ ] 12-02-PLAN.md — Pipeline Step 8 enterprise-first delivery with Graph API fallback and outcome recording
 
 ---
 
