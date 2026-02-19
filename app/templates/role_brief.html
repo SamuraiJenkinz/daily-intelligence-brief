@@ -373,6 +373,12 @@
             font-size: 0.72em;
             font-weight: 600;
         }
+        .equity-chip {
+            transition: box-shadow 0.15s;
+        }
+        .equity-chip:hover {
+            box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+        }
         .chip-entity {
             background: #e8eaf6;
             color: #283593;
@@ -753,6 +759,25 @@
                         </div>
                         <!-- IMPACT STRIP with chips -->
                         <div class="impact-strip">
+                            {% if article.equity_data %}
+                            {% for eq in article.equity_data %}
+                            <span class="equity-chip" style="display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 4px; font-size: 0.75em; margin-right: 6px; margin-bottom: 4px; font-weight: 600; background-color: #f8f9fa; border: 1px solid #dee2e6;">
+                                <span style="color: #00263e; margin-right: 6px;">{{ eq.ticker }}</span>
+                                {% if eq.price is not none %}
+                                <span style="color: #495057;">${{ "%.2f"|format(eq.price) }}</span>
+                                {% endif %}
+                                {% if eq.change is not none and eq.change_pct is not none %}
+                                {% if eq.change > 0 %}
+                                <span style="color: #198754; margin-left: 6px;">+{{ "%.2f"|format(eq.change) }} (+{{ "%.2f"|format(eq.change_pct) }}%)</span>
+                                {% elif eq.change < 0 %}
+                                <span style="color: #dc3545; margin-left: 6px;">{{ "%.2f"|format(eq.change) }} ({{ "%.2f"|format(eq.change_pct) }}%)</span>
+                                {% else %}
+                                <span style="color: #6c757d; margin-left: 6px;">0.00 (0.00%)</span>
+                                {% endif %}
+                                {% endif %}
+                            </span>
+                            {% endfor %}
+                            {% endif %}
                             {% if article.sentiment %}
                             <span class="impact-chip chip-sentiment-{{ article.sentiment }}">{{ article.sentiment|capitalize }}</span>
                             {% endif %}
