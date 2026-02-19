@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** Each audience at Marsh receives only the intelligence relevant to their decisions, priority-ranked and AI-summarised, delivered daily with zero manual effort.
-**Current focus:** Phase 13 — Admin Dashboard Enterprise Status (next up)
+**Current focus:** Phase 13 — Admin Dashboard Enterprise Status — COMPLETE
 
 ## Current Position
 
-Phase: 13 of 13 (Admin Dashboard Enterprise Status) — In progress
-Plan: 2 of 3 in current phase
-Status: In progress — ADMN-03 complete (per-article source badges in search results)
-Last activity: 2026-02-19 — Completed 13-02-PLAN.md (search results source badges)
+Phase: 13 of 13 (Admin Dashboard Enterprise Status) — VERIFIED ✓
+Plan: 2 of 2 in current phase (both plans now complete)
+Status: Phase complete — ADMN-01/02 + FALL-04 (plan 01) and ADMN-03 (plan 02) marked Complete
+Last activity: 2026-02-19 — Completed 13-01-PLAN.md (enterprise status panel + credential config)
 
-Progress: v1.0 [██████████] 100% | v1.1 [██████████] 92% (11/12 plans)
+Progress: v1.0 [██████████] 100% | v1.1 [██████████] 100% (12/12 plans)
 
 ## Performance Metrics
 
@@ -110,6 +110,15 @@ Phase 12 plan 02 decisions:
 - path=both_failed is the only value incrementing delivery_failure_count — skipped/graph_fallback-success are not failures
 - sync run_full_pipeline() unchanged — enterprise email delivery is email-pipeline only
 
+Phase 13 plan 01 decisions:
+- api_names queried: ["auth", "news", "equity", "email"] — exact strings from token_manager.py/factiva.py/equity.py/enterprise_emailer.py
+- Status logic: success=True -> healthy; success=False + fallback event_type -> degraded; success=False other -> offline; no events -> unknown
+- "Degraded" = fallback succeeded (NEWS_FALLBACK/EQUITY_FALLBACK/EMAIL_FALLBACK) — service working via fallback, not hard failure
+- Secret fields: value attribute always empty; placeholder shows bullets only when *_set boolean flag is True
+- Non-secret fields always written to .env; secret fields only written when non-blank value submitted
+- _update_env_var() extracted as reusable helper; recipients code keeps its inline version (not refactored)
+- get_settings.cache_clear() called after .env write — pipeline picks up new values on same process
+
 ### Pending Todos
 
 None.
@@ -125,6 +134,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 13-02-PLAN.md — search results per-article source badges (ADMN-03)
+Stopped at: Phase 13 complete — all plans executed, requirements ADMN-01/02/03 + FALL-04 marked Complete
 Resume file: None
-Next: 13-03 plan (remaining Phase 13 dashboard requirements)
+Next: All v1.1 phases complete — project is feature-complete for deployment
