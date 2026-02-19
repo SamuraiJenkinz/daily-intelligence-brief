@@ -2,7 +2,7 @@
 
 ## What This Is
 
-AI-powered daily intelligence brief for the global insurance and reinsurance market, replacing Marsh's outsourced "Daily Insights" product. The system scrapes news from 20+ global sources, uses GPT-4o to classify, prioritise, summarise, and route articles by audience role, then generates and delivers tailored HTML briefs to Brokers, Leadership, Compliance, and Underwriting teams each morning before market open. Includes a full admin dashboard for source/recipient management and report archive.
+AI-powered daily intelligence brief for the global insurance and reinsurance market, replacing Marsh's outsourced "Daily Insights" product. The system collects news from Factiva/Dow Jones (primary) and 20+ global sources via Apify/RSS (fallback), uses GPT-4o to classify, prioritise, summarise, and route articles by audience role, enriches stories with inline equity price data for tracked companies, then generates and delivers tailored HTML briefs via MMC Core API enterprise email (with Graph API fallback) to Brokers, Leadership, Compliance, and Underwriting teams each morning before market open. Includes a full admin dashboard for source/recipient management, enterprise API health monitoring, credential configuration, and report archive.
 
 ## Core Value
 
@@ -28,17 +28,18 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 - ✓ Windows Task Scheduler automation — v1.0
 - ✓ Author attribution: Kevin Taylor, Colleague Technology Services — v1.0
 - ✓ Production hardening: structured logging, retry logic, backup, health monitoring — v1.0
+- ✓ Factiva/Dow Jones as primary news source via MMC Core API Recent News endpoint — v1.1
+- ✓ Equity price data inline with news stories via MMC Core API Equity Price endpoint — v1.1
+- ✓ Enterprise email delivery via MMC Core API Email endpoint (with Graph API fallback) — v1.1
+- ✓ OAuth2 client credentials token management for API authentication — v1.1
+- ✓ Graceful fallback to Apify/RSS when Factiva is unavailable — v1.1
+- ✓ Graceful fallback to Graph API when enterprise email is unavailable — v1.1
+- ✓ Entity-to-ticker mapping for automatic equity price enrichment — v1.1
+- ✓ Admin dashboard enterprise API health, credential config, source badges, fallback log — v1.1
 
 ### Active
 
-- [ ] Factiva/Dow Jones as primary news source via MMC Core API Recent News endpoint
-- [ ] Equity price data inline with news stories via MMC Core API Equity Price endpoint
-- [ ] Enterprise email delivery via MMC Core API Email endpoint (replacing Graph API)
-- [ ] OAuth2 client credentials token management for API authentication
-- [ ] Graceful fallback to Apify/RSS when Factiva is unavailable
-- [ ] Graceful fallback to Graph API when enterprise email is unavailable
-- [ ] Entity-to-ticker mapping for automatic equity price enrichment
-- [ ] Admin dashboard updates for enterprise API configuration and status
+(None — ship to validate. Start next milestone with `/gsd:new-milestone`.)
 
 ### Out of Scope
 
@@ -57,8 +58,9 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 
 **Business Context:**
 - v1.0 shipped Feb 2026, replacing the outsourced 27-page "Marsh Daily Insights" with an AI-powered system
+- v1.1 shipped Feb 2026, integrating MMC Core API platform for enterprise news, equity, and email
 - Prototype validated the concept with live data before development began
-- System is production-ready with admin dashboard, automated delivery, and monitoring
+- System is production-ready with admin dashboard, automated delivery, monitoring, and enterprise API integration
 
 **Sister Project:**
 - BrasilIntel (v1.0 shipped) monitors 897 Brazilian insurers. MDInsights reuses the same architectural patterns and tech stack.
@@ -71,7 +73,7 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 - Bootstrap 5.3.3 + HTMX 2.0.4 for admin dashboard
 - structlog for structured logging, tenacity for retry logic
 - Windows Server on AWS (production), Windows 11 (development)
-- 9,769 lines of Python across 175 files
+- ~14,200 lines of Python across 200+ files (v1.0: 9,769 + v1.1: ~4,400)
 
 **Enterprise API Access (staging access available):**
 - MMC Core API platform (Apigee) — staging credentials in hand
@@ -92,16 +94,17 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 | Compliance | Regulatory developments, legal changes, coverage gaps | FCA reform, ransomware bans, war clauses |
 | Underwriting | Loss trends, cat events, reserve adequacy, rate movements | Storm losses, combined ratios, softening signals |
 
-## Current Milestone: v1.1 Enterprise API Integration
+## Current State
 
-**Goal:** Integrate MMC Core API platform to make Factiva the primary news source, enrich briefs with inline equity price data, and switch email delivery to enterprise proxy — all with graceful fallback to existing infrastructure.
+v1.0 MVP and v1.1 Enterprise API Integration both shipped. System is feature-complete for daily production use.
 
-**Target features:**
-- Factiva/Dow Jones as primary news feed (Apify becomes fallback)
-- Inline equity price/change data alongside relevant articles
-- Enterprise email delivery replacing Microsoft Graph API
-- OAuth2 client credentials token management
-- Admin dashboard enterprise API status and configuration
+**Shipped milestones:**
+- v1.0 MVP (Feb 2026) — AI-powered daily brief with 20+ sources, role-based delivery, admin dashboard
+- v1.1 Enterprise API Integration (Feb 2026) — Factiva primary, equity enrichment, enterprise email, API health dashboard
+
+**Known tech debt:** 6 items from v1.1 audit (0 critical, 1 medium: admin trigger missing TokenManager)
+
+**Deployment validation needed:** Staging API credentials required to validate Factiva industry codes, equity API paths, and enterprise email payload fields on deployment machine.
 
 ## Constraints
 
@@ -127,11 +130,16 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 | sqlite3 .backup() API | Safe online backups without exclusive locks | ✓ Good |
 | Statistical health thresholds | Adapts to source variability with standard deviation-based alerting | ✓ Good |
 | FTS5 with BM25 ranking | Fast full-text search with relevance ranking in SQLite | ✓ Good |
-| Factiva as primary news source | Enterprise Dow Jones feed more reliable and comprehensive than web scraping | — Pending |
-| Equity data inline (not separate section) | Price context alongside stories is more actionable than a dedicated market section | — Pending |
-| Enterprise email with Graph fallback | Corporate API platform preferred, but Graph API proven and reliable as backup | — Pending |
-| Client credentials grant for auth | Server-side cron pipeline, no user interaction needed | — Pending |
-| Graceful fallback for all enterprise APIs | Production reliability requires fallback to proven v1.0 infrastructure | — Pending |
+| Factiva as primary news source | Enterprise Dow Jones feed more reliable and comprehensive than web scraping | ✓ Good |
+| Equity data inline (not separate section) | Price context alongside stories is more actionable than a dedicated market section | ✓ Good |
+| Enterprise email with Graph fallback | Corporate API platform preferred, but Graph API proven and reliable as backup | ✓ Good |
+| Client credentials grant for auth | Server-side cron pipeline, no user interaction needed | ✓ Good |
+| Graceful fallback for all enterprise APIs | Production reliability requires fallback to proven v1.0 infrastructure | ✓ Good |
+| 5-min proactive token refresh margin | Access Management tokens expire in 1h; prevents mid-request expiry | ✓ Good |
+| No retry on 401/403 auth errors | Invalid credentials won't resolve via retry; avoids account lockout | ✓ Good |
+| ApiEventType enum with all 9 types upfront | Schema stability — avoids Alembic migration for new enum values | ✓ Good |
+| Sync httpx for Factiva/Equity, async for Email | Matches each caller's execution context (sync pipeline vs async email) | ✓ Good |
+| Transient ORM attributes for equity data | _equity_data on SQLAlchemy objects in-memory, never persisted — clean separation | ✓ Good |
 
 ---
-*Last updated: 2026-02-18 after v1.1 milestone start*
+*Last updated: 2026-02-19 after v1.1 milestone completion*

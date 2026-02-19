@@ -1,5 +1,35 @@
 # Project Milestones: MDInsights
 
+## v1.1 Enterprise API Integration (Shipped: 2026-02-19)
+
+**Delivered:** Enterprise API integration replacing web scraping with Factiva as primary news source, adding inline equity price data to briefs, switching email delivery to MMC Core API enterprise proxy, and surfacing API health in the admin dashboard — all with graceful fallback to proven v1.0 infrastructure.
+
+**Phases completed:** 9-13 (12 plans total)
+
+**Key accomplishments:**
+
+- OAuth2 token management — JWT client_credentials with 5-min proactive refresh, api_events observability table, degraded-auth graceful fallback
+- Factiva news collection — Primary Dow Jones/Factiva news source via MMC Core API with insurance-focused Apify/RSS fallback and per-article source attribution
+- Equity price enrichment — Admin-configurable entity-to-ticker mapping with inline equity chips (ticker, price, change%) in browser and email briefs
+- Enterprise email delivery — Async EnterpriseEmailClient with JWT+API-Key auth, enterprise-first delivery with per-role Graph API fallback
+- Admin dashboard enterprise status — Real-time API health panel, credential management UI, fallback event log, per-article source badges
+
+**Stats:**
+
+- 29 files created/modified
+- ~4,400 lines added (Python + HTML templates)
+- 5 phases, 12 plans
+- 2 days (Feb 18-19, 2026)
+- ~60 commits
+
+**Git range:** `ac701dd` → `be01185`
+
+**Tech debt carried:** 6 items (0 critical, 1 medium, 3 low, 2 info) — see v1.1-MILESTONE-AUDIT.md
+
+**What's next:** TBD — `/gsd:new-milestone` for next milestone planning
+
+---
+
 ## v1.0 MVP (Shipped: 2026-02-08)
 
 **Delivered:** AI-powered daily intelligence brief system for Marsh, replacing the outsourced Daily Insights product with role-targeted, priority-ranked, AI-summarised news briefs.
