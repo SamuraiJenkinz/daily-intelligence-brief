@@ -15,6 +15,64 @@
         </div>
     </div>
 
+    <!-- Enterprise API Status Panel -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-shield-check"></i>
+                    Enterprise API Status
+                    <small class="text-muted fw-normal ms-2">Updated on each pipeline run</small>
+                </div>
+                <div class="card-body">
+                    {% if enterprise_status %}
+                    <div class="row g-3">
+                        {% for api in enterprise_status %}
+                        <div class="col-md-3">
+                            <div class="p-3 border rounded">
+                                <div class="d-flex align-items-center mb-2">
+                                    {% if api.status == 'healthy' %}
+                                        <i class="bi bi-check-circle-fill text-success fs-5 me-2"></i>
+                                    {% elif api.status == 'degraded' %}
+                                        <i class="bi bi-exclamation-triangle-fill text-warning fs-5 me-2"></i>
+                                    {% elif api.status == 'offline' %}
+                                        <i class="bi bi-x-circle-fill text-danger fs-5 me-2"></i>
+                                    {% else %}
+                                        <i class="bi bi-question-circle text-secondary fs-5 me-2"></i>
+                                    {% endif %}
+                                    <strong>{{ api.display_name }}</strong>
+                                </div>
+                                <div class="mb-1">
+                                    {% if api.status == 'healthy' %}
+                                        <span class="badge bg-success">Healthy</span>
+                                    {% elif api.status == 'degraded' %}
+                                        <span class="badge bg-warning text-dark">Degraded</span>
+                                    {% elif api.status == 'offline' %}
+                                        <span class="badge bg-danger">Offline</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Unknown</span>
+                                    {% endif %}
+                                </div>
+                                {% if api.last_checked %}
+                                <div><small class="text-muted">Last checked: {{ api.last_checked }}</small></div>
+                                {% else %}
+                                <div><small class="text-muted">No events recorded</small></div>
+                                {% endif %}
+                                {% if api.reason %}
+                                <div><small class="text-danger">{{ api.reason }}</small></div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted mb-0">No events recorded</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Summary Cards -->
     <div class="row mb-4">
         <!-- Active Sources Card -->
@@ -122,7 +180,7 @@
     </div>
 
     <!-- Recent Runs Table -->
-    <div class="row">
+    <div class="row mb-4">
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
@@ -232,6 +290,56 @@
                             <i class="bi bi-info-circle"></i>
                             No pipeline runs yet. Trigger your first run from the Manual Trigger page.
                         </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fallback Event Log -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    Fallback Event Log
+                    <small class="text-muted fw-normal ms-2">Last 20 events</small>
+                </div>
+                <div class="card-body">
+                    {% if fallback_events %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>API</th>
+                                    <th>Event Type</th>
+                                    <th>Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in fallback_events %}
+                                <tr>
+                                    <td><small>{{ event.timestamp }}</small></td>
+                                    <td>{{ event.api_name | capitalize }}</td>
+                                    <td>{{ event.event_type }}</td>
+                                    <td>
+                                        {% if event.reason %}
+                                            <small class="text-muted">{{ event.reason }}</small>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        No fallback events recorded. Enterprise APIs have not triggered any fallbacks yet.
+                    </div>
                     {% endif %}
                 </div>
             </div>

@@ -29,6 +29,7 @@ from app.models import Run, Source, NewsArticle
 from app.models.source import SourceType
 from app.models.factiva_config import FactivaConfig
 from app.models.equity_ticker import EquityTicker
+from app.models.api_event import ApiEvent, ApiEventType
 from app.schemas.admin import SourceCreate, SourceUpdate
 from datetime import datetime, date
 from sqlalchemy import func
@@ -47,6 +48,122 @@ jinja_env = Environment(
     autoescape=True
 )
 jinja_env.filters["fromjson"] = json.loads
+
+
+def _get_enterprise_api_status(db) -> list:
+    """
+    Query api_events table for the most recent event per enterprise API.
+
+    Returns a list of dicts with keys:
+        api_name, display_name, status, last_checked, reason
+
+    Status values:
+        healthy   - Most recent event was a success
+        degraded  - Most recent event was a fallback (service worked via fallback)
+        offline   - Most recent event was a failure (not a fallback)
+        unknown   - No events recorded for this API
+    """
+    DISPLAY_NAMES = {
+        "auth": "Authentication",
+        "news": "News (Factiva)",
+        "equity": "Equity Prices",
+        "email": "Email Delivery",
+    }
+    FALLBACK_TYPES = {
+        ApiEventType.NEWS_FALLBACK,
+        ApiEventType.EQUITY_FALLBACK,
+        ApiEventType.EMAIL_FALLBACK,
+    }
+
+    result = []
+    for api_name in ["auth", "news", "equity", "email"]:
+        latest = (
+            db.query(ApiEvent)
+            .filter(ApiEvent.api_name == api_name)
+            .order_by(ApiEvent.timestamp.desc())
+            .first()
+        )
+
+        if latest is None:
+            status = "unknown"
+            last_checked = None
+            reason = None
+        elif latest.success:
+            status = "healthy"
+            last_checked = latest.timestamp.strftime("%Y-%m-%d %H:%M")
+            reason = None
+        else:
+            if latest.event_type in FALLBACK_TYPES:
+                status = "degraded"
+            else:
+                status = "offline"
+            last_checked = latest.timestamp.strftime("%Y-%m-%d %H:%M")
+            reason = (latest.detail[:100] if latest.detail else None)
+
+        result.append({
+            "api_name": api_name,
+            "display_name": DISPLAY_NAMES[api_name],
+            "status": status,
+            "last_checked": last_checked,
+            "reason": reason,
+        })
+
+    return result
+
+
+def _get_fallback_events(db, limit: int = 20) -> list:
+    """
+    Query api_events table for recent fallback/failure events.
+
+    Returns a list of dicts with keys:
+        timestamp, api_name, event_type, reason
+
+    Covers: NEWS_FALLBACK, EQUITY_FALLBACK, EMAIL_FALLBACK, TOKEN_FAILED
+    """
+    FALLBACK_EVENT_TYPES = [
+        ApiEventType.NEWS_FALLBACK,
+        ApiEventType.EQUITY_FALLBACK,
+        ApiEventType.EMAIL_FALLBACK,
+        ApiEventType.TOKEN_FAILED,
+    ]
+
+    events = (
+        db.query(ApiEvent)
+        .filter(ApiEvent.event_type.in_(FALLBACK_EVENT_TYPES))
+        .order_by(ApiEvent.timestamp.desc())
+        .limit(limit)
+        .all()
+    )
+
+    result = []
+    for event in events:
+        result.append({
+            "timestamp": event.timestamp.strftime("%Y-%m-%d %H:%M"),
+            "api_name": event.api_name,
+            "event_type": event.event_type.value.replace("_", " ").title(),
+            "reason": (event.detail[:100] if event.detail else None),
+        })
+
+    return result
+
+
+def _update_env_var(env_content: str, var_name: str, value: str) -> str:
+    """
+    Update or append a variable in .env file content.
+
+    If the variable exists, its line is replaced.
+    If not found, it is appended to the end of the content.
+
+    Returns updated env_content string.
+    """
+    pattern = re.compile(f"^{re.escape(var_name)}=.*$", re.MULTILINE)
+    if pattern.search(env_content):
+        return pattern.sub(f"{var_name}={value}", env_content)
+    else:
+        if env_content and not env_content.endswith("\n"):
+            env_content += "\n"
+        env_content += f"{var_name}={value}\n"
+        return env_content
 
 
 @router.get("", response_class=HTMLResponse)
@@ -113,15 +230,22 @@ def get_admin_dashboard():
                 'created_at': last_run.started_at.strftime('%Y-%m-%d %H:%M:%S') if last_run.started_at else None
             }
 
+        # Get enterprise API status and fallback events
+        enterprise_status = _get_enterprise_api_status(db)
+        fallback_events = _get_fallback_events(db)
+
         # Render template
         template = jinja_env.get_template('admin/dashboard.html')
         html = template.render(
+            active_nav='dashboard',
             active_sources=active_sources,
             total_sources=total_sources,
             articles_today=articles_today,
             today_date=today.strftime('%Y-%m-%d'),
             last_run=last_run_data,
-            runs=runs_data
+            runs=runs_data,
+            enterprise_status=enterprise_status,
+            fallback_events=fallback_events,
         )
 
         return HTMLResponse(content=html)
