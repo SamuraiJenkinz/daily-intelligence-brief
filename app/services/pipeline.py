@@ -826,11 +826,31 @@ class PipelineOrchestrator:
                 duration_seconds=round(step_duration, 2)
             )
 
-            # Step 8: Send emails per role
+            # Step 8: Send emails per role (enterprise primary, Graph API fallback)
             step_start = datetime.utcnow()
             self.logger.info("step_8_email_delivery_started")
-            email_service = GraphEmailService()
+
+            enterprise_client = EnterpriseEmailClient()
+            graph_service = GraphEmailService()
             settings = get_settings()
+
+            # Log enterprise email configuration status
+            if settings.is_mmc_email_configured():
+                self.logger.info("enterprise_email_configured", sender=settings.mmc_sender_email)
+            elif settings.mmc_sender_email:
+                self.logger.info("enterprise_email_partial_config", hint="MMC auth or API key missing")
+            else:
+                self.logger.info("enterprise_email_not_configured", hint="MMC_SENDER_EMAIL not set, using Graph API")
+
+            # Fetch JWT token ONCE before per-role loop (avoid 4 separate token calls)
+            # token is None if degraded_auth=True or token acquisition fails
+            token = None
+            if not degraded_auth and enterprise_client.is_configured():
+                token = await self.token_manager.get_token()
+                if not token:
+                    self.logger.warning("step_8_token_fetch_failed", hint="Will use Graph API for all roles")
+
+            delivery_failure_count = 0
 
             for role, html in role_emails.items():
                 # Get recipients for this role
@@ -838,42 +858,56 @@ class PipelineOrchestrator:
 
                 # Skip if no recipients configured
                 if not recipients.has_recipients:
-                    self.logger.info(
-                        "skipping_email_no_recipients",
-                        role=role
-                    )
-                    result["emails_sent"][role] = {
-                        "status": "skipped",
-                        "message": "No recipients configured"
-                    }
+                    self.logger.info("skipping_email_no_recipients", role=role)
+                    result["emails_sent"][role] = {"status": "skipped", "path": "skipped", "message": "No recipients configured"}
                     continue
 
-                # Build subject
+                # Build subject ONCE — same for both delivery paths
                 subject = f"[{settings.company_name}] {role} Intelligence Brief - {report_date.strftime('%d %B %Y')}"
 
-                # Send email
-                send_result = await email_service.send_email(
-                    to_addresses=recipients.to,
+                # Deliver with fallback
+                delivery_result = await self._send_with_fallback(
+                    role=role,
                     subject=subject,
-                    html_body=html,
-                    cc_addresses=recipients.cc or None,
-                    bcc_addresses=recipients.bcc or None
+                    html=html,
+                    recipients=recipients,
+                    degraded_auth=degraded_auth,
+                    enterprise_client=enterprise_client,
+                    graph_service=graph_service,
+                    token=token,
+                    run_id=latest_run.id,
                 )
 
-                result["emails_sent"][role] = send_result
+                result["emails_sent"][role] = delivery_result
+
+                # Track failures for status reporting
+                if delivery_result.get("path") == "both_failed":
+                    delivery_failure_count += 1
 
                 self.logger.info(
-                    "email_sent",
+                    "email_delivery_outcome",
                     role=role,
-                    status=send_result.get("status"),
-                    recipients=recipients.total_recipients
+                    status=delivery_result.get("status"),
+                    path=delivery_result.get("path"),
+                    recipients=recipients.total_recipients,
                 )
 
             step_duration = (datetime.utcnow() - step_start).total_seconds()
+
+            # Log delivery summary
+            enterprise_count = len([r for r in result["emails_sent"].values() if r.get("path") == "enterprise"])
+            graph_fallback_count = len([r for r in result["emails_sent"].values() if r.get("path") == "graph_fallback"])
+            graph_primary_count = len([r for r in result["emails_sent"].values() if r.get("path") == "graph_primary"])
+            skipped_count = len([r for r in result["emails_sent"].values() if r.get("path") == "skipped"])
+
             self.logger.info(
                 "step_8_email_delivery_completed",
-                emails_sent=len([r for r in result["emails_sent"].values() if r.get("status") == "ok"]),
-                duration_seconds=round(step_duration, 2)
+                enterprise_sent=enterprise_count,
+                graph_fallback_sent=graph_fallback_count,
+                graph_primary_sent=graph_primary_count,
+                skipped=skipped_count,
+                delivery_failures=delivery_failure_count,
+                duration_seconds=round(step_duration, 2),
             )
 
             # Step 9: Update Run record
@@ -894,6 +928,15 @@ class PipelineOrchestrator:
 
             result["status"] = "completed"
 
+            # Downgrade status if any role had both delivery paths fail
+            if delivery_failure_count > 0:
+                result["status"] = "completed_with_delivery_failure"
+                self.logger.warning(
+                    "pipeline_delivery_failures",
+                    failed_roles=delivery_failure_count,
+                    hint="Reports archived but email delivery failed for some roles",
+                )
+
             # Summary log with all metrics
             self.logger.info(
                 "pipeline_summary",
@@ -903,6 +946,9 @@ class PipelineOrchestrator:
                 degraded_auth=degraded_auth,
                 collection_source=collection_source,
                 emails_sent_count=len([r for r in result["emails_sent"].values() if r.get("status") == "ok"]),
+                enterprise_sent=enterprise_count,
+                graph_fallback_sent=graph_fallback_count,
+                graph_primary_sent=graph_primary_count,
                 reports_archived_count=len(result["reports_archived"])
             )
 
