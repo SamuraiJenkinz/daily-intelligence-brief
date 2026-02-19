@@ -8,6 +8,7 @@ from app.models.source import Source, SourceType
 from app.models.run import Run, RunStatus
 from app.models.api_event import ApiEvent, ApiEventType
 from app.models.factiva_config import FactivaConfig
+from app.models.equity_ticker import EquityTicker
 
 __all__ = [
     "NewsArticle",
@@ -18,4 +19,5 @@ __all__ = [
     "ApiEvent",
     "ApiEventType",
     "FactivaConfig",
+    "EquityTicker",
 ]

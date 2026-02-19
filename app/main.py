@@ -17,6 +17,7 @@ from app.database import Base, engine, SessionLocal
 # Import models to register them with Base.metadata before create_all
 from app.models import news_article, source, run, api_event  # noqa: F401
 from app.models import factiva_config  # noqa: F401
+from app.models import equity_ticker  # noqa: F401
 from app.config import get_settings
 from app.routers.admin import router as admin_router
 from app.routers.pipeline import router as pipeline_router
