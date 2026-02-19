@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** Each audience at Marsh receives only the intelligence relevant to their decisions, priority-ranked and AI-summarised, delivered daily with zero manual effort.
-**Current focus:** Phase 11 — Equity Price Enrichment (next up)
+**Current focus:** Phase 11 — Equity Price Enrichment (in progress)
 
 ## Current Position
 
-Phase: 10 of 13 (Factiva News Collection) — VERIFIED ✓
-Plan: 3 of 3 in current phase
-Status: Phase complete — verified (5/5 must-haves passed), requirements NEWS-01/02/03/04/05/06 + FALL-01 marked Complete
-Last activity: 2026-02-18 — Phase 10 executed, verified, and closed
+Phase: 11 of 13 (Equity Price Enrichment) — In progress
+Plan: 1 of 3 in current phase — COMPLETE
+Status: In progress — 11-01 complete, 11-02 and 11-03 pending
+Last activity: 2026-02-19 — Completed 11-01-PLAN.md (EquityTicker model + EquityPriceClient + admin UI)
 
-Progress: v1.0 [██████████] 100% | v1.1 [█████░░░░░] 42% (5/12 plans)
+Progress: v1.0 [██████████] 100% | v1.1 [██████░░░░] 50% (6/12 plans)
 
 ## Performance Metrics
 
@@ -25,7 +25,7 @@ Progress: v1.0 [██████████] 100% | v1.1 [█████░�
 
 **v1.1 Baseline:**
 - Plans planned: 12 across 5 phases
-- Completed: 5 (09-01, 09-02, 10-01, 10-02, 10-03)
+- Completed: 6 (09-01, 09-02, 10-01, 10-02, 10-03, 11-01)
 
 *Updated after each plan completion*
 
@@ -76,6 +76,13 @@ Phase 10 plan 03 decisions:
 - page_size validated against whitelist (10/25/50/100) in POST route
 - Industry code reference table embedded inline in admin page
 
+Phase 11 plan 01 decisions:
+- EquityPriceClient returns None on all failures — never raises, callers always safe to ignore
+- Multiple field name fallbacks (price/lastPrice/last, change/priceChange/netChange, changePct/percentChange/pctChange) — equity API field names not yet confirmed
+- BASE_PRICE_PATH = /coreapi/equity-price/v1/price — inferred, validate on deployment machine
+- Flash messages via query params on redirect — no session middleware; stateless and simple
+- equity_edit.html as separate template — cleaner than embedding in equity.html
+
 ### Pending Todos
 
 None.
@@ -84,10 +91,12 @@ None.
 
 - Staging credentials still needed to run scripts/test_auth.py against the real endpoint
 - Industry codes i83, i8311, i8312, i831 are inferred — validate against /coreapi/recent-news/v1/industries on deployment machine before production
+- BASE_PRICE_PATH `/coreapi/equity-price/v1/price` is inferred — validate against actual equity API on deployment machine
+- Equity API response field names (price/lastPrice etc.) need validation against real API response
 
 ## Session Continuity
 
-Last session: 2026-02-18
-Stopped at: Phase 10 complete — verified ✓, requirements complete, roadmap updated
+Last session: 2026-02-19
+Stopped at: Completed 11-01-PLAN.md (EquityTicker model + EquityPriceClient + admin UI)
 Resume file: None
-Next: `/gsd:discuss-phase 11` or `/gsd:plan-phase 11` to start Equity Price Enrichment
+Next: Execute 11-02-PLAN.md (pipeline enrichment integration)
