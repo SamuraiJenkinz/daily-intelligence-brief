@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 ## Current Position
 
 Phase: 11 of 13 (Equity Price Enrichment) — In progress
-Plan: 1 of 3 in current phase — COMPLETE
-Status: In progress — 11-01 complete, 11-02 and 11-03 pending
-Last activity: 2026-02-19 — Completed 11-01-PLAN.md (EquityTicker model + EquityPriceClient + admin UI)
+Plan: 3 of 3 in current phase — COMPLETE
+Status: In progress — 11-01 complete, 11-02 pending, 11-03 complete
+Last activity: 2026-02-19 — Completed 11-03-PLAN.md (equity chips in role_brief.html and role_email.html)
 
-Progress: v1.0 [██████████] 100% | v1.1 [██████░░░░] 50% (6/12 plans)
+Progress: v1.0 [██████████] 100% | v1.1 [███████░░░] 58% (7/12 plans)
 
 ## Performance Metrics
 
@@ -25,7 +25,7 @@ Progress: v1.0 [██████████] 100% | v1.1 [██████�
 
 **v1.1 Baseline:**
 - Plans planned: 12 across 5 phases
-- Completed: 6 (09-01, 09-02, 10-01, 10-02, 10-03, 11-01)
+- Completed: 7 (09-01, 09-02, 10-01, 10-02, 10-03, 11-01, 11-03)
 
 *Updated after each plan completion*
 
@@ -83,6 +83,13 @@ Phase 11 plan 01 decisions:
 - Flash messages via query params on redirect — no session middleware; stateless and simple
 - equity_edit.html as separate template — cleaner than embedding in equity.html
 
+Phase 11 plan 03 decisions:
+- Equity chips placed first in impact-strip (before sentiment/impact/region) — most visually prominent
+- is not none (Jinja2 lowercase) used for null checks — Jinja2 does not support capital None
+- Email template: display:inline-block not inline-flex — Outlook does not support flexbox
+- Email template: explicit padding properties not shorthand — maximum email client compatibility
+- .equity-chip CSS class with hover transition in browser brief only — email must use inline styles only
+
 ### Pending Todos
 
 None.
@@ -96,7 +103,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-19
-Stopped at: Completed 11-01-PLAN.md (EquityTicker model + EquityPriceClient + admin UI)
+Last session: 2026-02-19T01:14:36Z
+Stopped at: Completed 11-03-PLAN.md (equity chips in role_brief.html and role_email.html)
 Resume file: None
-Next: Execute 11-02-PLAN.md (pipeline enrichment integration)
+Next: Execute 11-02-PLAN.md (pipeline enrichment integration) — still pending
