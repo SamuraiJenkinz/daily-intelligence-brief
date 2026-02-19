@@ -7,6 +7,7 @@ comprehensive error handling and progress tracking.
 from datetime import datetime
 from typing import Dict, Optional
 import asyncio
+import json
 import os
 import structlog
 from sqlalchemy.orm import Session
@@ -21,8 +22,10 @@ from app.services.health_monitor import SourceHealthMonitor
 from app.config import get_settings
 from app.auth.token_manager import TokenManager
 from app.collectors.factiva import FactivaCollector
+from app.collectors.equity import EquityPriceClient
 from app.models.factiva_config import FactivaConfig
 from app.models.api_event import ApiEvent, ApiEventType
+from app.models.equity_ticker import EquityTicker
 
 # Project root directory (absolute path for reliable file operations)
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -275,12 +278,82 @@ class PipelineOrchestrator:
                 articles_classified=articles_classified
             )
 
+            # Step 3b: Equity price enrichment
+            # Fetch current prices for articles mentioning tracked public companies.
+            # Failures are per-entity and never block the pipeline or report generation.
+            self.logger.info("step_3b_equity_enrichment_started")
+
+            equity_client = EquityPriceClient()
+            if equity_client.is_configured():
+                # Load all enabled ticker mappings into dict for O(1) lookup
+                ticker_mappings = db.query(EquityTicker).filter(EquityTicker.enabled == True).all()
+                ticker_map = {
+                    mapping.entity_name.lower(): mapping
+                    for mapping in ticker_mappings
+                }
+
+                if ticker_map:
+                    # Cache fetched prices to avoid duplicate API calls for same ticker
+                    fetched_prices = {}  # ticker -> price_dict or None
+
+                    for article in articles:
+                        equity_hits = []
+                        # Parse entities from article (JSON string or list)
+                        entities_raw = article.entities
+                        if isinstance(entities_raw, str):
+                            try:
+                                entities_list = json.loads(entities_raw)
+                            except (json.JSONDecodeError, TypeError):
+                                entities_list = []
+                        elif isinstance(entities_raw, list):
+                            entities_list = entities_raw
+                        else:
+                            entities_list = []
+
+                        for entity in entities_list:
+                            entity_name = entity.get("name", "") if isinstance(entity, dict) else str(entity)
+                            mapping = ticker_map.get(entity_name.lower())
+                            if mapping:
+                                ticker_key = f"{mapping.exchange}:{mapping.ticker}"
+                                if ticker_key not in fetched_prices:
+                                    fetched_prices[ticker_key] = equity_client.get_price(
+                                        ticker=mapping.ticker,
+                                        exchange=mapping.exchange,
+                                        run_id=latest_run.id if latest_run else None,
+                                    )
+                                price_data = fetched_prices[ticker_key]
+                                if price_data:
+                                    equity_hits.append(price_data)
+
+                        # Attach as transient attribute — NOT persisted to DB
+                        article._equity_data = equity_hits
+
+                    self.logger.info(
+                        "step_3b_equity_enrichment_completed",
+                        tickers_mapped=len(ticker_map),
+                        tickers_fetched=len(fetched_prices),
+                        tickers_with_price=len([v for v in fetched_prices.values() if v]),
+                    )
+                else:
+                    self.logger.info("step_3b_equity_no_mappings")
+                    for article in articles:
+                        article._equity_data = []
+            else:
+                self.logger.info("step_3b_equity_not_configured")
+                for article in articles:
+                    article._equity_data = []
+
             # Step 4: Re-query classified articles
             self.logger.info("step_4_querying_classified_articles")
             classified_articles = db.query(NewsArticle).filter(
                 NewsArticle.run_id == latest_run.id,
                 NewsArticle.roles.isnot(None)
             ).all()
+
+            # Transfer equity data from Step 3b to re-queried articles
+            equity_data_map = {a.id: getattr(a, '_equity_data', []) for a in articles}
+            for article in classified_articles:
+                article._equity_data = equity_data_map.get(article.id, [])
 
             self.logger.info(
                 "step_4_classified_articles_queried",
@@ -610,6 +683,75 @@ class PipelineOrchestrator:
                 duration_seconds=round(step_duration, 2)
             )
 
+            # Step 3b: Equity price enrichment
+            # Fetch current prices for articles mentioning tracked public companies.
+            # Failures are per-entity and never block the pipeline or report generation.
+            step_start = datetime.utcnow()
+            self.logger.info("step_3b_equity_enrichment_started")
+
+            equity_client = EquityPriceClient()
+            if equity_client.is_configured():
+                # Load all enabled ticker mappings into dict for O(1) lookup
+                ticker_mappings = db.query(EquityTicker).filter(EquityTicker.enabled == True).all()
+                ticker_map = {
+                    mapping.entity_name.lower(): mapping
+                    for mapping in ticker_mappings
+                }
+
+                if ticker_map:
+                    # Cache fetched prices to avoid duplicate API calls for same ticker
+                    fetched_prices = {}  # ticker -> price_dict or None
+
+                    for article in articles:
+                        equity_hits = []
+                        # Parse entities from article (JSON string or list)
+                        entities_raw = article.entities
+                        if isinstance(entities_raw, str):
+                            try:
+                                entities_list = json.loads(entities_raw)
+                            except (json.JSONDecodeError, TypeError):
+                                entities_list = []
+                        elif isinstance(entities_raw, list):
+                            entities_list = entities_raw
+                        else:
+                            entities_list = []
+
+                        for entity in entities_list:
+                            entity_name = entity.get("name", "") if isinstance(entity, dict) else str(entity)
+                            mapping = ticker_map.get(entity_name.lower())
+                            if mapping:
+                                ticker_key = f"{mapping.exchange}:{mapping.ticker}"
+                                if ticker_key not in fetched_prices:
+                                    fetched_prices[ticker_key] = equity_client.get_price(
+                                        ticker=mapping.ticker,
+                                        exchange=mapping.exchange,
+                                        run_id=latest_run.id if latest_run else None,
+                                    )
+                                price_data = fetched_prices[ticker_key]
+                                if price_data:
+                                    equity_hits.append(price_data)
+
+                        # Attach as transient attribute — NOT persisted to DB
+                        article._equity_data = equity_hits
+
+                    self.logger.info(
+                        "step_3b_equity_enrichment_completed",
+                        tickers_mapped=len(ticker_map),
+                        tickers_fetched=len(fetched_prices),
+                        tickers_with_price=len([v for v in fetched_prices.values() if v]),
+                    )
+                else:
+                    self.logger.info("step_3b_equity_no_mappings")
+                    for article in articles:
+                        article._equity_data = []
+            else:
+                self.logger.info("step_3b_equity_not_configured")
+                for article in articles:
+                    article._equity_data = []
+
+            step_duration = (datetime.utcnow() - step_start).total_seconds()
+            self.logger.info("step_3b_duration", duration_seconds=round(step_duration, 2))
+
             # Step 4: Re-query classified articles
             step_start = datetime.utcnow()
             self.logger.info("step_4_querying_classified_articles")
@@ -617,6 +759,12 @@ class PipelineOrchestrator:
                 NewsArticle.run_id == latest_run.id,
                 NewsArticle.roles.isnot(None)
             ).all()
+
+            # Transfer equity data from Step 3b to re-queried articles
+            equity_data_map = {a.id: getattr(a, '_equity_data', []) for a in articles}
+            for article in classified_articles:
+                article._equity_data = equity_data_map.get(article.id, [])
+
             step_duration = (datetime.utcnow() - step_start).total_seconds()
 
             self.logger.info(
