@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Core value:** Each audience at Marsh receives only the intelligence relevant to their decisions, priority-ranked and AI-summarised, delivered daily with zero manual effort.
-**Current focus:** Phase 12 — Enterprise Email Delivery (next up)
+**Current focus:** Phase 13 — Admin Dashboard (next up)
 
 ## Current Position
 
-Phase: 12 of 13 (Enterprise Email Delivery) — In progress
-Plan: 1 of 2 in current phase
-Status: In progress — 12-01-PLAN.md complete
-Last activity: 2026-02-19 — Completed 12-01-PLAN.md (EnterpriseEmailClient module)
+Phase: 12 of 13 (Enterprise Email Delivery) — Phase complete
+Plan: 2 of 2 in current phase
+Status: Phase complete — both plans done
+Last activity: 2026-02-19 — Completed 12-02-PLAN.md (pipeline enterprise-first delivery wiring)
 
-Progress: v1.0 [██████████] 100% | v1.1 [█████████░] 75% (9/12 plans)
+Progress: v1.0 [██████████] 100% | v1.1 [██████████] 83% (10/12 plans)
 
 ## Performance Metrics
 
@@ -25,7 +25,7 @@ Progress: v1.0 [██████████] 100% | v1.1 [██████�
 
 **v1.1 Baseline:**
 - Plans planned: 12 across 5 phases
-- Completed: 9 (09-01, 09-02, 10-01, 10-02, 10-03, 11-01, 11-02, 11-03, 12-01)
+- Completed: 10 (09-01, 09-02, 10-01, 10-02, 10-03, 11-01, 11-02, 11-03, 12-01, 12-02)
 
 *Updated after each plan completion*
 
@@ -103,6 +103,13 @@ Phase 12 plan 01 decisions:
 - 401/403 return auth_error immediately with no retry — same policy as Phase 9; avoids account lockout
 - mmc_sender_name = "Kevin Taylor" default, mmc_sender_email = "" — is_mmc_email_configured() returns False without explicit email config
 
+Phase 12 plan 02 decisions:
+- enterprise_attempted boolean computed once per _send_with_fallback() call — determines graph path label (graph_fallback vs graph_primary)
+- Token fetched once before per-role loop — if token fetch fails, all roles use graph_primary without per-role retry
+- delivery_failure_count tracked outside loop, checked once after — separates per-role delivery from status reporting
+- path=both_failed is the only value incrementing delivery_failure_count — skipped/graph_fallback-success are not failures
+- sync run_full_pipeline() unchanged — enterprise email delivery is email-pipeline only
+
 ### Pending Todos
 
 None.
@@ -118,6 +125,6 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 12-01-PLAN.md (EnterpriseEmailClient module + config fields)
+Stopped at: Completed 12-02-PLAN.md (pipeline enterprise-first delivery wiring)
 Resume file: None
-Next: Execute 12-02-PLAN.md (pipeline wiring — wire EnterpriseEmailClient into delivery step)
+Next: Execute Phase 13 Admin Dashboard plans
