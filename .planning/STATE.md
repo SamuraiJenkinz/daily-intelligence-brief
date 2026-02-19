@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 
 Phase: 11 of 13 (Equity Price Enrichment) — In progress
 Plan: 3 of 3 in current phase — COMPLETE
-Status: In progress — 11-01 complete, 11-02 pending, 11-03 complete
-Last activity: 2026-02-19 — Completed 11-03-PLAN.md (equity chips in role_brief.html and role_email.html)
+Status: In progress — 11-01, 11-02, and 11-03 all complete; phase 11 done
+Last activity: 2026-02-19 — Completed 11-02-PLAN.md (pipeline equity enrichment integration)
 
-Progress: v1.0 [██████████] 100% | v1.1 [███████░░░] 58% (7/12 plans)
+Progress: v1.0 [██████████] 100% | v1.1 [████████░░] 67% (8/12 plans)
 
 ## Performance Metrics
 
@@ -25,7 +25,7 @@ Progress: v1.0 [██████████] 100% | v1.1 [██████�
 
 **v1.1 Baseline:**
 - Plans planned: 12 across 5 phases
-- Completed: 7 (09-01, 09-02, 10-01, 10-02, 10-03, 11-01, 11-03)
+- Completed: 8 (09-01, 09-02, 10-01, 10-02, 10-03, 11-01, 11-02, 11-03)
 
 *Updated after each plan completion*
 
@@ -83,6 +83,12 @@ Phase 11 plan 01 decisions:
 - Flash messages via query params on redirect — no session middleware; stateless and simple
 - equity_edit.html as separate template — cleaner than embedding in equity.html
 
+Phase 11 plan 02 decisions:
+- Step 3b runs on original articles list (from Step 2), not re-queried classified_articles — SQLAlchemy re-query returns fresh objects that don't carry transient _equity_data attributes
+- Equity data bridged via id-keyed dict after Step 4 re-query: equity_data_map = {a.id: getattr(a, '_equity_data', []) for a in articles}
+- Unconfigured equity client and no ticker mappings both result in _equity_data=[] — never None, never blocking
+- run_full_pipeline_with_email() tracks step_3b duration; run_full_pipeline() does not (consistent with each method's existing pattern)
+
 Phase 11 plan 03 decisions:
 - Equity chips placed first in impact-strip (before sentiment/impact/region) — most visually prominent
 - is not none (Jinja2 lowercase) used for null checks — Jinja2 does not support capital None
@@ -103,7 +109,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-19T01:14:36Z
-Stopped at: Completed 11-03-PLAN.md (equity chips in role_brief.html and role_email.html)
+Last session: 2026-02-19T01:15:01Z
+Stopped at: Completed 11-02-PLAN.md (pipeline equity enrichment integration)
 Resume file: None
-Next: Execute 11-02-PLAN.md (pipeline enrichment integration) — still pending
+Next: Phase 11 complete — all 3 plans done; begin Phase 12
