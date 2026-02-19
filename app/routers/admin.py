@@ -28,6 +28,7 @@ from app.database import SessionLocal
 from app.models import Run, Source, NewsArticle
 from app.models.source import SourceType
 from app.models.factiva_config import FactivaConfig
+from app.models.equity_ticker import EquityTicker
 from app.schemas.admin import SourceCreate, SourceUpdate
 from datetime import datetime, date
 from sqlalchemy import func
@@ -1370,5 +1371,297 @@ def search_articles(
 
         return HTMLResponse(content=html)
 
+    finally:
+        db.close()
+
+
+# ---------------------------------------------------------------------------
+# Equity Ticker Mappings — CRUD routes
+# Phase 11: Entity-to-ticker mappings for equity price enrichment
+# ---------------------------------------------------------------------------
+
+
+@router.get("/equity", response_class=HTMLResponse)
+def get_equity_tickers(request: Request):
+    """
+    Serve equity ticker mapping management page.
+
+    Lists all EquityTicker rows with add/edit/delete capability.
+    Used by admin to configure entity-to-ticker mappings for equity price enrichment.
+
+    Returns:
+        HTML equity ticker management page
+    """
+    db = SessionLocal()
+    try:
+        tickers = db.query(EquityTicker).order_by(EquityTicker.entity_name).all()
+        # Read optional flash messages from query params
+        success = request.query_params.get("success")
+        error = request.query_params.get("error")
+
+        template = jinja_env.get_template("admin/equity.html")
+        return HTMLResponse(template.render(
+            tickers=tickers,
+            active_nav="equity",
+            success=success,
+            error=error,
+        ))
+    finally:
+        db.close()
+
+
+@router.post("/equity", response_class=HTMLResponse)
+def add_equity_ticker(
+    entity_name: str = Form(""),
+    ticker: str = Form(""),
+    exchange: str = Form("NYSE"),
+    enabled: str = Form("false"),
+):
+    """
+    Add a new entity-to-ticker mapping.
+
+    Validates entity_name is non-empty and unique (case-insensitive).
+    Redirects to /admin/equity with success or error flash message.
+
+    Args:
+        entity_name: Company name as extracted by AI classifier
+        ticker:      Exchange ticker symbol (e.g. "MMC")
+        exchange:    Exchange code (e.g. "NYSE")
+        enabled:     "true"/"false" from hidden+checkbox pair
+    """
+    from fastapi.responses import RedirectResponse as _RedirectResponse
+    from sqlalchemy import func as sqla_func
+
+    entity_name = entity_name.strip()
+    ticker_symbol = ticker.strip().upper()
+    exchange = exchange.strip().upper() or "NYSE"
+    is_enabled = enabled.lower() in ("true", "on", "1", "yes")
+
+    # Validate required fields
+    if not entity_name:
+        return _RedirectResponse(
+            url="/admin/equity?error=Entity+name+is+required",
+            status_code=303,
+        )
+    if not ticker_symbol:
+        return _RedirectResponse(
+            url="/admin/equity?error=Ticker+symbol+is+required",
+            status_code=303,
+        )
+
+    db = SessionLocal()
+    try:
+        # Check uniqueness — case-insensitive match
+        existing = db.query(EquityTicker).filter(
+            sqla_func.lower(EquityTicker.entity_name) == entity_name.lower()
+        ).first()
+        if existing:
+            return _RedirectResponse(
+                url=f"/admin/equity?error=A+mapping+for+%27{entity_name}%27+already+exists",
+                status_code=303,
+            )
+
+        new_ticker = EquityTicker(
+            entity_name=entity_name,
+            ticker=ticker_symbol,
+            exchange=exchange,
+            enabled=is_enabled,
+            updated_at=datetime.utcnow(),
+        )
+        db.add(new_ticker)
+        db.commit()
+
+        logger.info(
+            "equity_ticker_added",
+            entity_name=entity_name,
+            ticker=ticker_symbol,
+            exchange=exchange,
+            enabled=is_enabled,
+        )
+
+        return _RedirectResponse(
+            url=f"/admin/equity?success=Mapping+for+%27{entity_name}%27+added+successfully",
+            status_code=303,
+        )
+
+    except Exception as exc:
+        logger.error("equity_ticker_add_failed", error=str(exc))
+        return _RedirectResponse(
+            url=f"/admin/equity?error=Failed+to+add+mapping:+{str(exc)[:100]}",
+            status_code=303,
+        )
+    finally:
+        db.close()
+
+
+@router.post("/equity/delete/{ticker_id}", response_class=HTMLResponse)
+def delete_equity_ticker(ticker_id: int):
+    """
+    Delete an equity ticker mapping by id.
+
+    Redirects to /admin/equity with success flash message.
+
+    Args:
+        ticker_id: EquityTicker row id to delete
+    """
+    from fastapi.responses import RedirectResponse as _RedirectResponse
+
+    db = SessionLocal()
+    try:
+        ticker_row = db.query(EquityTicker).filter(EquityTicker.id == ticker_id).first()
+        if not ticker_row:
+            return _RedirectResponse(
+                url="/admin/equity?error=Mapping+not+found",
+                status_code=303,
+            )
+
+        entity_name = ticker_row.entity_name
+        db.delete(ticker_row)
+        db.commit()
+
+        logger.info("equity_ticker_deleted", ticker_id=ticker_id, entity_name=entity_name)
+
+        return _RedirectResponse(
+            url=f"/admin/equity?success=Mapping+for+%27{entity_name}%27+deleted",
+            status_code=303,
+        )
+
+    except Exception as exc:
+        logger.error("equity_ticker_delete_failed", ticker_id=ticker_id, error=str(exc))
+        return _RedirectResponse(
+            url=f"/admin/equity?error=Failed+to+delete+mapping:+{str(exc)[:100]}",
+            status_code=303,
+        )
+    finally:
+        db.close()
+
+
+@router.get("/equity/edit/{ticker_id}", response_class=HTMLResponse)
+def get_equity_ticker_edit(ticker_id: int):
+    """
+    Render edit form for a single equity ticker mapping.
+
+    Args:
+        ticker_id: EquityTicker row id to edit
+
+    Returns:
+        HTML edit page with fields pre-populated
+    """
+    db = SessionLocal()
+    try:
+        ticker_row = db.query(EquityTicker).filter(EquityTicker.id == ticker_id).first()
+        if not ticker_row:
+            raise HTTPException(status_code=404, detail="Ticker mapping not found")
+
+        template = jinja_env.get_template("admin/equity_edit.html")
+        return HTMLResponse(template.render(
+            ticker=ticker_row,
+            active_nav="equity",
+            error=None,
+        ))
+    finally:
+        db.close()
+
+
+@router.post("/equity/edit/{ticker_id}", response_class=HTMLResponse)
+def update_equity_ticker(
+    ticker_id: int,
+    entity_name: str = Form(""),
+    ticker: str = Form(""),
+    exchange: str = Form("NYSE"),
+    enabled: str = Form("false"),
+):
+    """
+    Update an equity ticker mapping.
+
+    Validates entity_name uniqueness (excluding current row).
+    Redirects to /admin/equity with success flash message.
+
+    Args:
+        ticker_id:   EquityTicker row id to update
+        entity_name: Updated company entity name
+        ticker:      Updated ticker symbol
+        exchange:    Updated exchange code
+        enabled:     "true"/"false" from hidden+checkbox pair
+    """
+    from fastapi.responses import RedirectResponse as _RedirectResponse
+    from sqlalchemy import func as sqla_func
+
+    entity_name = entity_name.strip()
+    ticker_symbol = ticker.strip().upper()
+    exchange = exchange.strip().upper() or "NYSE"
+    is_enabled = enabled.lower() in ("true", "on", "1", "yes")
+
+    # Validate required fields
+    if not entity_name:
+        return _RedirectResponse(
+            url=f"/admin/equity/edit/{ticker_id}?error=Entity+name+is+required",
+            status_code=303,
+        )
+    if not ticker_symbol:
+        return _RedirectResponse(
+            url=f"/admin/equity/edit/{ticker_id}?error=Ticker+symbol+is+required",
+            status_code=303,
+        )
+
+    db = SessionLocal()
+    try:
+        row = db.query(EquityTicker).filter(EquityTicker.id == ticker_id).first()
+        if not row:
+            raise HTTPException(status_code=404, detail="Ticker mapping not found")
+
+        # Check uniqueness — exclude the current row
+        existing = db.query(EquityTicker).filter(
+            sqla_func.lower(EquityTicker.entity_name) == entity_name.lower(),
+            EquityTicker.id != ticker_id,
+        ).first()
+        if existing:
+            # Re-render edit form with error (do not commit)
+            # Build a temporary display object with the new values
+            template = jinja_env.get_template("admin/equity_edit.html")
+            display_row = EquityTicker(
+                id=row.id,
+                entity_name=entity_name,
+                ticker=ticker_symbol,
+                exchange=exchange,
+                enabled=is_enabled,
+                updated_at=row.updated_at,
+            )
+            return HTMLResponse(template.render(
+                ticker=display_row,
+                active_nav="equity",
+                error=f"A mapping for '{entity_name}' already exists.",
+            ))
+
+        # Apply updates
+        row.entity_name = entity_name
+        row.ticker = ticker_symbol
+        row.exchange = exchange
+        row.enabled = is_enabled
+        row.updated_at = datetime.utcnow()
+        db.commit()
+
+        logger.info(
+            "equity_ticker_updated",
+            ticker_id=ticker_id,
+            entity_name=entity_name,
+            ticker=ticker_symbol,
+            exchange=exchange,
+            enabled=is_enabled,
+        )
+
+        return _RedirectResponse(
+            url=f"/admin/equity?success=Mapping+for+%27{entity_name}%27+updated+successfully",
+            status_code=303,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("equity_ticker_update_failed", ticker_id=ticker_id, error=str(exc))
+        return _RedirectResponse(
+            url=f"/admin/equity?error=Failed+to+update+mapping:+{str(exc)[:100]}",
+            status_code=303,
+        )
     finally:
         db.close()

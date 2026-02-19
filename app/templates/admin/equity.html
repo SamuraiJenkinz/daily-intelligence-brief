@@ -1,0 +1,213 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Equity Ticker Mappings{% endblock %}
+
+{% block extra_head %}
+<style>
+    .equity-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .equity-header h3 {
+        color: var(--marsh-blue);
+        margin-bottom: 0.25rem;
+    }
+
+    .field-hint {
+        font-size: 0.8125rem;
+        color: #6c757d;
+        margin-top: 0.375rem;
+    }
+
+    .form-check-input {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+
+    .badge-enabled {
+        background-color: #198754;
+        color: #fff;
+    }
+
+    .badge-disabled {
+        background-color: #6c757d;
+        color: #fff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Header -->
+    <div class="row mb-4 equity-header">
+        <div class="col-12">
+            <h3><i class="bi bi-graph-up"></i> Equity Ticker Mappings</h3>
+            <p class="text-muted mb-0">Map company entity names (as extracted by AI classification) to exchange ticker symbols for automatic equity price enrichment.</p>
+        </div>
+    </div>
+
+    <!-- Success / Error alerts -->
+    {% if success %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>{{ success }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <!-- Help text card -->
+    <div class="alert alert-info mb-4" role="alert">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <strong>Tip:</strong> Entity names must match exactly what the AI classifier extracts
+        (e.g. <code>Marsh McLennan</code>, <code>AIG</code>, <code>Swiss Re</code>).
+        Check recent classified articles in the <a href="/admin/archive" class="alert-link">Archive</a>
+        to see how the AI names entities.
+    </div>
+
+    <!-- Existing mappings table -->
+    <div class="card mb-4">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <h5 class="mb-0"><i class="bi bi-table me-2"></i>Ticker Mappings</h5>
+            <span class="badge bg-secondary">{{ tickers|length }} mapping{{ 's' if tickers|length != 1 }}</span>
+        </div>
+        <div class="card-body p-0">
+            {% if tickers %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Entity Name</th>
+                            <th>Ticker</th>
+                            <th>Exchange</th>
+                            <th>Enabled</th>
+                            <th>Updated</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ticker in tickers %}
+                        <tr>
+                            <td class="fw-semibold">{{ ticker.entity_name }}</td>
+                            <td><code>{{ ticker.ticker }}</code></td>
+                            <td>{{ ticker.exchange }}</td>
+                            <td>
+                                {% if ticker.enabled %}
+                                <span class="badge badge-enabled"><i class="bi bi-circle-fill me-1" style="font-size:0.6rem;"></i>Enabled</span>
+                                {% else %}
+                                <span class="badge badge-disabled"><i class="bi bi-circle-fill me-1" style="font-size:0.6rem;"></i>Disabled</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="text-muted">
+                                    {{ ticker.updated_at.strftime('%Y-%m-%d %H:%M') if ticker.updated_at else 'Never' }}
+                                </small>
+                            </td>
+                            <td class="text-end">
+                                <a href="/admin/equity/edit/{{ ticker.id }}" class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </a>
+                                <form method="POST" action="/admin/equity/delete/{{ ticker.id }}" class="d-inline"
+                                      onsubmit="return confirm('Delete mapping for {{ ticker.entity_name }}?')">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center p-4 text-muted">
+                <i class="bi bi-graph-up" style="font-size: 3rem;"></i>
+                <p class="mt-2">No ticker mappings yet. Add your first mapping below.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Add new mapping form -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Add Ticker Mapping</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="/admin/equity">
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-5">
+                        <label for="entity_name" class="form-label fw-semibold">Entity Name</label>
+                        <input
+                            type="text"
+                            id="entity_name"
+                            name="entity_name"
+                            class="form-control"
+                            required
+                            placeholder="Marsh McLennan"
+                        >
+                        <div class="field-hint">
+                            Exact company name as extracted by the AI classifier.
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="ticker" class="form-label fw-semibold">Ticker</label>
+                        <input
+                            type="text"
+                            id="ticker"
+                            name="ticker"
+                            class="form-control"
+                            required
+                            placeholder="MMC"
+                        >
+                        <div class="field-hint">Ticker symbol</div>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="exchange" class="form-label fw-semibold">Exchange</label>
+                        <input
+                            type="text"
+                            id="exchange"
+                            name="exchange"
+                            class="form-control"
+                            placeholder="NYSE"
+                            value="NYSE"
+                        >
+                        <div class="field-hint">Exchange code</div>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <div class="form-check mb-0 pb-1">
+                            <!-- Hidden field ensures a value is always submitted even when checkbox is unchecked -->
+                            <input type="hidden" name="enabled" value="false">
+                            <input
+                                type="checkbox"
+                                id="enabled"
+                                name="enabled"
+                                value="true"
+                                class="form-check-input"
+                                checked
+                            >
+                            <label class="form-check-label fw-semibold" for="enabled">
+                                Enabled
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-plus-lg me-1"></i>Add
+                        </button>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
