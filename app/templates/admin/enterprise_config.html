@@ -1,0 +1,199 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Enterprise Config{% endblock %}
+
+{% block extra_head %}
+<style>
+    .enterprise-header {
+        margin-bottom: 1.5rem;
+    }
+
+    .enterprise-header h3 {
+        color: var(--marsh-blue);
+        margin-bottom: 0.25rem;
+    }
+
+    .field-hint {
+        font-size: 0.8125rem;
+        color: #6c757d;
+        margin-top: 0.375rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Header -->
+    <div class="row mb-4 enterprise-header">
+        <div class="col-12">
+            <h3><i class="bi bi-shield-lock"></i> Enterprise API Configuration</h3>
+            <p class="text-muted mb-0">Manage enterprise API credentials. Changes take effect on the next pipeline run.</p>
+        </div>
+    </div>
+
+    <!-- Success / Error alerts -->
+    {% if success %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>{{ success }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ error }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <form method="POST" action="/admin/enterprise-config">
+
+        <!-- MMC Core API Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-cloud me-2"></i>MMC Core API
+            </div>
+            <div class="card-body">
+
+                <div class="mb-3">
+                    <label for="mmc_api_base_url" class="form-label fw-semibold">API Base URL</label>
+                    <input
+                        type="text"
+                        id="mmc_api_base_url"
+                        name="mmc_api_base_url"
+                        class="form-control"
+                        value="{{ config.mmc_api_base_url }}"
+                        placeholder="https://mmc-dallas-int-non-prod-ingress.mgti.mmc.com"
+                    >
+                    <div class="field-hint">The base URL for the MMC Core API (no trailing slash).</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="mmc_api_client_id" class="form-label fw-semibold">Client ID</label>
+                    <input
+                        type="text"
+                        id="mmc_api_client_id"
+                        name="mmc_api_client_id"
+                        class="form-control"
+                        value="{{ config.mmc_api_client_id }}"
+                        placeholder="client-id"
+                    >
+                    <div class="field-hint">OAuth2 client ID for JWT token acquisition.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="mmc_api_client_secret" class="form-label fw-semibold">Client Secret</label>
+                    <input
+                        type="password"
+                        id="mmc_api_client_secret"
+                        name="mmc_api_client_secret"
+                        class="form-control"
+                        value=""
+                        placeholder="{{ '••••••••' if config.mmc_api_client_secret_set else '' }}"
+                    >
+                    <div class="field-hint">Leave blank to keep existing value.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="mmc_api_key" class="form-label fw-semibold">API Key (X-Api-Key)</label>
+                    <input
+                        type="password"
+                        id="mmc_api_key"
+                        name="mmc_api_key"
+                        class="form-control"
+                        value=""
+                        placeholder="{{ '••••••••' if config.mmc_api_key_set else '' }}"
+                    >
+                    <div class="field-hint">Leave blank to keep existing value.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="mmc_sender_email" class="form-label fw-semibold">Enterprise Sender Email</label>
+                    <input
+                        type="text"
+                        id="mmc_sender_email"
+                        name="mmc_sender_email"
+                        class="form-control"
+                        value="{{ config.mmc_sender_email }}"
+                        placeholder="sender@mmc.com"
+                    >
+                    <div class="field-hint">The enterprise mailbox used for sending email via MMC Core API.</div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Microsoft Graph API Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-microsoft me-2"></i>Microsoft Graph API (Fallback)
+            </div>
+            <div class="card-body">
+
+                <div class="mb-3">
+                    <label for="microsoft_tenant_id" class="form-label fw-semibold">Tenant ID</label>
+                    <input
+                        type="text"
+                        id="microsoft_tenant_id"
+                        name="microsoft_tenant_id"
+                        class="form-control"
+                        value="{{ config.microsoft_tenant_id }}"
+                        placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                    >
+                    <div class="field-hint">Azure AD tenant ID for Microsoft Graph authentication.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="microsoft_client_id" class="form-label fw-semibold">Client ID</label>
+                    <input
+                        type="text"
+                        id="microsoft_client_id"
+                        name="microsoft_client_id"
+                        class="form-control"
+                        value="{{ config.microsoft_client_id }}"
+                        placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                    >
+                    <div class="field-hint">Azure AD application (client) ID.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="microsoft_client_secret" class="form-label fw-semibold">Client Secret</label>
+                    <input
+                        type="password"
+                        id="microsoft_client_secret"
+                        name="microsoft_client_secret"
+                        class="form-control"
+                        value=""
+                        placeholder="{{ '••••••••' if config.microsoft_client_secret_set else '' }}"
+                    >
+                    <div class="field-hint">Leave blank to keep existing value.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="sender_email" class="form-label fw-semibold">Graph Sender Email</label>
+                    <input
+                        type="text"
+                        id="sender_email"
+                        name="sender_email"
+                        class="form-control"
+                        value="{{ config.sender_email }}"
+                        placeholder="sender@company.com"
+                    >
+                    <div class="field-hint">The mailbox used for sending email via Microsoft Graph API.</div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="mb-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save me-1"></i> Save Configuration
+            </button>
+        </div>
+
+    </form>
+
+</div>
+{% endblock %}

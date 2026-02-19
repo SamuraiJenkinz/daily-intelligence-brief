@@ -1789,3 +1789,145 @@ def update_equity_ticker(
         )
     finally:
         db.close()
+
+
+@router.get("/enterprise-config", response_class=HTMLResponse)
+def get_enterprise_config():
+    """
+    Serve the Enterprise API credential configuration page.
+
+    Displays current non-secret values and boolean flags for secret fields.
+    Secret values (client secrets, API keys) are never rendered — only
+    a boolean indicating whether they are set is passed to the template.
+
+    Returns:
+        HTML page with grouped credential form for MMC Core API and Microsoft Graph
+    """
+    settings = get_settings()
+
+    config_display = {
+        # Non-secret fields — render actual values
+        "mmc_api_base_url": settings.mmc_api_base_url,
+        "mmc_api_client_id": settings.mmc_api_client_id,
+        "mmc_sender_email": settings.mmc_sender_email,
+        "microsoft_tenant_id": settings.microsoft_tenant_id,
+        "microsoft_client_id": settings.microsoft_client_id,
+        "sender_email": settings.sender_email,
+        # Secret fields — boolean flags only (never render actual secrets)
+        "mmc_api_client_secret_set": bool(settings.mmc_api_client_secret.strip()),
+        "mmc_api_key_set": bool(settings.mmc_api_key.strip()),
+        "microsoft_client_secret_set": bool(settings.microsoft_client_secret.strip()),
+    }
+
+    template = jinja_env.get_template("admin/enterprise_config.html")
+    return HTMLResponse(content=template.render(
+        config=config_display,
+        active_nav="enterprise_config",
+        success=None,
+        error=None,
+    ))
+
+
+@router.post("/enterprise-config", response_class=HTMLResponse)
+def post_enterprise_config(
+    mmc_api_base_url: str = Form(""),
+    mmc_api_client_id: str = Form(""),
+    mmc_api_client_secret: str = Form(""),
+    mmc_api_key: str = Form(""),
+    mmc_sender_email: str = Form(""),
+    microsoft_tenant_id: str = Form(""),
+    microsoft_client_id: str = Form(""),
+    microsoft_client_secret: str = Form(""),
+    sender_email: str = Form(""),
+):
+    """
+    Save enterprise API credentials to .env file and clear settings cache.
+
+    Non-secret fields are always written. Secret fields are only written
+    when a non-blank value is provided (blank = keep existing value).
+
+    Returns:
+        HTML page with success or error message
+    """
+    try:
+        env_path = Path(".env")
+
+        if env_path.exists():
+            env_content = env_path.read_text(encoding="utf-8")
+        else:
+            env_content = ""
+
+        # Non-secret fields: always update
+        NON_SECRET_FIELDS = [
+            ("MMC_API_BASE_URL", mmc_api_base_url),
+            ("MMC_API_CLIENT_ID", mmc_api_client_id),
+            ("MMC_SENDER_EMAIL", mmc_sender_email),
+            ("MICROSOFT_TENANT_ID", microsoft_tenant_id),
+            ("MICROSOFT_CLIENT_ID", microsoft_client_id),
+            ("SENDER_EMAIL", sender_email),
+        ]
+        for var_name, value in NON_SECRET_FIELDS:
+            env_content = _update_env_var(env_content, var_name, value)
+
+        # Secret fields: only update if non-blank value provided
+        SECRET_FIELDS = [
+            ("MMC_API_CLIENT_SECRET", mmc_api_client_secret),
+            ("MMC_API_KEY", mmc_api_key),
+            ("MICROSOFT_CLIENT_SECRET", microsoft_client_secret),
+        ]
+        for var_name, value in SECRET_FIELDS:
+            if value.strip():
+                env_content = _update_env_var(env_content, var_name, value)
+
+        env_path.write_text(env_content, encoding="utf-8")
+
+        # Clear settings cache so pipeline picks up new values
+        get_settings.cache_clear()
+
+        logger.info("enterprise_config_updated")
+
+        # Re-read and re-render with success message
+        settings = get_settings()
+        config_display = {
+            "mmc_api_base_url": settings.mmc_api_base_url,
+            "mmc_api_client_id": settings.mmc_api_client_id,
+            "mmc_sender_email": settings.mmc_sender_email,
+            "microsoft_tenant_id": settings.microsoft_tenant_id,
+            "microsoft_client_id": settings.microsoft_client_id,
+            "sender_email": settings.sender_email,
+            "mmc_api_client_secret_set": bool(settings.mmc_api_client_secret.strip()),
+            "mmc_api_key_set": bool(settings.mmc_api_key.strip()),
+            "microsoft_client_secret_set": bool(settings.microsoft_client_secret.strip()),
+        }
+
+        template = jinja_env.get_template("admin/enterprise_config.html")
+        return HTMLResponse(content=template.render(
+            config=config_display,
+            active_nav="enterprise_config",
+            success="Enterprise configuration saved successfully.",
+            error=None,
+        ))
+
+    except Exception as e:
+        logger.error("enterprise_config_update_failed", error=str(e))
+
+        settings = get_settings()
+        config_display = {
+            "mmc_api_base_url": settings.mmc_api_base_url,
+            "mmc_api_client_id": settings.mmc_api_client_id,
+            "mmc_sender_email": settings.mmc_sender_email,
+            "microsoft_tenant_id": settings.microsoft_tenant_id,
+            "microsoft_client_id": settings.microsoft_client_id,
+            "sender_email": settings.sender_email,
+            "mmc_api_client_secret_set": bool(settings.mmc_api_client_secret.strip()),
+            "mmc_api_key_set": bool(settings.mmc_api_key.strip()),
+            "microsoft_client_secret_set": bool(settings.microsoft_client_secret.strip()),
+        }
+
+        template = jinja_env.get_template("admin/enterprise_config.html")
+        return HTMLResponse(content=template.render(
+            config=config_display,
+            active_nav="enterprise_config",
+            success=None,
+            error=str(e),
+        ))
