@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 
 ## Current Position
 
-Phase: 11 of 13 (Equity Price Enrichment) — VERIFIED ✓
-Plan: 3 of 3 in current phase
-Status: Phase complete — verified (4/4 must-haves passed), requirements EQTY-01/02/03/04 + FALL-03 marked Complete
-Last activity: 2026-02-19 — Phase 11 executed, verified, and closed
+Phase: 12 of 13 (Enterprise Email Delivery) — In progress
+Plan: 1 of 2 in current phase
+Status: In progress — 12-01-PLAN.md complete
+Last activity: 2026-02-19 — Completed 12-01-PLAN.md (EnterpriseEmailClient module)
 
-Progress: v1.0 [██████████] 100% | v1.1 [████████░░] 67% (8/12 plans)
+Progress: v1.0 [██████████] 100% | v1.1 [█████████░] 75% (9/12 plans)
 
 ## Performance Metrics
 
@@ -25,7 +25,7 @@ Progress: v1.0 [██████████] 100% | v1.1 [██████�
 
 **v1.1 Baseline:**
 - Plans planned: 12 across 5 phases
-- Completed: 8 (09-01, 09-02, 10-01, 10-02, 10-03, 11-01, 11-02, 11-03)
+- Completed: 9 (09-01, 09-02, 10-01, 10-02, 10-03, 11-01, 11-02, 11-03, 12-01)
 
 *Updated after each plan completion*
 
@@ -96,6 +96,13 @@ Phase 11 plan 03 decisions:
 - Email template: explicit padding properties not shorthand — maximum email client compatibility
 - .equity-chip CSS class with hover transition in browser brief only — email must use inline styles only
 
+Phase 12 plan 01 decisions:
+- async httpx.AsyncClient (not sync) — pipeline run_full_pipeline_with_email() is async; sync would block event loop
+- Payload field names as class constants (FIELD_SUBJECT, FIELD_HTML_BODY, FIELD_TO_RECIPIENTS, FIELD_CC_RECIPIENTS, FIELD_SENDER, FIELD_SENDER_NAME) — INFERRED, validate on deployment machine
+- FIELD_SENDER = "impersonatedEmail" — standard corporate API impersonation field name convention
+- 401/403 return auth_error immediately with no retry — same policy as Phase 9; avoids account lockout
+- mmc_sender_name = "Kevin Taylor" default, mmc_sender_email = "" — is_mmc_email_configured() returns False without explicit email config
+
 ### Pending Todos
 
 None.
@@ -106,10 +113,11 @@ None.
 - Industry codes i83, i8311, i8312, i831 are inferred — validate against /coreapi/recent-news/v1/industries on deployment machine before production
 - BASE_PRICE_PATH `/coreapi/equity-price/v1/price` is inferred — validate against actual equity API on deployment machine
 - Equity API response field names (price/lastPrice etc.) need validation against real API response
+- Enterprise email FIELD_* constants (htmlBody, toRecipients, impersonatedEmail, etc.) are INFERRED — validate against real /coreapi/email/v1 on deployment machine before production
 
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Phase 11 complete — verified ✓, requirements complete, roadmap updated
+Stopped at: Completed 12-01-PLAN.md (EnterpriseEmailClient module + config fields)
 Resume file: None
-Next: `/gsd:discuss-phase 12` or `/gsd:plan-phase 12` to start Enterprise Email Delivery
+Next: Execute 12-02-PLAN.md (pipeline wiring — wire EnterpriseEmailClient into delivery step)
