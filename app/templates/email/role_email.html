@@ -146,6 +146,25 @@
 
                                         <!-- Chips row -->
                                         <div style="margin-top: 10px;">
+                                            {% if article.equity_data %}
+                                            {% for eq in article.equity_data %}
+                                            <span style="display: inline-block; padding-top: 3px; padding-bottom: 3px; padding-left: 10px; padding-right: 10px; border-radius: 4px; font-size: 12px; margin-right: 6px; margin-bottom: 4px; font-weight: 600; background-color: #f8f9fa; border: 1px solid #dee2e6;">
+                                                <span style="color: #00263e;">{{ eq.ticker }}</span>
+                                                {% if eq.price is not none %}
+                                                <span style="color: #495057; margin-left: 4px;">${{ "%.2f"|format(eq.price) }}</span>
+                                                {% endif %}
+                                                {% if eq.change is not none and eq.change_pct is not none %}
+                                                {% if eq.change > 0 %}
+                                                <span style="color: #198754; margin-left: 4px;">+{{ "%.2f"|format(eq.change) }} (+{{ "%.2f"|format(eq.change_pct) }}%)</span>
+                                                {% elif eq.change < 0 %}
+                                                <span style="color: #dc3545; margin-left: 4px;">{{ "%.2f"|format(eq.change) }} ({{ "%.2f"|format(eq.change_pct) }}%)</span>
+                                                {% else %}
+                                                <span style="color: #6c757d; margin-left: 4px;">0.00 (0.00%)</span>
+                                                {% endif %}
+                                                {% endif %}
+                                            </span>
+                                            {% endfor %}
+                                            {% endif %}
                                             {% if article.sentiment %}
                                             {% if article.sentiment == 'positive' %}
                                             <span style="display: inline-block; padding-top: 2px; padding-bottom: 2px; padding-left: 8px; padding-right: 8px; border-radius: 3px; font-size: 11px; margin-right: 4px; background-color: #d4edda; color: #155724;">{{ article.sentiment|capitalize }}</span>
