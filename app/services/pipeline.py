@@ -18,6 +18,7 @@ from app.services.collector import ApifyCollector
 from app.services.classifier import RoleClassificationService
 from app.services.reporter import RoleReportService
 from app.services.emailer import GraphEmailService
+from app.services.enterprise_emailer import EnterpriseEmailClient
 from app.services.health_monitor import SourceHealthMonitor
 from app.config import get_settings
 from app.auth.token_manager import TokenManager
@@ -1002,3 +1003,102 @@ class PipelineOrchestrator:
                 "admin_alert_send_failed",
                 error=str(e)
             )
+
+    async def _send_with_fallback(
+        self,
+        role: str,
+        subject: str,
+        html: str,
+        recipients,  # EmailRecipients
+        degraded_auth: bool,
+        enterprise_client: EnterpriseEmailClient,
+        graph_service: GraphEmailService,
+        token: Optional[str],
+        run_id: int,
+    ) -> dict:
+        """
+        Attempt enterprise email delivery, fall back to Graph API on failure.
+
+        Decision tree:
+        1. degraded_auth=True OR enterprise not configured OR no token:
+           -> Skip enterprise, use Graph API as primary (path="graph_primary")
+        2. Enterprise attempt succeeds:
+           -> Return success (path="enterprise")
+        3. Enterprise attempt fails (auth_error, client_error, network_error):
+           -> Fall back to Graph API (path="graph_fallback")
+        4. Both enterprise and Graph fail:
+           -> Return error (path="both_failed"), pipeline continues
+
+        Args:
+            role: Role name (Brokers, Leadership, etc.)
+            subject: Email subject line (same for both paths)
+            html: HTML brief body
+            recipients: EmailRecipients with .to, .cc, .bcc
+            degraded_auth: True when JWT acquisition failed at Step 0
+            enterprise_client: EnterpriseEmailClient instance
+            graph_service: GraphEmailService instance (fallback)
+            token: JWT token string (may be None if degraded_auth)
+            run_id: Pipeline run ID for ApiEvent attribution
+
+        Returns:
+            Dict with keys: status, path, and optionally recipients, message
+        """
+        # Determine whether enterprise delivery should be attempted
+        enterprise_attempted = not degraded_auth and enterprise_client.is_configured() and token
+
+        if enterprise_attempted:
+            enterprise_result = await enterprise_client.send_email(
+                token=token,
+                to_addresses=recipients.to,
+                subject=subject,
+                html_body=html,
+                cc_addresses=recipients.cc or None,
+                run_id=run_id,
+            )
+            if enterprise_result.get("status") == "ok":
+                return {**enterprise_result, "path": "enterprise"}
+
+            # Enterprise failed — log and fall through to Graph API
+            self.logger.warning(
+                "enterprise_email_failed_falling_back",
+                role=role,
+                enterprise_status=enterprise_result.get("status"),
+                error=enterprise_result.get("message", "unknown"),
+            )
+        else:
+            # Log why enterprise was skipped (useful for debugging)
+            skip_reason = (
+                "degraded_auth" if degraded_auth
+                else "enterprise_not_configured" if not enterprise_client.is_configured()
+                else "no_token"
+            )
+            self.logger.info("enterprise_email_skipped", role=role, reason=skip_reason)
+
+        # Graph API fallback (or primary when enterprise skipped)
+        try:
+            graph_result = await graph_service.send_email(
+                to_addresses=recipients.to,
+                subject=subject,
+                html_body=html,
+                cc_addresses=recipients.cc or None,
+                bcc_addresses=recipients.bcc or None,
+            )
+
+            path = "graph_fallback" if enterprise_attempted else "graph_primary"
+
+            if graph_result.get("status") == "ok":
+                return {**graph_result, "path": path}
+            else:
+                return {**graph_result, "path": "both_failed"}
+
+        except Exception as graph_exc:
+            self.logger.error(
+                "graph_email_also_failed",
+                role=role,
+                error=str(graph_exc)[:200],
+            )
+            return {
+                "status": "error",
+                "message": f"Both enterprise and Graph failed: {str(graph_exc)[:200]}",
+                "path": "both_failed",
+            }
