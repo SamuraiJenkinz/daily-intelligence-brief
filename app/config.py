@@ -79,6 +79,11 @@ class Settings(BaseSettings):
     mmc_api_key: str = ""
     mmc_api_token_path: str = "/coreapi/access-management/v1/token"
 
+    # Enterprise Email Sender (separate from Graph API sender_email)
+    mmc_sender_email: str = ""    # Env: MMC_SENDER_EMAIL — enterprise mailbox to send from
+    mmc_sender_name: str = "Kevin Taylor"  # Env: MMC_SENDER_NAME — display name
+    mmc_email_path: str = "/coreapi/email/v1"  # Env: MMC_EMAIL_PATH — endpoint path
+
     def is_azure_openai_configured(self) -> bool:
         """Check if Azure OpenAI is fully configured."""
         return bool(
@@ -122,6 +127,18 @@ class Settings(BaseSettings):
         which use X-Api-Key only (no JWT needed).
         """
         return bool(self.mmc_api_base_url and self.mmc_api_key)
+
+    def is_mmc_email_configured(self) -> bool:
+        """Check if enterprise email delivery is fully configured.
+
+        Requires JWT auth (mmc_auth) + API key + enterprise sender email.
+        When False, pipeline uses Graph API for email delivery.
+        """
+        return bool(
+            self.is_mmc_auth_configured()
+            and self.mmc_api_key
+            and self.mmc_sender_email
+        )
 
     def _parse_recipient_list(self, recipients_str: str) -> list[str]:
         """
