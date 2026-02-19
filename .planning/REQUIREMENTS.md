@@ -31,15 +31,15 @@ Requirements for enterprise API integration milestone. Each maps to roadmap phas
 
 ### Email Delivery
 
-- [ ] **MAIL-01**: System sends role-based briefs via POST /coreapi/email/v1
-- [ ] **MAIL-02**: System authenticates to Email API with JWT Bearer token + X-Api-Key
-- [ ] **MAIL-03**: HTML brief body renders correctly through enterprise email API
-- [ ] **MAIL-04**: Sender configured as Kevin Taylor via impersonatedEmail or permittedEmailImpersonation
+- [x] **MAIL-01**: System sends role-based briefs via POST /coreapi/email/v1
+- [x] **MAIL-02**: System authenticates to Email API with JWT Bearer token + X-Api-Key
+- [x] **MAIL-03**: HTML brief body renders correctly through enterprise email API
+- [x] **MAIL-04**: Sender configured as Kevin Taylor via impersonatedEmail or permittedEmailImpersonation
 
 ### Fallback & Reliability
 
 - [x] **FALL-01**: When Factiva API is unavailable, pipeline falls back to Apify + RSS collection
-- [ ] **FALL-02**: When enterprise email API is unavailable, pipeline falls back to Graph API delivery
+- [x] **FALL-02**: When enterprise email API is unavailable, pipeline falls back to Graph API delivery
 - [x] **FALL-03**: When Equity Price API is unavailable, briefs generate without price data
 - [ ] **FALL-04**: All fallback events are logged with structured logging and visible in admin dashboard
 
@@ -91,12 +91,12 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | EQTY-02 | Phase 11 | Complete |
 | EQTY-03 | Phase 11 | Complete |
 | EQTY-04 | Phase 11 | Complete |
-| MAIL-01 | Phase 12 | Pending |
-| MAIL-02 | Phase 12 | Pending |
-| MAIL-03 | Phase 12 | Pending |
-| MAIL-04 | Phase 12 | Pending |
+| MAIL-01 | Phase 12 | Complete |
+| MAIL-02 | Phase 12 | Complete |
+| MAIL-03 | Phase 12 | Complete |
+| MAIL-04 | Phase 12 | Complete |
 | FALL-01 | Phase 10 | Complete |
-| FALL-02 | Phase 12 | Pending |
+| FALL-02 | Phase 12 | Complete |
 | FALL-03 | Phase 11 | Complete |
 | FALL-04 | Phase 13 | Pending |
 | ADMN-01 | Phase 13 | Pending |
@@ -110,4 +110,4 @@ Deferred to future milestones. Tracked but not in current roadmap.
 
 ---
 *Requirements defined: 2026-02-18*
-*Last updated: 2026-02-19 — Phase 11 requirements (EQTY-01/02/03/04, FALL-03) marked Complete*
+*Last updated: 2026-02-19 — Phase 12 requirements (MAIL-01/02/03/04, FALL-02) marked Complete*

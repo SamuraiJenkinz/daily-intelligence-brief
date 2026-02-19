@@ -30,7 +30,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full details.
 - [x] **Phase 9: OAuth2 Token Management** — Acquire and cache JWT tokens for the MMC Core API platform
 - [x] **Phase 10: Factiva News Collection** — Factiva as primary news source with Apify/RSS fallback
 - [x] **Phase 11: Equity Price Enrichment** — Inline price data for tracked companies in the brief
-- [ ] **Phase 12: Enterprise Email Delivery** — Send briefs via MMC Core API email with Graph API fallback
+- [x] **Phase 12: Enterprise Email Delivery** — Send briefs via MMC Core API email with Graph API fallback
 - [ ] **Phase 13: Admin Dashboard Enterprise Status** — API health, credential config, source attribution, fallback log
 
 ---
@@ -121,8 +121,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 12-01-PLAN.md — EnterpriseEmailClient module, enterprise email config fields, .env.example documentation
-- [ ] 12-02-PLAN.md — Pipeline Step 8 enterprise-first delivery with Graph API fallback and outcome recording
+- [x] 12-01-PLAN.md — EnterpriseEmailClient module, enterprise email config fields, .env.example documentation
+- [x] 12-02-PLAN.md — Pipeline Step 8 enterprise-first delivery with Graph API fallback and outcome recording
 
 ---
 
@@ -166,7 +166,7 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13
 | 9. OAuth2 Token Management | v1.1 | 2/2 | Complete | 2026-02-18 |
 | 10. Factiva News Collection | v1.1 | 3/3 | Complete | 2026-02-18 |
 | 11. Equity Price Enrichment | v1.1 | 3/3 | Complete | 2026-02-19 |
-| 12. Enterprise Email Delivery | v1.1 | 0/2 | Not started | - |
+| 12. Enterprise Email Delivery | v1.1 | 2/2 | Complete | 2026-02-19 |
 | 13. Admin Dashboard Enterprise Status | v1.1 | 0/2 | Not started | - |
 
-**Total:** 47/51 plans complete (v1.0 done, v1.1 Phases 9-11 complete)
+**Total:** 49/51 plans complete (v1.0 done, v1.1 Phases 9-12 complete)
