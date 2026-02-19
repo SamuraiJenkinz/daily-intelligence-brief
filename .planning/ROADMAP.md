@@ -95,12 +95,12 @@ Plans:
 3. Enriched equity data appears inline alongside the relevant story in the HTML brief — not in a separate section.
 4. When equity price lookup fails for any entity (API error, timeout, unmapped ticker), the brief generates normally with that story's equity fields absent and the failure logged.
 
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 11-01: Build entity-to-ticker mapping store and Equity Price API client with fallback handling
-- [ ] 11-02: Integrate equity enrichment step into the post-classification, pre-report pipeline stage
-- [ ] 11-03: Update HTML brief template and Jinja2 context to render inline equity data alongside article entries
+- [ ] 11-01-PLAN.md — EquityTicker model, EquityPriceClient API client, admin equity mapping UI
+- [ ] 11-02-PLAN.md — Pipeline Step 3b equity enrichment and reporter equity_data passthrough
+- [ ] 11-03-PLAN.md — Inline equity price display in browser and email brief templates
 
 ---
 
