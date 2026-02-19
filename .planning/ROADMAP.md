@@ -3,7 +3,7 @@
 ## Milestones
 
 - [x] **v1.0 MVP** — Phases 1-8 (shipped 2026-02-08)
-- [ ] **v1.1 Enterprise API Integration** — Phases 9-13 (in progress)
+- [x] **v1.1 Enterprise API Integration** — Phases 9-13 (shipped 2026-02-19)
 
 ## Phases
 
@@ -31,7 +31,7 @@ See: `.planning/milestones/v1.0-ROADMAP.md` for full details.
 - [x] **Phase 10: Factiva News Collection** — Factiva as primary news source with Apify/RSS fallback
 - [x] **Phase 11: Equity Price Enrichment** — Inline price data for tracked companies in the brief
 - [x] **Phase 12: Enterprise Email Delivery** — Send briefs via MMC Core API email with Graph API fallback
-- [ ] **Phase 13: Admin Dashboard Enterprise Status** — API health, credential config, source attribution, fallback log
+- [x] **Phase 13: Admin Dashboard Enterprise Status** — API health, credential config, source attribution, fallback log
 
 ---
 
@@ -143,8 +143,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 13-01-PLAN.md — Enterprise API status panel, fallback event log, and credential configuration page
-- [ ] 13-02-PLAN.md — Per-article source attribution badges in search results
+- [x] 13-01-PLAN.md — Enterprise API status panel, fallback event log, and credential configuration page
+- [x] 13-02-PLAN.md — Per-article source attribution badges in search results
 
 ---
 
@@ -167,6 +167,6 @@ Phases execute in numeric order: 9 -> 10 -> 11 -> 12 -> 13
 | 10. Factiva News Collection | v1.1 | 3/3 | Complete | 2026-02-18 |
 | 11. Equity Price Enrichment | v1.1 | 3/3 | Complete | 2026-02-19 |
 | 12. Enterprise Email Delivery | v1.1 | 2/2 | Complete | 2026-02-19 |
-| 13. Admin Dashboard Enterprise Status | v1.1 | 0/2 | Not started | - |
+| 13. Admin Dashboard Enterprise Status | v1.1 | 2/2 | Complete | 2026-02-19 |
 
-**Total:** 49/51 plans complete (v1.0 done, v1.1 Phases 9-12 complete)
+**Total:** 51/51 plans complete (v1.0 done, v1.1 done)

@@ -41,13 +41,13 @@ Requirements for enterprise API integration milestone. Each maps to roadmap phas
 - [x] **FALL-01**: When Factiva API is unavailable, pipeline falls back to Apify + RSS collection
 - [x] **FALL-02**: When enterprise email API is unavailable, pipeline falls back to Graph API delivery
 - [x] **FALL-03**: When Equity Price API is unavailable, briefs generate without price data
-- [ ] **FALL-04**: All fallback events are logged with structured logging and visible in admin dashboard
+- [x] **FALL-04**: All fallback events are logged with structured logging and visible in admin dashboard
 
 ### Admin Dashboard
 
-- [ ] **ADMN-01**: Admin can view enterprise API connection status (healthy/degraded/offline)
-- [ ] **ADMN-02**: Admin can configure API keys and credentials for enterprise APIs
-- [ ] **ADMN-03**: Admin can view which articles came from Factiva vs Apify/RSS
+- [x] **ADMN-01**: Admin can view enterprise API connection status (healthy/degraded/offline)
+- [x] **ADMN-02**: Admin can configure API keys and credentials for enterprise APIs
+- [x] **ADMN-03**: Admin can view which articles came from Factiva vs Apify/RSS
 
 ## v2 Requirements
 
@@ -98,10 +98,10 @@ Deferred to future milestones. Tracked but not in current roadmap.
 | FALL-01 | Phase 10 | Complete |
 | FALL-02 | Phase 12 | Complete |
 | FALL-03 | Phase 11 | Complete |
-| FALL-04 | Phase 13 | Pending |
-| ADMN-01 | Phase 13 | Pending |
-| ADMN-02 | Phase 13 | Pending |
-| ADMN-03 | Phase 13 | Pending |
+| FALL-04 | Phase 13 | Complete |
+| ADMN-01 | Phase 13 | Complete |
+| ADMN-02 | Phase 13 | Complete |
+| ADMN-03 | Phase 13 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 24 total
@@ -110,4 +110,4 @@ Deferred to future milestones. Tracked but not in current roadmap.
 
 ---
 *Requirements defined: 2026-02-18*
-*Last updated: 2026-02-19 — Phase 12 requirements (MAIL-01/02/03/04, FALL-02) marked Complete*
+*Last updated: 2026-02-19 — Phase 13 requirements (ADMN-01/02/03, FALL-04) marked Complete — all v1.1 requirements complete*
