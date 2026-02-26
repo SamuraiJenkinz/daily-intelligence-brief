@@ -10,12 +10,12 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 Milestone: v1.2 Factiva Knowledge Integration
-Phase: 15 of 16 (Pipeline Simplification & Cleanup) — IN PROGRESS
-Plan: 02 of 03 — COMPLETE
-Status: Plan 15-02 complete, ready for Plan 15-03
-Last activity: 2026-02-26 — Completed 15-02-PLAN.md
+Phase: 15 of 16 (Pipeline Simplification & Cleanup) — COMPLETE
+Plan: 03 of 03 — COMPLETE
+Status: Phase 15 complete, ready for Phase 16
+Last activity: 2026-02-26 — Completed 15-03-PLAN.md
 
-Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [█████░░░░░] 50%
+Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [███████░░░] 70%
 
 ## Performance Metrics
 
@@ -68,6 +68,11 @@ Phase 15-02 decisions:
 - rewrite-test-scripts: Rewrite test scripts to use FactivaCollector (maintain testing capability)
 - seed-sources-historical: Keep seed_sources.py with historical note (functional for future use)
 
+Phase 15-03 decisions:
+- preserve-db-schema: Keep SourceType.APIFY enum and defaults for DB compatibility (removing breaks existing rows)
+- preserve-migration-sql: Keep historical migration code unchanged (documents schema evolution)
+- update-fallback-default: Change reporter fallback to 'Factiva' (reflects current reality as sole source)
+
 ### Pending Todos
 
 None.
@@ -89,6 +94,6 @@ v1.2 considerations:
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 15-02-PLAN.md
+Stopped at: Completed 15-03-PLAN.md (Phase 15 complete)
 Resume file: None
-Next: Phase 15-03 already in progress (parallel execution)
+Next: Phase 16 (Dashboard and Config Updates)
