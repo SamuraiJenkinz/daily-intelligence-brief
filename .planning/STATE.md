@@ -12,8 +12,8 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 Milestone: v1.2 Factiva Knowledge Integration
 Phase: 15 of 16 (Pipeline Simplification & Cleanup) — COMPLETE
 Plan: 03 of 03 — COMPLETE
-Status: Phase 15 complete, ready for Phase 16
-Last activity: 2026-02-26 — Completed 15-03-PLAN.md
+Status: Phase 15 verified (15/15 must-haves passed), ready for Phase 16
+Last activity: 2026-02-26 — Phase 15 verified and complete
 
 Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [███████░░░] 70%
 
@@ -94,6 +94,6 @@ v1.2 considerations:
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 15-03-PLAN.md (Phase 15 complete)
+Stopped at: Phase 15 verified and complete
 Resume file: None
-Next: Phase 16 (Dashboard and Config Updates)
+Next: `/gsd:discuss-phase 16` or `/gsd:plan-phase 16` for Dashboard & Config Updates
