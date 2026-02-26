@@ -74,7 +74,8 @@ class ProductionValidator:
             ('MICROSOFT_CLIENT_ID', 'Microsoft client ID for Graph API'),
             ('MICROSOFT_CLIENT_SECRET', 'Microsoft client secret for Graph API'),
             ('SENDER_EMAIL', 'Email address for sending reports'),
-            ('APIFY_TOKEN', 'Apify API token for web scraping'),
+            ('MMC_API_BASE_URL', 'MMC Core API base URL for Factiva'),
+            ('MMC_API_KEY', 'MMC Core API key for Factiva'),
             ('ADMIN_EMAIL', 'Administrator email for alerts'),
         ]
 
@@ -295,7 +296,7 @@ class ProductionValidator:
             ('fastapi', 'FastAPI web framework'),
             ('sqlalchemy', 'Database ORM'),
             ('jinja2', 'Template engine'),
-            ('apify_client', 'Apify API client'),
+            ('httpx', 'HTTP client for Factiva API'),
             ('openai', 'Azure OpenAI client'),
             ('azure.identity', 'Azure authentication'),
             ('premailer', 'Email CSS inlining'),
@@ -348,6 +349,7 @@ class ProductionValidator:
 
         if self.failed == 0:
             print("\nAll required checks passed! System is production-ready.")
+            print("\nNOTE: MDInsights uses Factiva as the sole news collection source (via MMC Core API).")
             if self.warnings > 0:
                 print(f"Note: {self.warnings} optional check(s) raised warnings (non-blocking).")
             return 0

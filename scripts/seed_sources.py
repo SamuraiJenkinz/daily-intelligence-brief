@@ -2,6 +2,10 @@
 """
 Seed database with test news sources for MDInsights.
 
+NOTE: These sources are HISTORICAL and no longer used by the pipeline.
+      As of Phase 15 (v1.2), MDInsights uses Factiva as the sole news source.
+      This script is kept for reference and potential future multi-source support.
+
 This script inserts initial source configurations into the database,
 checking for existing records to ensure idempotency.
 

@@ -4,7 +4,7 @@ Pipeline test script for MDInsights.
 Simulates full pipeline execution: collection → classification → reporting.
 Writes HTML output to data/pipeline_test.html for inspection.
 
-NOTE: Requires live Apify and Azure OpenAI credentials in .env file.
+NOTE: Requires MMC API key for Factiva and Azure OpenAI credentials in .env file.
       Do NOT run in CI/CD - this is a manual test tool only.
 """
 import os
@@ -18,10 +18,10 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from dotenv import load_dotenv
 
 from app.config import get_settings
-from app.services.collector import ApifyCollector
 from app.services.classifier import RoleClassificationService
 from app.services.reporter import RoleReportService
 from app.services.pipeline import PipelineOrchestrator
+from app.collectors.token_manager import TokenManager
 
 
 def main():
@@ -35,14 +35,17 @@ def main():
     load_dotenv()
     settings = get_settings()
 
+    # Initialize token manager
+    token_manager = TokenManager()
+
     # Validate configuration
     print("Configuration Check:")
-    print(f"  Apify: {'✓ Configured' if settings.is_apify_configured() else '✗ Missing'}")
+    print(f"  MMC API: {'✓ Configured' if settings.mmc_api_base_url and settings.mmc_api_key else '✗ Missing'}")
     print(f"  Azure OpenAI: {'✓ Configured' if settings.is_azure_openai_configured() else '✗ Missing'}")
     print()
 
-    if not settings.is_apify_configured():
-        print("ERROR: Apify token not configured. Set APIFY_TOKEN in .env")
+    if not (settings.mmc_api_base_url and settings.mmc_api_key):
+        print("ERROR: MMC API key not configured for Factiva. Set MMC_API_BASE_URL and MMC_API_KEY in .env")
         return 1
 
     if not settings.is_azure_openai_configured():
@@ -51,7 +54,6 @@ def main():
 
     # Initialize services
     print("Initializing services...")
-    collector = ApifyCollector(apify_token=settings.apify_token)
     classifier = RoleClassificationService(
         endpoint=settings.azure_openai_endpoint,
         api_key=settings.azure_openai_api_key,
@@ -60,11 +62,11 @@ def main():
     )
     reporter = RoleReportService()
 
-    # Initialize orchestrator
+    # Initialize orchestrator (no collector param - pipeline owns FactivaCollector)
     orchestrator = PipelineOrchestrator(
-        collector=collector,
         classifier=classifier,
-        reporter=reporter
+        reporter=reporter,
+        token_manager=token_manager
     )
     print("✓ Services initialized")
     print()
@@ -91,6 +93,7 @@ def main():
         print(f"  Run ID: {result['run_id']}")
         print(f"  Articles Collected: {result['articles_collected']}")
         print(f"  Articles Classified: {result['articles_classified']}")
+        print(f"  Collection Source: {result.get('collection_source', 'Factiva')}")
         print(f"  Duration: {duration:.2f} seconds")
         print()
 
