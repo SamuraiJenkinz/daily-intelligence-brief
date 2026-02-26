@@ -10,12 +10,12 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 Milestone: v1.2 Factiva Knowledge Integration
-Phase: 14 of 16 (FactivaCollector Port) — COMPLETE
-Plan: —
-Status: Phase 14 verified (7/7 must-haves passed), ready for Phase 15
-Last activity: 2026-02-26 — Phase 14 verified and complete
+Phase: 15 of 16 (Pipeline Simplification & Cleanup) — IN PROGRESS
+Plan: 01 of 03 — COMPLETE
+Status: Plan 15-01 complete, ready for Plan 15-02
+Last activity: 2026-02-26 — Completed 15-01-PLAN.md
 
-Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [███░░░░░░░] 33%
+Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [████░░░░░░] 40%
 
 ## Performance Metrics
 
@@ -58,6 +58,11 @@ Phase 14-02 decisions:
 - configurable-date-range: 48h default matches BrasilIntel, allows tuning per deployment
 - is-configured-delegation: Consistent with EquityPriceClient and Settings pattern
 
+Phase 15-01 decisions:
+- inline-article-storage: Extract article storage from ApifyCollector into PipelineOrchestrator._store_articles()
+- run-record-timing: Create Run record at start of Step 1 (before collection) for cleaner logging
+- zero-article-handling: Continue pipeline to generate empty brief when Factiva returns zero articles
+
 ### Pending Todos
 
 None.
@@ -79,6 +84,6 @@ v1.2 considerations:
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Phase 14 verified and complete
+Stopped at: Completed 15-01-PLAN.md
 Resume file: None
-Next: `/gsd:discuss-phase 15` or `/gsd:plan-phase 15` for Pipeline Simplification & Cleanup
+Next: `/gsd:execute-phase 15-02` for Delete ApifyCollector
