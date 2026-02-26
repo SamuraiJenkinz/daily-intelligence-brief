@@ -2,8 +2,7 @@
 FactivaCollector — Dow Jones Factiva API client for MDInsights.
 
 Queries the MMC Core API Factiva endpoint to retrieve recent insurance/reinsurance
-news articles. Used by the Phase 10-02 pipeline integration as the primary news
-source, with Apify/RSS as fallback.
+news articles. Used by the pipeline as the sole news source for MDInsights.
 
 API contracts:
     Search:  GET {base_url}/coreapi/recent-news/v1/search
@@ -20,12 +19,13 @@ Authentication:
 
 Error handling:
     - Individual article fetch failures fall back to snippet from search result
-    - Search failures propagate to caller (pipeline handles fallback to Apify)
+    - Search failures propagate to caller (pipeline handles errors)
     - All outcomes recorded as ApiEvent(type=NEWS_FETCH) for dashboard visibility
 """
 import json
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
+from urllib.parse import quote
 
 import httpx
 import structlog
@@ -54,10 +54,11 @@ class FactivaCollector:
         if collector.is_configured():
             articles = collector.collect(query_params)
 
-    Query parameters (from FactivaConfig row):
-        industry_codes  - Comma-separated Factiva industry codes (e.g. "i82,i832")
-        company_codes   - Comma-separated company codes (e.g. "MM")
-        keywords        - Comma-separated search terms (e.g. "insurance reinsurance")
+    Query parameters (from FactivaConfig row -> mapped to API param names):
+        industry_codes  -> "industry"  - Factiva industry codes (e.g. "i82")
+        company_codes   -> "company"   - Company codes (e.g. "MM")
+        keywords        -> "query"     - Search terms joined with OR (e.g. "insurance,reinsurance")
+        date_range_hours              - Lookback window in hours (default 48)
         page_size       - Articles per page (default 25, max 100)
 
     Normalized article dict schema (compatible with pipeline persistence):
@@ -81,8 +82,8 @@ class FactivaCollector:
         self.logger = structlog.get_logger(__name__).bind(service="factiva_collector")
 
     def is_configured(self) -> bool:
-        """Return True if base_url and api_key are both present in Settings."""
-        return bool(self.base_url and self.api_key)
+        """Return True if MMC API key is configured via Settings."""
+        return get_settings().is_mmc_api_key_configured()
 
     def collect(
         self,
@@ -90,7 +91,7 @@ class FactivaCollector:
         run_id: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
         """
-        Collect articles from Factiva for the past 24 hours.
+        Collect articles from Factiva for the configured lookback window.
 
         Builds a search query from query_params, fetches search results, then
         fetches individual article bodies for plaintext content. Normalizes all
@@ -98,7 +99,7 @@ class FactivaCollector:
 
         Args:
             query_params: Dict with keys: industry_codes, company_codes, keywords,
-                          page_size. Values are comma-separated strings.
+                          date_range_hours, page_size. Values are comma-separated strings.
             run_id: Optional pipeline run ID for event attribution.
 
         Returns:
@@ -108,10 +109,11 @@ class FactivaCollector:
             Exception: If the search request itself fails after retries. The caller
                        (pipeline) is responsible for handling the fallback to Apify.
         """
-        # Build date window: yesterday to today (UTC)
+        # Build date window from configurable range (default 48 hours)
+        date_range_hours = int(query_params.get("date_range_hours", 48))
         today = datetime.now(timezone.utc)
-        yesterday = today - timedelta(days=1)
-        from_date = yesterday.strftime("%Y-%m-%d")
+        lookback = today - timedelta(hours=date_range_hours)
+        from_date = lookback.strftime("%Y-%m-%d")
         to_date = today.strftime("%Y-%m-%d")
 
         # Parse comma-separated codes to lists for query building
@@ -133,17 +135,17 @@ class FactivaCollector:
         # Add industry codes if provided
         industry_codes = [c.strip() for c in industry_codes_raw.split(",") if c.strip()]
         if industry_codes:
-            params["industryCodes"] = ",".join(industry_codes)
+            params["industry"] = ",".join(industry_codes)
 
         # Add company codes if provided
         company_codes = [c.strip() for c in company_codes_raw.split(",") if c.strip()]
         if company_codes:
-            params["companyCodes"] = ",".join(company_codes)
+            params["company"] = ",".join(company_codes)
 
-        # Add keywords if provided
+        # Add keywords if provided (joined with OR for broader coverage)
         keywords = [k.strip() for k in keywords_raw.split(",") if k.strip()]
         if keywords:
-            params["keywords"] = " ".join(keywords)
+            params["query"] = " OR ".join(keywords)
 
         self.logger.info(
             "factiva_search_started",
@@ -334,7 +336,7 @@ class FactivaCollector:
             httpx.ConnectError: On connection failure (triggers tenacity retry).
             httpx.HTTPStatusError: On 5xx server errors after raise_for_status.
         """
-        url = f"{self.base_url}{self.BASE_ARTICLE_PATH}/{article_id}"
+        url = f"{self.base_url}{self.BASE_ARTICLE_PATH}/{quote(article_id, safe='')}"
         with httpx.Client(timeout=30.0) as client:
             response = client.get(url, headers=self._build_headers())
 
