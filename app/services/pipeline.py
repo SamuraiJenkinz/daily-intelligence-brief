@@ -162,6 +162,7 @@ class PipelineOrchestrator:
                             "company_codes": factiva_config.company_codes or "",
                             "keywords": factiva_config.keywords or "",
                             "page_size": factiva_config.page_size or 25,
+                            "date_range_hours": factiva_config.date_range_hours or 48,
                         }
                         self.logger.info("factiva_collection_starting", **query_params)
 
@@ -533,6 +534,7 @@ class PipelineOrchestrator:
                             "company_codes": factiva_config.company_codes or "",
                             "keywords": factiva_config.keywords or "",
                             "page_size": factiva_config.page_size or 25,
+                            "date_range_hours": factiva_config.date_range_hours or 48,
                         }
                         self.logger.info("factiva_collection_starting", **query_params)
 
