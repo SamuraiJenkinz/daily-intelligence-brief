@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 
 Milestone: v1.2 Factiva Knowledge Integration
 Phase: 14 of 16 (FactivaCollector Port)
-Plan: —
-Status: Roadmap created, ready for planning
-Last activity: 2026-02-26 — v1.2 roadmap created with 3 phases
+Plan: 01 of 1 (completed)
+Status: Phase 14 Plan 01 complete — ready for Plan 02
+Last activity: 2026-02-26 — Completed 14-01-PLAN.md (date_range_hours column)
 
-Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [░░░░░░░░░░] 0%
+Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [█░░░░░░░░░] 10%
 
 ## Performance Metrics
 
@@ -46,6 +46,11 @@ Key v1.2 design decisions:
 - Phase 15: Combine pipeline simplification and Apify cleanup (tightly coupled operations)
 - Phase 16: Dashboard/config updates last (cosmetic relative to collector changes)
 
+Phase 14-01 decisions:
+- default-date-range-48h: Use 48h lookback (BrasilIntel proven approach) vs. 24h (current MDInsights)
+- preserve-existing-config: Migration adds column but preserves admin-customized values in existing rows
+- corrected-seed-data-i82: Seed data uses validated 'i82' industry code only (not unvalidated 'i82,i832')
+
 ### Pending Todos
 
 None.
@@ -62,11 +67,11 @@ Carried from v1.1:
 v1.2 considerations:
 - BrasilIntel FactivaCollector reference at C:\BrasilIntel\app\collectors\factiva.py (456 lines)
 - Need to adapt Portuguese insurer domain logic to English insurance/reinsurance
-- FactivaConfig seed data must target MMC audience (brokers, leadership, compliance, underwriting)
+- Industry code i832 is inferred (not validated) — may need validation for production use
 
 ## Session Continuity
 
-Last session: 2026-02-26
-Stopped at: v1.2 roadmap creation complete
+Last session: 2026-02-26 19:04 UTC
+Stopped at: Completed 14-01-PLAN.md (date_range_hours column added)
 Resume file: None
-Next: `/gsd:plan-phase 14` to create execution plan for FactivaCollector port
+Next: Plan 14-02 to port BrasilIntel FactivaCollector implementation
