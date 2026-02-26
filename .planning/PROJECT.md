@@ -2,7 +2,7 @@
 
 ## What This Is
 
-AI-powered daily intelligence brief for the global insurance and reinsurance market, replacing Marsh's outsourced "Daily Insights" product. The system collects news from Factiva/Dow Jones (primary) and 20+ global sources via Apify/RSS (fallback), uses GPT-4o to classify, prioritise, summarise, and route articles by audience role, enriches stories with inline equity price data for tracked companies, then generates and delivers tailored HTML briefs via MMC Core API enterprise email (with Graph API fallback) to Brokers, Leadership, Compliance, and Underwriting teams each morning before market open. Includes a full admin dashboard for source/recipient management, enterprise API health monitoring, credential configuration, and report archive.
+AI-powered daily intelligence brief for the global insurance and reinsurance market, replacing Marsh's outsourced "Daily Insights" product. The system collects news from Factiva/Dow Jones via MMC Core API, uses GPT-4o to classify, prioritise, summarise, and route articles by audience role, enriches stories with inline equity price data for tracked companies, then generates and delivers tailored HTML briefs via MMC Core API enterprise email (with Graph API fallback) to Brokers, Leadership, Compliance, and Underwriting teams each morning before market open. Includes a full admin dashboard for source/recipient management, enterprise API health monitoring, credential configuration, and report archive.
 
 ## Core Value
 
@@ -39,7 +39,17 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 
 ### Active
 
-(None — ship to validate. Start next milestone with `/gsd:new-milestone`.)
+#### Current Milestone: v1.2 Factiva Knowledge Integration
+
+**Goal:** Replace the Apify web scraping collection layer with BrasilIntel's proven FactivaCollector, making Factiva/Dow Jones the sole news source via MMC Core API.
+
+**Target features:**
+- Port BrasilIntel's mature FactivaCollector (pagination, body-fetch fallback, retry, event tracking)
+- Remove Apify collection layer and apify-client dependency
+- Simplify pipeline orchestration (single collection path, no Apify fallback)
+- Adapt Factiva query config for English insurance/reinsurance domain
+- Update dashboard and health monitoring for Factiva-only architecture
+- Clean up dead code, unused source implementations, and stale config
 
 ### Out of Scope
 
@@ -64,11 +74,12 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 
 **Sister Project:**
 - BrasilIntel (v1.0 shipped) monitors 897 Brazilian insurers. MDInsights reuses the same architectural patterns and tech stack.
+- BrasilIntel's FactivaCollector (456 lines) is the reference implementation for v1.2 — proven in production with pagination, body-fetch fallback, tenacity retry, and event tracking. Located at `C:\BrasilIntel\app\collectors\factiva.py`.
 
 **Technical Environment:**
 - Python 3.11+, FastAPI, SQLite, Jinja2
 - Azure OpenAI GPT-4o for classification and summarisation
-- Apify SDK for web scraping, feedparser for RSS
+- Factiva/Dow Jones via MMC Core API (ported from BrasilIntel's mature FactivaCollector)
 - Microsoft Graph SDK for email delivery
 - Bootstrap 5.3.3 + HTMX 2.0.4 for admin dashboard
 - structlog for structured logging, tenacity for retry logic
@@ -108,7 +119,7 @@ v1.0 MVP and v1.1 Enterprise API Integration both shipped. System is feature-com
 
 ## Constraints
 
-- **Tech Stack**: Python 3.11+, FastAPI, SQLite, Apify SDK, Azure OpenAI SDK, Microsoft Graph SDK — matching BrasilIntel
+- **Tech Stack**: Python 3.11+, FastAPI, SQLite, Azure OpenAI SDK, Microsoft Graph SDK — matching BrasilIntel
 - **Corporate Auth**: Azure AD app registration for Graph API and Azure OpenAI access
 - **Deployment**: Windows Scheduled Task (production), matching BrasilIntel pattern
 - **Branding**: Reports must match Marsh visual identity (prototype establishes this)
@@ -142,4 +153,4 @@ v1.0 MVP and v1.1 Enterprise API Integration both shipped. System is feature-com
 | Transient ORM attributes for equity data | _equity_data on SQLAlchemy objects in-memory, never persisted — clean separation | ✓ Good |
 
 ---
-*Last updated: 2026-02-19 after v1.1 milestone completion*
+*Last updated: 2026-02-26 after v1.2 milestone start*

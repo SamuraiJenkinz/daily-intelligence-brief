@@ -2,19 +2,19 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-19)
+See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** Each audience at Marsh receives only the intelligence relevant to their decisions, priority-ranked and AI-summarised, delivered daily with zero manual effort.
-**Current focus:** Planning next milestone
+**Current focus:** v1.2 Factiva Knowledge Integration
 
 ## Current Position
 
-Phase: 13 of 13 complete — v1.1 milestone shipped
-Plan: N/A — milestone archived
-Status: Ready for next milestone
-Last activity: 2026-02-19 — v1.1 Enterprise API Integration milestone complete and archived
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-02-26 — Milestone v1.2 started
 
-Progress: v1.0 [##########] 100% | v1.1 [##########] 100% (12/12 plans)
+Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -52,7 +52,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-19
-Stopped at: v1.1 milestone complete and archived
+Last session: 2026-02-26
+Stopped at: Defining v1.2 requirements
 Resume file: None
-Next: `/gsd:new-milestone` to start next milestone (questioning -> research -> requirements -> roadmap)
+Next: Complete requirements → roadmap → `/gsd:plan-phase`
