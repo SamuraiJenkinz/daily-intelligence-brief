@@ -107,8 +107,8 @@ class FactivaCollector:
 
         Raises:
             Exception: If the search request itself fails after retries. The caller
-                       (pipeline) handles retry failure by skipping the daily brief
-                       and alerting admin.
+                       (pipeline) handles retry failure by skipping the daily brief and
+                       alerting admin.
         """
         # Build date window from configurable range (default 48 hours)
         date_range_hours = int(query_params.get("date_range_hours", 48))

@@ -21,7 +21,7 @@ class ApiEventType(str, enum.Enum):
 
     News events (Phase 10 - Factiva):
         NEWS_FETCH      - Successful Factiva article fetch
-        NEWS_FALLBACK   - Fell back to Apify scraping (Factiva unavailable)
+        NEWS_FALLBACK   - (Historical) Fallback event from multi-source era
 
     Equity events (Phase 11):
         EQUITY_FETCH    - Successful equity price fetch

@@ -28,7 +28,7 @@ class Source(Base):
     name = Column(String(255), nullable=False, unique=True)
     url = Column(String(1000), nullable=False)
     source_type = Column(Enum(SourceType), nullable=False)
-    actor_id = Column(String(255), nullable=True)  # Apify-specific actor ID
+    actor_id = Column(String(255), nullable=True)  # Source-specific identifier (historical: Apify actor IDs)
     enabled = Column(Boolean, default=True, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 

@@ -35,7 +35,7 @@ class NewsArticle(Base):
     source_name = Column(String(255), nullable=True)
     published_at = Column(DateTime, nullable=True)
 
-    # Source attribution: "Factiva" or "Apify/RSS" (Phase 10)
+    # Source attribution: "Factiva" (sole source since Phase 15). Historical data may contain "Apify/RSS".
     collector_source = Column(String(20), nullable=True, default="Apify/RSS")
 
     # Classification results (populated by Azure OpenAI)

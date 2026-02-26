@@ -201,7 +201,7 @@ def get_admin_dashboard():
         # Format data for template
         runs_data = []
         for run in runs:
-            # Query per-run source breakdown (Factiva vs Apify/RSS article counts)
+            # Query per-run source breakdown (collector_source distribution)
             source_counts = db.query(
                 NewsArticle.collector_source,
                 func.count(NewsArticle.id)

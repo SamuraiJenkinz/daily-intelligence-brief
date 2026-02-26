@@ -132,7 +132,7 @@ class RoleReportService:
                 'category': article.category,
                 'region': article.region,
                 'business_line': article.business_line,
-                'collector_source': getattr(article, 'collector_source', None) or 'Apify/RSS',
+                'collector_source': getattr(article, 'collector_source', None) or 'Factiva',
                 'equity_data': getattr(article, '_equity_data', []),
             }
             prepared.append(article_dict)
