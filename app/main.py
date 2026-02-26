@@ -46,7 +46,7 @@ async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables created successfully")
 
-    # Phase 10 startup migration: add collector_source column and seed factiva_config
+    # Phase 10/14 startup migration: add collector_source, date_range_hours columns and seed factiva_config
     try:
         with SessionLocal() as session:
             # Check if collector_source column exists on news_articles
@@ -61,14 +61,26 @@ async def lifespan(app: FastAPI):
             else:
                 logger.info("startup_migration: collector_source column already exists")
 
+            # Phase 14: add date_range_hours column to factiva_config
+            result = session.execute(text("PRAGMA table_info(factiva_config)"))
+            fc_columns = [row[1] for row in result.fetchall()]
+            if "date_range_hours" not in fc_columns:
+                session.execute(
+                    text("ALTER TABLE factiva_config ADD COLUMN date_range_hours INTEGER DEFAULT 48 NOT NULL")
+                )
+                session.commit()
+                logger.info("startup_migration: added date_range_hours column to factiva_config")
+            else:
+                logger.info("startup_migration: date_range_hours column already exists")
+
             # Seed default factiva_config row if none exists
             result = session.execute(text("SELECT COUNT(*) FROM factiva_config WHERE id = 1"))
             count = result.scalar()
             if not count:
                 session.execute(text(
                     "INSERT OR IGNORE INTO factiva_config "
-                    "(id, industry_codes, company_codes, keywords, page_size, enabled) "
-                    "VALUES (1, 'i82,i832', 'MM', 'insurance reinsurance', 25, 1)"
+                    "(id, industry_codes, company_codes, keywords, page_size, date_range_hours, enabled) "
+                    "VALUES (1, 'i82', 'MM', 'insurance,reinsurance', 25, 48, 1)"
                 ))
                 session.commit()
                 logger.info("startup_migration: seeded default factiva_config row")
