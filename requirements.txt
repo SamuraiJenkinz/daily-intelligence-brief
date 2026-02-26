@@ -16,8 +16,7 @@ pydantic-settings
 openai==2.16.0
 azure-identity
 
-# Web scraping
-apify-client
+# HTTP client
 httpx
 
 # HTML templating and email styling
@@ -29,9 +28,6 @@ python-dotenv
 
 # Structured logging
 structlog
-
-# RSS feed parsing
-feedparser==6.0.12
 
 # Deduplication (semantic similarity)
 sentence-transformers>=5.0.0

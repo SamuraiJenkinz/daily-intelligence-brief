@@ -36,9 +36,6 @@ class Settings(BaseSettings):
     microsoft_client_secret: str = ""
     sender_email: str = ""
 
-    # Apify (for web scraping)
-    apify_token: str = ""
-
     # Application
     debug: bool = False
     log_level: str = "INFO"
@@ -100,10 +97,6 @@ class Settings(BaseSettings):
             and self.microsoft_client_secret
             and self.sender_email
         )
-
-    def is_apify_configured(self) -> bool:
-        """Check if Apify is configured."""
-        return bool(self.apify_token)
 
     def is_azure_storage_configured(self) -> bool:
         """Check if Azure Blob Storage is configured."""
