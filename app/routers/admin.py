@@ -19,7 +19,6 @@ from pathlib import Path
 from pydantic import BaseModel, EmailStr, ValidationError, field_validator
 
 from app.config import get_settings
-from app.services.collector import ApifyCollector
 from app.services.classifier import RoleClassificationService
 from app.services.reporter import RoleReportService
 from app.services.pipeline import PipelineOrchestrator
@@ -210,7 +209,7 @@ def get_admin_dashboard():
                 NewsArticle.run_id == run.id
             ).group_by(NewsArticle.collector_source).all()
 
-            source_breakdown = {(src or 'Apify/RSS'): count for src, count in source_counts}
+            source_breakdown = {(src or 'Factiva'): count for src, count in source_counts}
 
             runs_data.append({
                 'id': run.id,
@@ -287,12 +286,6 @@ def trigger_pipeline():
         logger.info("manual_trigger_started")
 
         # Validate configuration
-        if not settings.is_apify_configured():
-            raise HTTPException(
-                status_code=500,
-                detail="Apify not configured. Set APIFY_TOKEN in .env"
-            )
-
         if not settings.is_azure_openai_configured():
             raise HTTPException(
                 status_code=500,
@@ -300,7 +293,6 @@ def trigger_pipeline():
             )
 
         # Initialize services
-        collector = ApifyCollector(apify_token=settings.apify_token)
         classifier = RoleClassificationService(
             endpoint=settings.azure_openai_endpoint,
             api_key=settings.azure_openai_api_key,
@@ -311,7 +303,6 @@ def trigger_pipeline():
 
         # Initialize pipeline orchestrator
         orchestrator = PipelineOrchestrator(
-            collector=collector,
             classifier=classifier,
             reporter=reporter
         )
@@ -393,12 +384,6 @@ async def trigger_pipeline_with_email():
         logger.info("manual_trigger_with_email_started")
 
         # Validate configuration
-        if not settings.is_apify_configured():
-            raise HTTPException(
-                status_code=500,
-                detail="Apify not configured. Set APIFY_TOKEN in .env"
-            )
-
         if not settings.is_azure_openai_configured():
             raise HTTPException(
                 status_code=500,
@@ -412,7 +397,6 @@ async def trigger_pipeline_with_email():
             )
 
         # Initialize services
-        collector = ApifyCollector(apify_token=settings.apify_token)
         classifier = RoleClassificationService(
             endpoint=settings.azure_openai_endpoint,
             api_key=settings.azure_openai_api_key,
@@ -422,7 +406,6 @@ async def trigger_pipeline_with_email():
         reporter = RoleReportService()
 
         orchestrator = PipelineOrchestrator(
-            collector=collector,
             classifier=classifier,
             reporter=reporter
         )

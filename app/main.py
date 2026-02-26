@@ -206,20 +206,6 @@ def health_check() -> dict:
         if overall_status == "healthy":
             overall_status = "degraded"
 
-    # Apify
-    if settings.is_apify_configured():
-        checks["external_services"]["apify"] = {
-            "status": "configured",
-            "message": "All configuration keys present"
-        }
-    else:
-        checks["external_services"]["apify"] = {
-            "status": "warning",
-            "message": "Missing configuration: token"
-        }
-        if overall_status == "healthy":
-            overall_status = "degraded"
-
     # Azure Storage
     if settings.is_azure_storage_configured():
         checks["external_services"]["azure_storage"] = {
@@ -246,7 +232,6 @@ def health_check() -> dict:
         }
 
     # MMC Core API Key (X-Api-Key — required for Phase 10 Factiva and Phase 11 equity)
-    # Missing is NOT degraded — these phases have their own fallback sources
     if settings.is_mmc_api_key_configured():
         checks["external_services"]["mmc_api_key"] = {
             "status": "configured",
@@ -255,7 +240,7 @@ def health_check() -> dict:
     else:
         checks["external_services"]["mmc_api_key"] = {
             "status": "info",
-            "message": "MMC Core API key not configured (Factiva/equity will use fallback sources)"
+            "message": "MMC Core API key not configured (Factiva news and equity price APIs require MMC API key)"
         }
 
     # Check backup freshness
@@ -315,7 +300,6 @@ if __name__ == "__main__":
         # Used by Windows Task Scheduler
         import structlog
         from app.database import Base, engine
-        from app.services.collector import ApifyCollector
         from app.services.classifier import RoleClassificationService
         from app.services.reporter import RoleReportService
         from app.services.pipeline import PipelineOrchestrator
@@ -333,7 +317,6 @@ if __name__ == "__main__":
         logger.info("pipeline_cli_started")
 
         # Initialize services
-        collector = ApifyCollector(apify_token=settings.apify_token)
         classifier = RoleClassificationService(
             endpoint=settings.azure_openai_endpoint,
             api_key=settings.azure_openai_api_key,
@@ -351,7 +334,6 @@ if __name__ == "__main__":
             logger.info("mmc_auth_not_configured", message="Enterprise APIs will use fallback methods")
 
         orchestrator = PipelineOrchestrator(
-            collector=collector,
             classifier=classifier,
             reporter=reporter,
             token_manager=token_manager
