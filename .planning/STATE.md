@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 
 Milestone: v1.2 Factiva Knowledge Integration
 Phase: 14 of 16 (FactivaCollector Port)
-Plan: 01 of 1 (completed)
-Status: Phase 14 Plan 01 complete — ready for Plan 02
-Last activity: 2026-02-26 — Completed 14-01-PLAN.md (date_range_hours column)
+Plan: 02 of 2 (completed)
+Status: Phase 14 complete — FactivaCollector ported with bug fixes
+Last activity: 2026-02-26 — Completed 14-02-PLAN.md (BrasilIntel bug fixes + improvements)
 
-Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [█░░░░░░░░░] 10%
+Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [██░░░░░░░░] 20%
 
 ## Performance Metrics
 
@@ -51,6 +51,13 @@ Phase 14-01 decisions:
 - preserve-existing-config: Migration adds column but preserves admin-customized values in existing rows
 - corrected-seed-data-i82: Seed data uses validated 'i82' industry code only (not unvalidated 'i82,i832')
 
+Phase 14-02 decisions:
+- api-param-mapping: Use correct MMC Core API param names (industry, company, query) validated by BrasilIntel
+- keyword-joining-or: OR-join keywords for broader coverage (BrasilIntel proven approach)
+- url-encoding-article-ids: quote(article_id, safe='') hardens against special characters
+- configurable-date-range: 48h default matches BrasilIntel, allows tuning per deployment
+- is-configured-delegation: Consistent with EquityPriceClient and Settings pattern
+
 ### Pending Todos
 
 None.
@@ -71,7 +78,7 @@ v1.2 considerations:
 
 ## Session Continuity
 
-Last session: 2026-02-26 19:04 UTC
-Stopped at: Completed 14-01-PLAN.md (date_range_hours column added)
+Last session: 2026-02-26 19:07 UTC
+Stopped at: Completed 14-02-PLAN.md (FactivaCollector bug fixes + improvements)
 Resume file: None
-Next: Plan 14-02 to port BrasilIntel FactivaCollector implementation
+Next: Phase 15 Pipeline Cleanup (remove Apify fallback, simplify collection logic)
