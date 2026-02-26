@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 
 Milestone: v1.2 Factiva Knowledge Integration
 Phase: 15 of 16 (Pipeline Simplification & Cleanup) — IN PROGRESS
-Plan: 01 of 03 — COMPLETE
-Status: Plan 15-01 complete, ready for Plan 15-02
-Last activity: 2026-02-26 — Completed 15-01-PLAN.md
+Plan: 02 of 03 — COMPLETE
+Status: Plan 15-02 complete, ready for Plan 15-03
+Last activity: 2026-02-26 — Completed 15-02-PLAN.md
 
-Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [████░░░░░░] 40%
+Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -63,6 +63,11 @@ Phase 15-01 decisions:
 - run-record-timing: Create Run record at start of Step 1 (before collection) for cleaner logging
 - zero-article-handling: Continue pipeline to generate empty brief when Factiva returns zero articles
 
+Phase 15-02 decisions:
+- retain-base-interface: Keep NewsSource ABC in base.py unchanged for future reference
+- rewrite-test-scripts: Rewrite test scripts to use FactivaCollector (maintain testing capability)
+- seed-sources-historical: Keep seed_sources.py with historical note (functional for future use)
+
 ### Pending Todos
 
 None.
@@ -84,6 +89,6 @@ v1.2 considerations:
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 15-01-PLAN.md
+Stopped at: Completed 15-02-PLAN.md
 Resume file: None
-Next: `/gsd:execute-phase 15-02` for Delete ApifyCollector
+Next: Phase 15-03 already in progress (parallel execution)
