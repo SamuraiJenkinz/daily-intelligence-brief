@@ -2,7 +2,7 @@
 FactivaConfig ORM model for MDInsights.
 
 Single-row configuration table for admin-configurable Factiva API query parameters.
-Created in Phase 10 — Factiva News Collection.
+Created in Phase 10, extended in Phase 14 — Factiva News Collection.
 
 The row with id=1 is the active configuration. It is seeded on startup via migration
 and managed by the Phase 10-03 admin UI.
@@ -28,6 +28,7 @@ class FactivaConfig(Base):
         company_codes   - Factiva company/entity codes (comma-separated, e.g. "MM")
         keywords        - Free-text search terms (comma-separated, e.g. "insurance reinsurance")
         page_size       - Articles per search page (1-100, default 25)
+        date_range_hours - Lookback window in hours for search date range (default 48)
         enabled         - Master switch: if False, FactivaCollector skips collection
 
     Audit fields:
@@ -63,6 +64,12 @@ class FactivaConfig(Base):
         default=25,
         comment="Articles per search page (1-100)"
     )
+    date_range_hours = Column(
+        Integer,
+        nullable=False,
+        default=48,
+        comment="Lookback window in hours for Factiva search date range (default 48)"
+    )
 
     # Master switch — set False to disable Factiva without removing config
     enabled = Column(
@@ -89,5 +96,6 @@ class FactivaConfig(Base):
     def __repr__(self) -> str:
         return (
             f"<FactivaConfig(id={self.id}, enabled={self.enabled}, "
-            f"industry_codes='{self.industry_codes}', keywords='{self.keywords}')>"
+            f"industry_codes='{self.industry_codes}', keywords='{self.keywords}', "
+            f"date_range_hours={self.date_range_hours})>"
         )
