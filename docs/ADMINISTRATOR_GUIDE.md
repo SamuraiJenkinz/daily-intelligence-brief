@@ -8,7 +8,7 @@
 
 ## 1. Quick Start (What MDInsights Does)
 
-MDInsights is an automated intelligence system that collects news from 18+ insurance industry sources, classifies them by priority and audience role using AI, and delivers tailored intelligence briefs to four teams each morning:
+MDInsights is an automated intelligence system that collects news from Factiva/Dow Jones via MMC Core API, classifies them by priority and audience role using AI, and delivers tailored intelligence briefs to four teams each morning:
 
 - **Brokers** — Market-facing intelligence on rates, capacity, trends
 - **Leadership** — Strategic insights, regulatory changes, major market shifts
@@ -142,7 +142,7 @@ Recipients receive role-specific briefs in their inbox each morning at approxima
 
 ## 3. Source Management
 
-MDInsights collects news from multiple sources including Apify scrapers and RSS feeds. You can view, add, edit, disable, and delete sources via the admin dashboard.
+MDInsights collects news from Factiva/Dow Jones as its sole source via MMC Core API. The sources table is available for future multi-source support. You can view, add, edit, disable, and delete sources via the admin dashboard.
 
 ### Viewing Sources
 
@@ -150,7 +150,6 @@ MDInsights collects news from multiple sources including Apify scrapers and RSS 
 2. Or click **Sources** in the left navigation menu
 3. The sources table shows:
    - **Name** — Display name of the source
-   - **Type** — `apify` (web scraper) or `rss` (RSS feed)
    - **URL** — Source website or feed URL
    - **Status** — Enabled (green) or Disabled (red)
    - **Actions** — Edit, Toggle, Delete buttons
@@ -164,8 +163,7 @@ MDInsights collects news from multiple sources including Apify scrapers and RSS 
 
 **Prerequisites:**
 
-- For Apify sources: You need the Apify Actor ID from the Apify platform
-- For RSS sources: You need the RSS feed URL
+- You need the source name and URL
 
 **Steps:**
 
@@ -173,9 +171,7 @@ MDInsights collects news from multiple sources including Apify scrapers and RSS 
 2. Click the **+ Add New Source** button (top right)
 3. Fill in the form:
    - **Name** — Display name (e.g., "Insurance Journal")
-   - **URL** — Website URL or RSS feed URL
-   - **Type** — Select `apify` or `rss`
-   - **Actor ID** — (Apify only) Enter the Apify Actor ID
+   - **URL** — Website URL
    - **Enabled** — Check to enable immediately, uncheck to add as disabled
 4. Click **Create Source**
 
@@ -185,8 +181,6 @@ MDInsights collects news from multiple sources including Apify scrapers and RSS 
 
 - Name must be unique (no duplicate source names)
 - URL must be a valid HTTP/HTTPS URL
-- Actor ID is required for Apify sources
-- Actor ID must match format: `username/actor-name`
 
 **After Successful Creation:**
 
@@ -266,10 +260,9 @@ MDInsights automatically monitors each source's article collection patterns. If 
 **What to Do:**
 
 1. Check if the source website is down (visit URL in browser)
-2. For Apify sources: Check Apify dashboard for actor run failures
-3. For RSS sources: Validate RSS feed URL still works
-4. If source is permanently down, disable it temporarily
-5. If source changed structure, contact development team for scraper update
+2. Check Factiva configuration in admin dashboard (/admin/factiva)
+3. If source is permanently down, disable it temporarily
+4. If source changed structure, contact development team
 
 **Health Check Details:**
 
@@ -537,7 +530,7 @@ This section covers common failure scenarios with symptom-based troubleshooting.
 1. Open log file: `data\logs\mdinsights_[today's-date].log`
 2. Search for `"ERROR"` or `"error"` to find failure point
 3. Common failure points:
-   - **Collection failed** — Apify token invalid or source website down
+   - **Collection failed** — MMC API key invalid, Factiva misconfigured, or source website down
    - **Classification failed** — Azure OpenAI API key invalid or quota exceeded
    - **Report generation failed** — Jinja2 template error or file permission issue
 
@@ -594,8 +587,8 @@ This section covers common failure scenarios with symptom-based troubleshooting.
 3. If count is zero:
    - All sources failed to return articles
    - Check source health (see Source Health Alert section)
-   - Check Apify dashboard for actor run failures
-   - Verify `APIFY_TOKEN` in `.env` is valid
+   - Check Factiva configuration in admin dashboard
+   - Verify `MMC_API_BASE_URL` and `MMC_API_KEY` in `.env` are valid
 
 **Step 3: Check Classification**
 
@@ -610,7 +603,7 @@ This section covers common failure scenarios with symptom-based troubleshooting.
 **Resolution:**
 
 - If sources disabled: Enable sources and re-run pipeline
-- If collection failed: Check Apify token, check source websites
+- If collection failed: Check Factiva configuration, verify MMC API credentials
 - If classification failed: Check Azure OpenAI credentials and quota
 
 ### Symptom: Health Alert Email Received
@@ -634,22 +627,11 @@ The email lists sources with issues and their status:
 2. Verify website is online and accessible
 3. Check if website structure changed (may break scraper)
 
-**Step 3: Check Source Type**
+**Step 3: Check Factiva Configuration**
 
-**For Apify Sources:**
-
-1. Log into Apify dashboard: https://console.apify.com
-2. Navigate to **Actors** → Find the actor for this source
-3. Check **Last Run** status:
-   - **Succeeded** — Actor ran but found zero results (website changed)
-   - **Failed** — Actor crashed (configuration issue or website change)
-4. Review actor run log for errors
-
-**For RSS Sources:**
-
-1. Open the RSS feed URL in browser
-2. Verify feed is valid XML
-3. Check if feed contains recent items (within last 24 hours)
+1. Navigate to Factiva configuration page: `/admin/factiva`
+2. Verify industry codes and keywords are correctly configured
+3. Check MMC API connection status
 
 **Step 4: Decide Action**
 
@@ -657,9 +639,9 @@ The email lists sources with issues and their status:
 |----------|--------|
 | Website temporarily down | Wait 24 hours, check if auto-recovers |
 | Website permanently down | Disable source via admin dashboard |
-| Website changed structure | Contact development team for scraper update |
-| Apify actor broken | Check Apify console, contact development team |
-| RSS feed URL changed | Update source URL via admin dashboard |
+| Website changed structure | Contact development team |
+| MMC API issue | Check API Status page in admin dashboard, verify MMC_API_KEY |
+| Collection returning zero articles | Check Factiva config, verify industry codes and keywords |
 
 **Step 5: Monitor for Recovery**
 
@@ -671,7 +653,7 @@ The email lists sources with issues and their status:
 
 - Temporary issue: Wait for auto-recovery
 - Permanent issue: Disable source
-- Scraper broken: Contact development team with actor name and error details
+- MMC API issue: Contact development team with error details from admin dashboard
 
 ### Symptom: Drift Alert Email Received
 
@@ -799,7 +781,7 @@ MDInsights uses four Windows Task Scheduler tasks for automation.
 - Runs as: **SYSTEM** (highest privileges)
 - Run whether user is logged on or not
 - Start when available (catches up if machine was off)
-- Network required: Yes (Apify, Azure OpenAI, Microsoft Graph)
+- Network required: Yes (MMC Core API, Azure OpenAI, Microsoft Graph)
 - Allow on-demand start: Yes
 
 **Logs:**
@@ -958,9 +940,10 @@ MICROSOFT_CLIENT_SECRET=[your-client-secret]
 SENDER_EMAIL=mdinsights@marsh.com
 ```
 
-**Apify** (for web scraping):
+**MMC Core API** (for Factiva news, equity prices, enterprise email):
 ```
-APIFY_TOKEN=[your-apify-token]
+MMC_API_BASE_URL=https://mmc-dallas-int-non-prod-ingress.mgti.mmc.com
+MMC_API_KEY=[your-api-key]
 ```
 
 **Admin Email** (for failure alerts):
@@ -1057,7 +1040,7 @@ COMPANY_NAME=Marsh
 
 Contact the development team when:
 
-1. **Source scrapers broken** — Website structure changed, Apify actor failing
+1. **Factiva collection issues** — MMC Core API errors, industry code changes
 2. **Severe classification drift** — AI quality degraded significantly (p<0.01)
 3. **System errors** — Python exceptions, database corruption, unrecoverable errors
 4. **Feature requests** — Need new source, new report format, new role
@@ -1075,7 +1058,7 @@ Contact the development team when:
 
 - Source name
 - Source URL
-- Error message from Apify dashboard or log file
+- Error message from admin dashboard or log file
 - Date/time of failure
 
 **For Classification Issues:**
@@ -1192,6 +1175,6 @@ Get-Item data\mdinsights.db | Select-Object Name, Length
 
 ---
 
-**Document Version:** 1.0
-**Last Updated:** 2026-02-08
-**For:** MDInsights Phase 8 (Polish and Launch)
+**Document Version:** 1.2
+**Last Updated:** 2026-02-27
+**For:** MDInsights v1.2

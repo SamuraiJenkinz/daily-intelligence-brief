@@ -16,7 +16,7 @@ This guide walks through setting up MDInsights on a fresh Windows Server 2019+ i
 2. [Installation](#2-installation-15-min)
 3. [Azure AD App Registration](#3-azure-ad-app-registration-20-min) ⚠️ **CRITICAL**
 4. [Azure OpenAI Configuration](#4-azure-openai-configuration-10-min)
-5. [Apify Configuration](#5-apify-configuration-5-min)
+5. [MMC Core API Configuration](#5-mmc-core-api-configuration-5-min)
 6. [Azure Blob Storage for Backups](#6-azure-blob-storage-for-backups-10-min)
 7. [Database Initialization](#7-database-initialization-5-min)
 8. [Task Scheduler Configuration](#8-task-scheduler-configuration-10-min)
@@ -54,12 +54,13 @@ Before beginning, ensure you have:
 - [ ] Storage account admin access
 
 ### External Services
-- [ ] Apify account ([apify.com](https://apify.com/)) - Free tier available
+- [ ] MMC Core API staging credentials (API key and base URL from Apigee platform)
 - [ ] Valid Microsoft 365 tenant with mailbox for sender email
 
 ### Network Configuration
 - [ ] Outbound HTTPS (443) allowed to:
-  - `*.apify.com` (web scraping)
+  - `mmc-dallas-int-non-prod-ingress.mgti.mmc.com` (MMC Core API non-prod)
+  - `mmc-dallas-int-prod-ingress.mgti.mmc.com` (MMC Core API prod)
   - `*.openai.azure.com` (AI classification)
   - `graph.microsoft.com` (email delivery)
   - `*.blob.core.windows.net` (backup storage)
@@ -113,7 +114,7 @@ pip install -r requirements.txt
 pip list
 ```
 
-**Expected output**: Should see packages including `fastapi`, `sqlalchemy`, `openai`, `apify-client`, `structlog`
+**Expected output**: Should see packages including `fastapi`, `sqlalchemy`, `openai`, `httpx`, `structlog`
 
 ### 2.4 Create Environment File
 
@@ -350,37 +351,28 @@ AZURE_OPENAI_API_VERSION=2024-08-01-preview
 
 ---
 
-## 5. Apify Configuration (5 min)
+## 5. MMC Core API Configuration (5 min)
 
-Apify provides web scraping infrastructure for collecting news articles.
+MMC Core API (Apigee platform) provides Factiva/Dow Jones news, equity price data, and enterprise email delivery.
 
-### 5.1 Create Apify Account
+### 5.1 Obtain API Credentials
 
-1. Navigate to: **https://apify.com/**
-2. Click **Sign up** (top right)
-3. Create free account or sign in with Google/GitHub
+1. Contact your MMC platform administrator for API access
+2. You will receive:
+   - **API Base URL** (non-prod or prod)
+   - **API Key** (X-Api-Key header value)
 
-**Free tier includes:**
-- $5 USD monthly credit
-- Sufficient for testing and small-scale production
-- Production typically costs $20-50/month depending on source count
-
-### 5.2 Get API Token
-
-1. After sign in, navigate to: **https://console.apify.com/account/integrations**
-   - Or: Click your profile → Settings → Integrations
-2. Find **Personal API tokens** section
-3. Copy the **Personal API token** value
-
-### 5.3 Update .env File
+### 5.2 Update .env File
 
 ```ini
-APIFY_TOKEN=apify_api_AbCdEfGhIjKlMnOpQrStUvWxYz1234567890
+MMC_API_BASE_URL=https://mmc-dallas-int-non-prod-ingress.mgti.mmc.com
+MMC_API_KEY=your_mmc_api_key_here
 ```
 
-**Token format:**
-- Starts with `apify_api_`
-- Followed by random alphanumeric characters
+**Notes:**
+- Non-prod URL for staging/testing
+- Prod URL: `https://mmc-dallas-int-prod-ingress.mgti.mmc.com`
+- API key is used for Factiva news, equity prices, and enterprise email
 
 ---
 
@@ -473,7 +465,7 @@ Seeding news sources...
 **What this does:**
 - Creates SQLite database at `data/mdinsights.db`
 - Creates tables: `news_articles`, `sources`, `runs`, `insurers`
-- Seeds 20 default news sources (Apify and RSS sources)
+- Seeds default Factiva configuration (industry codes, keywords, date range)
 - Idempotent (safe to run multiple times)
 
 ### 7.3 Verify Database
@@ -669,8 +661,8 @@ python -c "from app.config import get_settings; s = get_settings(); print('Azure
 # Check Microsoft Graph
 python -c "from app.config import get_settings; s = get_settings(); print('Microsoft Graph:', 'OK' if s.is_graph_configured() else 'MISSING')"
 
-# Check Apify
-python -c "from app.config import get_settings; s = get_settings(); print('Apify:', 'OK' if s.is_apify_configured() else 'MISSING')"
+# Check MMC Core API
+python -c "from app.config import get_settings; s = get_settings(); print('MMC API:', 'OK' if s.is_mmc_api_key_configured() else 'MISSING')"
 
 # Check Azure Storage
 python -c "from app.config import get_settings; s = get_settings(); print('Azure Storage:', 'OK' if s.is_azure_storage_configured() else 'MISSING')"
@@ -695,7 +687,7 @@ Classification result:
   ✓ Azure OpenAI working
 ```
 
-### 10.3 Apify Test
+### 10.3 Factiva Collection Test
 
 ```powershell
 python scripts\test_collection.py
@@ -703,9 +695,9 @@ python scripts\test_collection.py
 
 **Expected output:**
 ```
-Testing Apify collection...
-Collected 15 articles from Reinsurance News
-✓ Apify working
+Testing Factiva collection via MMC Core API...
+Collected [N] articles from Factiva
+✓ Factiva collection working
 ```
 
 ### 10.4 Email Test
@@ -786,7 +778,7 @@ Verify in Azure portal:
 - [ ] All .env variables configured (no placeholder values)
 - [ ] Azure OpenAI endpoint and key valid
 - [ ] Azure AD app registration complete with admin consent granted
-- [ ] Apify token valid
+- [ ] MMC Core API key valid
 - [ ] Azure Storage connection string valid
 - [ ] Sender email configured (valid mailbox)
 - [ ] All recipient lists configured for production users
@@ -812,7 +804,7 @@ Verify in Azure portal:
 
 ### Testing
 - [ ] Azure OpenAI classification test passed
-- [ ] Apify collection test passed
+- [ ] Factiva collection test passed
 - [ ] Email delivery test passed
 - [ ] Full pipeline test passed (end-to-end)
 - [ ] Backup test passed (file in Azure Blob)
@@ -963,8 +955,9 @@ Complete reference of all .env variables:
 | `MICROSOFT_CLIENT_ID` | Yes | App registration client ID | `87654321-4321-...` |
 | `MICROSOFT_CLIENT_SECRET` | Yes | Client secret value | `xK8Q~...` |
 | `SENDER_EMAIL` | Yes | Email sender address | `intelligence@marsh.com` |
-| **Apify** ||||
-| `APIFY_TOKEN` | Yes | Apify API token | `apify_api_...` |
+| **MMC Core API** ||||
+| `MMC_API_BASE_URL` | Yes | MMC Core API base URL | `https://mmc-dallas-int-...` |
+| `MMC_API_KEY` | Yes | MMC Core API key | `your_api_key` |
 | **Azure Storage** ||||
 | `AZURE_STORAGE_CONNECTION_STRING` | Yes | Storage account connection | `DefaultEndpointsProtocol=...` |
 | `AZURE_STORAGE_CONTAINER` | Yes | Backup container name | `mdinsights-backups` |
@@ -1026,17 +1019,18 @@ Complete reference of all .env variables:
 - Verify `SENDER_EMAIL` is valid mailbox in Microsoft 365
 - Try sending test email manually from that mailbox
 
-#### Issue: "Apify actor run failed"
+#### Issue: "Factiva collection failed"
 
 **Symptoms:**
 - Collection test fails
 - Pipeline Step 2 collects 0 articles
 
 **Solutions:**
-1. Verify Apify token valid: https://console.apify.com/account/integrations
-2. Check Apify account credit balance (free tier = $5/month)
-3. Check source URLs are accessible (some sites block Apify IPs)
-4. Review Apify run logs in console
+1. Verify `MMC_API_KEY` is valid and not expired
+2. Verify `MMC_API_BASE_URL` is correct for your environment (non-prod vs prod)
+3. Check network connectivity to MMC Core API endpoint
+4. Review API response errors in log files (`data\logs\`)
+5. Contact MMC platform administrator if API key needs rotation
 
 #### Issue: "Task Scheduler task fails immediately"
 
@@ -1149,7 +1143,7 @@ python -c "from app.config import get_settings; s = get_settings(); print(s.get_
 **External Resources:**
 - Azure OpenAI Docs: https://learn.microsoft.com/azure/ai-services/openai/
 - Microsoft Graph Docs: https://learn.microsoft.com/graph/
-- Apify Docs: https://docs.apify.com/
+- MMC Core API: Contact MMC platform administrator for API documentation
 
 **Emergency Contacts:**
 - Azure AD Admin: [Insert contact]
@@ -1158,6 +1152,6 @@ python -c "from app.config import get_settings; s = get_settings(); print(s.get_
 
 ---
 
-**Document Version:** 1.0
-**Last Updated:** 2026-02-08
+**Document Version:** 1.2
+**Last Updated:** 2026-02-27
 **Maintained By:** MDInsights Platform Team

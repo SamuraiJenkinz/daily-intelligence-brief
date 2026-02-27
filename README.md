@@ -6,14 +6,14 @@ MDInsights is an AI-powered intelligence briefing system built for the global in
 
 The insurance market generates a high volume of news daily across dozens of sources. Different teams within an organisation care about different things: brokers need competitor intelligence, leadership needs M&A signals, compliance needs regulatory changes, and underwriting needs loss events and rate movements.
 
-MDInsights solves this by collecting news from 18+ global sources, using GPT-4o to classify each article by audience relevance, priority, sentiment, and category, then generating tailored HTML briefs and emailing them to the right teams automatically.
+MDInsights solves this by collecting news from Factiva/Dow Jones via MMC Core API, using GPT-4o to classify each article by audience relevance, priority, sentiment, and category, then generating tailored HTML briefs and emailing them to the right teams automatically.
 
 ## How It Works
 
 ```
-Apify + RSS Sources
+Factiva / Dow Jones (MMC Core API)
         |
-   News Collection      Scrape/fetch from global insurance/reinsurance sources
+   News Collection      Enterprise news feed with configurable industry/keyword queries
         |
    AI Classification    GPT-4o: priority, role relevance, entities, sentiment,
         |                impact, category, region, business line
@@ -21,7 +21,7 @@ Apify + RSS Sources
         |
    Report Generation    Jinja2 templates produce role-specific HTML briefs
         |
-   Email Delivery       Microsoft Graph API sends tailored briefs per audience
+   Email Delivery       MMC Core API enterprise email (Graph API fallback)
 ```
 
 ## Audience Roles
@@ -50,7 +50,9 @@ Each article can be assigned to multiple roles. Leadership gets 5 stories, Broke
 - **Python / FastAPI** -- Web framework and API
 - **SQLAlchemy / SQLite** -- ORM and storage
 - **Azure OpenAI (GPT-4o)** -- Article classification and summarisation
-- **Apify + RSS** -- News collection from global sources
+- **Factiva/Dow Jones** -- Sole news source via MMC Core API
+- **MMC Core API** -- Enterprise API platform (news, equity, email)
+- **httpx** -- HTTP client for API integration
 - **Jinja2 / Premailer** -- HTML report generation with inlined CSS for email
 - **Microsoft Graph API** -- Email delivery
 - **sentence-transformers** -- Semantic deduplication
@@ -89,7 +91,7 @@ This registers four Windows Task Scheduler tasks:
 All settings are managed via environment variables in `.env`:
 
 - `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_DEPLOYMENT` -- AI classification
-- `APIFY_TOKEN` -- News collection
+- `MMC_API_BASE_URL`, `MMC_API_KEY` -- MMC Core API (Factiva news, equity prices)
 - `MICROSOFT_TENANT_ID`, `MICROSOFT_CLIENT_ID`, `MICROSOFT_CLIENT_SECRET`, `SENDER_EMAIL` -- Email delivery
 - `REPORT_RECIPIENTS_BROKERS`, `REPORT_RECIPIENTS_LEADERSHIP`, etc. -- Per-role email recipients
 - `PORT` -- Web server port (default: 8001)
@@ -99,11 +101,13 @@ All settings are managed via environment variables in `.env`:
 The web-based admin interface provides:
 
 - **Dashboard** -- System status, source counts, recent pipeline runs
-- **Sources** -- CRUD management for news sources (Apify and RSS)
+- **Sources** -- CRUD management for news sources
 - **Recipients** -- Per-role email recipient management with inline editing
 - **Archive** -- Browse and view previously generated reports by date and role
 - **Search** -- Full-text search (FTS5) across all collected articles with filters
 - **Trigger** -- Manual pipeline execution with optional email delivery
+- **Factiva Config** -- Factiva query parameters (industry codes, keywords, date range)
+- **API Status** -- Enterprise API health monitoring and fallback event log
 
 ## Author
 

@@ -156,8 +156,8 @@
 
 - [ ] **Source management documented**
   - How to enable/disable sources
-  - How to add new Apify sources
-  - How to configure RSS feeds
+  - How to manage source entries
+  - How to configure Factiva settings (industry codes, keywords, date range)
 
 ---
 
@@ -221,6 +221,6 @@ _______________________________________________________________
 
 ---
 
-**Document version:** 1.0
-**Last updated:** February 8, 2026
+**Document version:** 1.2
+**Last updated:** February 27, 2026
 **Contact:** Kevin Taylor, Colleague Technology Services
