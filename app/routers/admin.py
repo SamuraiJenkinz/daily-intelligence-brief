@@ -69,7 +69,6 @@ def _get_enterprise_api_status(db) -> list:
         "email": "Email Delivery",
     }
     FALLBACK_TYPES = {
-        ApiEventType.NEWS_FALLBACK,
         ApiEventType.EQUITY_FALLBACK,
         ApiEventType.EMAIL_FALLBACK,
     }
@@ -117,10 +116,9 @@ def _get_fallback_events(db, limit: int = 20) -> list:
     Returns a list of dicts with keys:
         timestamp, api_name, event_type, reason
 
-    Covers: NEWS_FALLBACK, EQUITY_FALLBACK, EMAIL_FALLBACK, TOKEN_FAILED
+    Covers: EQUITY_FALLBACK, EMAIL_FALLBACK, TOKEN_FAILED
     """
     FALLBACK_EVENT_TYPES = [
-        ApiEventType.NEWS_FALLBACK,
         ApiEventType.EQUITY_FALLBACK,
         ApiEventType.EMAIL_FALLBACK,
         ApiEventType.TOKEN_FAILED,

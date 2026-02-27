@@ -54,7 +54,7 @@ async def lifespan(app: FastAPI):
             columns = [row[1] for row in result.fetchall()]
             if "collector_source" not in columns:
                 session.execute(
-                    text("ALTER TABLE news_articles ADD COLUMN collector_source TEXT DEFAULT 'Apify/RSS'")
+                    text("ALTER TABLE news_articles ADD COLUMN collector_source TEXT DEFAULT 'Factiva'")
                 )
                 session.commit()
                 logger.info("startup_migration: added collector_source column to news_articles")
