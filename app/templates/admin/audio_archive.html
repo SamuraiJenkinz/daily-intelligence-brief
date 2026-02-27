@@ -1,0 +1,316 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Audio Archive{% endblock %}
+
+{% block extra_head %}
+<style>
+    .archive-filters {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        margin-bottom: 1.5rem;
+    }
+
+    .archive-date-header {
+        background-color: #f8f9fa;
+        border-left: 4px solid var(--marsh-light-blue);
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+        color: var(--marsh-blue);
+    }
+
+    .briefing-row {
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .briefing-row:hover {
+        background-color: #f0f7ff;
+    }
+
+    .briefing-row:last-child {
+        border-bottom: none;
+    }
+
+    .briefing-row .role-badge {
+        display: inline-block;
+        background-color: var(--marsh-light-blue);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.375rem;
+        font-weight: 500;
+        margin-right: 0.5rem;
+    }
+
+    .briefing-row .metadata {
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    .player-container {
+        display: none;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 0.375rem;
+        margin-top: 0.5rem;
+    }
+
+    .player-container.show {
+        display: block;
+    }
+
+    .custom-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .play-pause-btn {
+        background-color: var(--marsh-blue);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+    }
+
+    .play-pause-btn:hover {
+        background-color: var(--marsh-light-blue);
+        transform: scale(1.05);
+    }
+
+    .play-pause-btn:active {
+        transform: scale(0.95);
+    }
+
+    .seek-bar {
+        flex: 1;
+        height: 6px;
+        border-radius: 3px;
+        outline: none;
+        background: #dee2e6;
+        appearance: none;
+        -webkit-appearance: none;
+    }
+
+    .seek-bar::-webkit-slider-thumb {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--marsh-light-blue);
+        cursor: pointer;
+    }
+
+    .seek-bar::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--marsh-light-blue);
+        cursor: pointer;
+        border: none;
+    }
+
+    .time-display {
+        font-size: 0.875rem;
+        color: #6c757d;
+        min-width: 90px;
+        text-align: right;
+        flex-shrink: 0;
+    }
+
+    .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.15em;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2 mb-1">
+                <i class="bi bi-soundwave"></i>
+                Audio Archive
+            </h1>
+            <p class="text-muted">Browse and play archived audio intelligence briefings</p>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="archive-filters">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label for="monthFilter" class="form-label fw-semibold">Filter by Month</label>
+                <select
+                    id="monthFilter"
+                    class="form-select"
+                    hx-get="/admin/audio-archive"
+                    hx-target="#archive-list"
+                    hx-swap="innerHTML"
+                    hx-trigger="change"
+                    hx-indicator="#loading-spinner"
+                    name="month"
+                >
+                    <option value="">All Months</option>
+                    {% for month_opt in month_options %}
+                    <option value="{{ month_opt.value }}" {% if selected_month == month_opt.value %}selected{% endif %}>
+                        {{ month_opt.label }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-6 d-flex align-items-end">
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary w-100"
+                    onclick="document.getElementById('monthFilter').value=''; htmx.trigger('#monthFilter', 'change');"
+                >
+                    <i class="bi bi-x-circle"></i>
+                    Clear Filter
+                </button>
+            </div>
+        </div>
+
+        <!-- Loading indicator -->
+        <div id="loading-spinner" class="htmx-indicator mt-3">
+            <div class="d-flex align-items-center">
+                <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <span class="text-muted">Loading audio archive...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Archive List -->
+    <div id="archive-list">
+        {% include 'admin/partials/audio_archive_list.html' %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function togglePlayer(header) {
+        const row = header.closest('.briefing-row');
+        const playerContainer = row.querySelector('.player-container');
+
+        // Pause all other audio elements first (one-at-a-time semantics)
+        document.querySelectorAll('audio').forEach(audio => {
+            if (audio !== playerContainer.querySelector('audio')) {
+                audio.pause();
+                // Reset other player buttons to play icon
+                const otherRow = audio.closest('.briefing-row');
+                if (otherRow) {
+                    const otherBtn = otherRow.querySelector('.play-pause-btn');
+                    if (otherBtn) {
+                        otherBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+                    }
+                }
+            }
+        });
+
+        // Toggle this player
+        playerContainer.classList.toggle('show');
+    }
+
+    function togglePlayback(btn) {
+        const playerContainer = btn.closest('.player-container');
+        const audio = playerContainer.querySelector('audio');
+
+        if (audio.paused) {
+            // Pause all other audio elements first
+            document.querySelectorAll('audio').forEach(otherAudio => {
+                if (otherAudio !== audio && !otherAudio.paused) {
+                    otherAudio.pause();
+                    // Reset other button icons
+                    const otherRow = otherAudio.closest('.briefing-row');
+                    if (otherRow) {
+                        const otherBtn = otherRow.querySelector('.play-pause-btn');
+                        if (otherBtn) {
+                            otherBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+                        }
+                    }
+                }
+            });
+
+            audio.play();
+            btn.innerHTML = '<i class="bi bi-pause-fill"></i>';
+        } else {
+            audio.pause();
+            btn.innerHTML = '<i class="bi bi-play-fill"></i>';
+        }
+    }
+
+    // Setup event listeners when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        setupAudioPlayers();
+    });
+
+    // Re-setup after HTMX swaps
+    document.addEventListener('htmx:afterSwap', function() {
+        setupAudioPlayers();
+    });
+
+    function setupAudioPlayers() {
+        document.querySelectorAll('audio').forEach(audio => {
+            const playerContainer = audio.closest('.player-container');
+            const seekBar = playerContainer.querySelector('.seek-bar');
+            const timeDisplay = playerContainer.querySelector('.time-display');
+            const playBtn = playerContainer.querySelector('.play-pause-btn');
+
+            // Update seek bar and time display as audio plays
+            audio.addEventListener('timeupdate', function() {
+                if (audio.duration) {
+                    seekBar.value = (audio.currentTime / audio.duration) * 100;
+
+                    const currentMin = Math.floor(audio.currentTime / 60);
+                    const currentSec = Math.floor(audio.currentTime % 60);
+                    const totalMin = Math.floor(audio.duration / 60);
+                    const totalSec = Math.floor(audio.duration % 60);
+
+                    timeDisplay.textContent = `${currentMin}:${currentSec.toString().padStart(2, '0')} / ${totalMin}:${totalSec.toString().padStart(2, '0')}`;
+                }
+            });
+
+            // Reset button and seek bar when audio ends
+            audio.addEventListener('ended', function() {
+                playBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+                seekBar.value = 0;
+            });
+
+            // Update total duration when metadata loads
+            audio.addEventListener('loadedmetadata', function() {
+                const totalMin = Math.floor(audio.duration / 60);
+                const totalSec = Math.floor(audio.duration % 60);
+
+                // Update time display with actual duration
+                const currentDisplay = timeDisplay.textContent.split(' / ')[0] || '0:00';
+                timeDisplay.textContent = `${currentDisplay} / ${totalMin}:${totalSec.toString().padStart(2, '0')}`;
+            });
+
+            // Seek bar input handler
+            seekBar.addEventListener('input', function() {
+                if (audio.duration) {
+                    audio.currentTime = (seekBar.value / 100) * audio.duration;
+                }
+            });
+        });
+    }
+</script>
+{% endblock %}

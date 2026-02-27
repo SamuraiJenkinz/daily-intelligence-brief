@@ -1,0 +1,70 @@
+{% if available_dates %}
+    <div class="mb-3">
+        <p class="text-muted">
+            <i class="bi bi-info-circle"></i>
+            Showing {{ total_briefings }} briefing{{ 's' if total_briefings != 1 else '' }}
+        </p>
+    </div>
+
+    {% for date_item in available_dates %}
+    <div class="card mb-3">
+        <div class="archive-date-header">
+            <i class="bi bi-calendar3"></i>
+            {{ date_item.display_date }}
+        </div>
+        <div class="card-body p-0">
+            {% for role in date_item.roles %}
+            <div class="briefing-row" data-role="{{ role.name }}" data-date="{{ role.date }}">
+                <!-- Briefing Row Header (clickable) -->
+                <div class="row-header" onclick="togglePlayer(this)">
+                    <span class="role-badge">{{ role.display_name }}</span>
+                    <span class="metadata">
+                        <i class="bi bi-clock"></i> {{ role.duration_display }}
+                        <span class="mx-2">·</span>
+                        <i class="bi bi-file-earmark-music"></i> {{ role.size_mb }} MB
+                    </span>
+                </div>
+
+                <!-- Player Container (hidden initially) -->
+                <div class="player-container">
+                    <audio preload="metadata">
+                        <source src="/admin/audio/{{ role.name }}/{{ role.date }}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+
+                    <div class="custom-controls">
+                        <button class="play-pause-btn" onclick="togglePlayback(this)" aria-label="Play/Pause">
+                            <i class="bi bi-play-fill"></i>
+                        </button>
+
+                        <input
+                            type="range"
+                            class="seek-bar"
+                            min="0"
+                            max="100"
+                            value="0"
+                            aria-label="Seek"
+                        >
+
+                        <span class="time-display">0:00 / {{ role.duration_display }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-inbox display-1 text-muted"></i>
+            <h3 class="mt-3 text-muted">No Audio Briefings Found</h3>
+            <p class="text-muted">
+                Archived audio briefings will appear here after they are generated.
+                {% if selected_month %}
+                <br>Try adjusting your filter or clearing the month selection.
+                {% endif %}
+            </p>
+        </div>
+    </div>
+{% endif %}

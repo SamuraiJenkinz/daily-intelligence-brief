@@ -1080,6 +1080,82 @@ def get_archive_browser(
     return HTMLResponse(content=html)
 
 
+@router.get("/audio-archive", response_class=HTMLResponse)
+async def audio_archive(request: Request, month: str = Query(default="", description="Filter by month YYYY-MM")):
+    """Audio archive browser with date-first navigation and inline player."""
+    audio_dir = Path(__file__).parent.parent.parent / "data" / "audio"
+
+    # Scan audio directory for available dates
+    available_dates = []
+    if audio_dir.exists():
+        for date_dir in sorted(audio_dir.iterdir(), reverse=True):
+            if not date_dir.is_dir():
+                continue
+            date_name = date_dir.name
+            # Validate date format
+            if not re.match(r"^\d{4}-\d{2}-\d{2}$", date_name):
+                continue
+            # Apply month filter if specified
+            if month and not date_name.startswith(month):
+                continue
+            # Scan for available roles
+            roles = []
+            for role in ["brokers", "leadership", "compliance", "underwriting"]:
+                mp3_path = date_dir / f"{role}.mp3"
+                if mp3_path.exists():
+                    file_stat = mp3_path.stat()
+                    size_mb = round(file_stat.st_size / 1_048_576, 2)
+                    # Estimate duration from file size (~128kbps = 16000 bytes/sec)
+                    duration_seconds = int(file_stat.st_size / 16000)
+                    duration_min = duration_seconds // 60
+                    duration_sec = duration_seconds % 60
+                    roles.append({
+                        "name": role,
+                        "display_name": role.title(),
+                        "size_mb": size_mb,
+                        "duration_display": f"{duration_min}:{duration_sec:02d}",
+                        "date": date_name,
+                    })
+            if roles:
+                available_dates.append({
+                    "date": date_name,
+                    "display_date": datetime.strptime(date_name, "%Y-%m-%d").strftime("%A, %B %d, %Y"),
+                    "roles": roles,
+                })
+
+    # Build available months for filter dropdown
+    all_months = set()
+    if audio_dir.exists():
+        for date_dir in audio_dir.iterdir():
+            if date_dir.is_dir() and re.match(r"^\d{4}-\d{2}-\d{2}$", date_dir.name):
+                all_months.add(date_dir.name[:7])
+    available_months = sorted(all_months, reverse=True)
+    # Format month labels
+    month_options = []
+    for m in available_months:
+        try:
+            label = datetime.strptime(m, "%Y-%m").strftime("%B %Y")
+            month_options.append({"value": m, "label": label})
+        except ValueError:
+            continue
+
+    context = {
+        "active_nav": "audio_archive",
+        "available_dates": available_dates,
+        "month_options": month_options,
+        "selected_month": month,
+        "total_briefings": sum(len(d["roles"]) for d in available_dates),
+    }
+
+    # If HTMX request, return just the partial
+    if request.headers.get("HX-Request"):
+        template = jinja_env.get_template("admin/partials/audio_archive_list.html")
+        return HTMLResponse(template.render(**context))
+
+    template = jinja_env.get_template("admin/audio_archive.html")
+    return HTMLResponse(template.render(**context))
+
+
 @router.get("/audio/{role}/{date}")
 async def stream_audio(role: str, date: str):
     """
