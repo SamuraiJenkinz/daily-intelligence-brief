@@ -27,8 +27,10 @@ Payload field names:
     the real API. They are defined as class-level constants (FIELD_*) so they can be
     corrected in one place without refactoring call sites.
 """
+import base64
 import json
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import httpx
@@ -89,6 +91,7 @@ class EnterpriseEmailClient:
     FIELD_CC_RECIPIENTS = "ccRecipients"
     FIELD_SENDER = "impersonatedEmail"
     FIELD_SENDER_NAME = "senderName"
+    FIELD_ATTACHMENTS = "attachments"  # INFERRED — validate on deployment machine
 
     def __init__(self) -> None:
         settings = get_settings()
@@ -208,6 +211,7 @@ class EnterpriseEmailClient:
         to_addresses: List[str],
         subject: str,
         html_body: str,
+        audio_path: Optional[Path] = None,
         cc_addresses: Optional[List[str]] = None,
         run_id: Optional[int] = None,
     ) -> Dict[str, Any]:
@@ -224,6 +228,7 @@ class EnterpriseEmailClient:
             to_addresses: List of TO recipient email addresses (required, non-empty)
             subject:      Email subject line
             html_body:    Full HTML email content
+            audio_path:   Optional path to MP3 file to attach
             cc_addresses: Optional list of CC recipients
             run_id:       Optional pipeline run ID for ApiEvent attribution
 
@@ -237,6 +242,38 @@ class EnterpriseEmailClient:
             return {"status": "error", "message": "No recipients specified"}
 
         payload = self._build_payload(to_addresses, subject, html_body, cc_addresses)
+
+        # Attach audio MP3 if provided
+        if audio_path and audio_path.exists():
+            try:
+                audio_bytes = audio_path.read_bytes()
+                size_mb = len(audio_bytes) / 1_048_576
+
+                if size_mb <= 3.0:
+                    audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
+                    payload[self.FIELD_ATTACHMENTS] = [{
+                        "name": audio_path.name,
+                        "contentType": "audio/mpeg",
+                        "contentBytes": audio_base64,
+                    }]
+                    self.logger.info(
+                        "enterprise_audio_attachment_added",
+                        filename=audio_path.name,
+                        size_mb=round(size_mb, 2),
+                    )
+                else:
+                    self.logger.warning(
+                        "enterprise_audio_attachment_too_large",
+                        size_mb=round(size_mb, 2),
+                        limit_mb=3.0,
+                    )
+            except Exception as e:
+                # Attachment failure must never prevent email delivery
+                self.logger.warning(
+                    "enterprise_audio_attachment_failed",
+                    path=str(audio_path),
+                    error=str(e),
+                )
 
         self.logger.info(
             "enterprise_email_sending",
