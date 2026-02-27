@@ -30,6 +30,11 @@ class Settings(BaseSettings):
     azure_openai_deployment: str = "gpt-4o"
     azure_openai_api_version: str = "2024-08-01-preview"
 
+    # TTS Settings
+    tts_voice: str = "nova"                # Azure OpenAI TTS voice name
+    elevenlabs_api_key: str = ""           # ElevenLabs API key for fallback TTS
+    elevenlabs_voice_id: str = ""          # ElevenLabs voice ID (find match for "nova")
+
     # Microsoft Graph (for email delivery in Phase 5)
     microsoft_tenant_id: str = ""
     microsoft_client_id: str = ""
@@ -132,6 +137,13 @@ class Settings(BaseSettings):
             and self.mmc_api_key
             and self.mmc_sender_email
         )
+
+    def is_elevenlabs_configured(self) -> bool:
+        """Check if ElevenLabs TTS fallback is fully configured.
+
+        Requires both API key and voice ID to be set.
+        """
+        return bool(self.elevenlabs_api_key and self.elevenlabs_voice_id)
 
     def _parse_recipient_list(self, recipients_str: str) -> list[str]:
         """

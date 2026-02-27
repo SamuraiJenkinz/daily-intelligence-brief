@@ -30,6 +30,10 @@ class ApiEventType(str, enum.Enum):
     Email events (Phase 12):
         EMAIL_SENT      - Enterprise email successfully delivered
         EMAIL_FALLBACK  - Fell back to Microsoft Graph (enterprise API unavailable)
+
+    TTS events (Phase 18):
+        TTS_SUCCESS     - TTS conversion succeeded (primary or fallback)
+        TTS_FALLBACK    - Fell back from primary to fallback TTS provider
     """
     TOKEN_ACQUIRED = "token_acquired"
     TOKEN_REFRESHED = "token_refreshed"
@@ -40,6 +44,8 @@ class ApiEventType(str, enum.Enum):
     EQUITY_FALLBACK = "equity_fallback"
     EMAIL_SENT = "email_sent"
     EMAIL_FALLBACK = "email_fallback"
+    TTS_SUCCESS = "tts_success"
+    TTS_FALLBACK = "tts_fallback"
 
 
 class ApiEvent(Base):

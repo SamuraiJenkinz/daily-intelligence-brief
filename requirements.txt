@@ -38,5 +38,8 @@ tenacity
 # Number to words conversion (for TTS preprocessing)
 num2words>=0.5.13
 
+# ElevenLabs TTS (fallback provider for audio generation)
+elevenlabs
+
 # Statistical analysis (drift detection)
 scipy
