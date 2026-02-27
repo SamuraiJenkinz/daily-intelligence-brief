@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 
 Milestone: v2.0 Audio Intelligence Briefings
 Phase: 17 - Audio Generation Foundation
-Plan: 02 of 3 complete
-Status: In progress
-Last activity: 2026-02-27 — Completed 17-02-PLAN.md (audio generator service & CLI runner)
+Plan: 03 of 3 complete (checkpoint deferred)
+Status: Phase complete
+Last activity: 2026-02-27 — Completed 17-03-PLAN.md (end-to-end verification with deferred checkpoint)
 
-Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 100% | v2.0 [██........] 12%
+Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 100% | v2.0 [███.......] 19%
 
 ## Performance Metrics
 
@@ -39,9 +39,9 @@ Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 10
 
 **v2.0 Progress:**
 - Total phases: 4 (Phase 17-20)
-- Plans completed: 2 of ~16 estimated
-- Phase 17 progress: 2 of 3 plans complete
-- Phase 17 estimated completion: Plan 17-03
+- Plans completed: 3 of ~16 estimated
+- Phase 17 progress: 3 of 3 plans complete (Phase 17 complete)
+- Phase 18 progress: Not started
 - Requirements mapped: 16/16
 - Coverage: 100%
 - Depth: Comprehensive (4-phase structure from research)
@@ -65,6 +65,7 @@ Recent v2.0 decisions:
 - TTS client separate from GPT-4o client for independent deployment/scaling (17-02)
 - Idempotent generation with 100KB file size validation prevents duplicate API costs (17-02)
 - Atomic file writes (temp + rename) prevent corruption from interrupted generation (17-02)
+- Validation script created for programmatic audio checks; human verification deferred (17-03)
 
 ### Pending Todos
 
@@ -80,9 +81,12 @@ Carried across milestones:
 - Enterprise email FIELD_* constants are inferred — validate on deployment machine
 - TD-01: Admin trigger routes don't pass TokenManager (medium severity, non-production impact)
 
+v2.0 blockers:
+- **Azure OpenAI TTS credentials needed for audio generation end-to-end testing** — Phase 17 services complete but human audio quality verification deferred until credentials configured (see 17-03-SUMMARY.md)
+
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 17-02-PLAN.md (audio generator service & CLI runner)
-Resume file: .planning/phases/17-audio-generation-foundation/17-02-SUMMARY.md
-Next: `/gsd:plan-phase 17` to create plan 17-03 (final Phase 17 plan)
+Stopped at: Completed 17-03-PLAN.md (end-to-end verification with deferred checkpoint)
+Resume file: .planning/phases/17-audio-generation-foundation/17-03-SUMMARY.md
+Next: Phase 17 complete. Ready for Phase 18 (ElevenLabs fallback) or Phase 19 (pipeline integration). Recommend configuring Azure OpenAI credentials and completing audio verification before Phase 19.
