@@ -1031,6 +1031,12 @@ class PipelineOrchestrator:
                 audio_attached=audio_attached,
             )
 
+            # Step 10: Audio file retention cleanup
+            step_start = datetime.utcnow()
+            self._cleanup_old_audio_files()
+            step_duration = (datetime.utcnow() - step_start).total_seconds()
+            self.logger.info("step_10_audio_cleanup", duration_seconds=round(step_duration, 2))
+
             return result
 
         except Exception as e:
@@ -1196,6 +1202,124 @@ class PipelineOrchestrator:
                 audio_results[role] = result
 
         return audio_results
+
+    def _cleanup_old_audio_files(self) -> None:
+        """
+        Clean up audio files older than AUDIO_RETENTION_DAYS.
+
+        Scans data/audio/ directory for MP3 files, deletes files older than the
+        retention threshold (default 90 days), removes empty date directories,
+        and logs summary to both structlog and api_events.
+
+        Audio cleanup failures never crash the pipeline — all operations wrapped
+        in try/except with silent return on error.
+        """
+        try:
+            from datetime import datetime, timedelta
+            from pathlib import Path
+            import os
+            from app.database import SessionLocal
+            from app.models.api_event import ApiEvent, ApiEventType
+
+            # Read retention days from environment (default 90)
+            retention_days = int(os.environ.get("AUDIO_RETENTION_DAYS", "90"))
+
+            # Determine audio directory path (same pattern as streaming endpoint)
+            audio_dir = Path(__file__).parent.parent.parent / "data" / "audio"
+
+            # Skip if audio directory doesn't exist
+            if not audio_dir.exists():
+                self.logger.info("audio_cleanup_skipped", reason="audio_dir_not_found")
+                return
+
+            # Calculate cutoff time
+            now = datetime.now()
+            cutoff_time = now - timedelta(days=retention_days)
+
+            # Track cleanup stats
+            deleted_count = 0
+            deleted_bytes = 0
+
+            # Iterate through date directories
+            for date_dir in audio_dir.iterdir():
+                if not date_dir.is_dir():
+                    continue
+
+                # Iterate through MP3 files in this date directory
+                for audio_file in date_dir.glob("*.mp3"):
+                    try:
+                        # Calculate file age
+                        file_mtime = datetime.fromtimestamp(audio_file.stat().st_mtime)
+                        age_days = (now - file_mtime).days
+
+                        # Delete if older than retention threshold
+                        if file_mtime < cutoff_time:
+                            file_size = audio_file.stat().st_size
+                            audio_file.unlink()
+                            deleted_count += 1
+                            deleted_bytes += file_size
+
+                            # Log per-file deletion
+                            self.logger.info(
+                                "audio_file_deleted",
+                                file=audio_file.name,
+                                date_dir=date_dir.name,
+                                age_days=age_days,
+                                size_mb=round(file_size / 1_048_576, 2)
+                            )
+                    except Exception as file_error:
+                        # Log error but continue processing other files
+                        self.logger.error(
+                            "audio_file_cleanup_error",
+                            file=str(audio_file),
+                            error=str(file_error)
+                        )
+
+                # Check if date directory is now empty and remove it
+                try:
+                    if not any(date_dir.iterdir()):
+                        date_dir.rmdir()
+                        self.logger.info("empty_date_dir_removed", date_dir=date_dir.name)
+                except Exception as dir_error:
+                    self.logger.error(
+                        "date_dir_removal_error",
+                        date_dir=str(date_dir),
+                        error=str(dir_error)
+                    )
+
+            # Calculate total deleted MB
+            deleted_mb = round(deleted_bytes / 1_048_576, 2)
+
+            # Log summary to structlog
+            self.logger.info(
+                "audio_cleanup_complete",
+                deleted_count=deleted_count,
+                deleted_mb=deleted_mb,
+                retention_days=retention_days
+            )
+
+            # Log summary to api_events
+            try:
+                with SessionLocal() as session:
+                    event = ApiEvent(
+                        event_type=ApiEventType.AUDIO_CLEANUP,
+                        api_name="tts",
+                        success=True,
+                        detail=json.dumps({
+                            "deleted_count": deleted_count,
+                            "deleted_mb": deleted_mb,
+                            "retention_days": retention_days
+                        })
+                    )
+                    session.add(event)
+                    session.commit()
+            except Exception as log_error:
+                # Never let logging failure break cleanup
+                self.logger.error("audio_cleanup_event_logging_failed", error=str(log_error))
+
+        except Exception as e:
+            # Audio cleanup failure must NEVER crash the pipeline
+            self.logger.error("audio_cleanup_failed", error=str(e))
 
     async def _send_with_fallback(
         self,
