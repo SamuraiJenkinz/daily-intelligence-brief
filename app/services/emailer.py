@@ -5,8 +5,10 @@ Uses daemon authentication (ClientSecretCredential) for automated
 email sending without user interaction. Requires Mail.Send application
 permission with admin consent in Azure AD.
 """
+import base64
 import logging
-from typing import Any
+from pathlib import Path
+from typing import Any, Optional
 
 import httpx
 import structlog
@@ -65,6 +67,7 @@ class GraphEmailService:
         to_addresses: list[str],
         subject: str,
         html_body: str,
+        audio_path: Optional[Path] = None,
         cc_addresses: list[str] | None = None,
         bcc_addresses: list[str] | None = None,
         save_to_sent: bool = True,
@@ -76,6 +79,7 @@ class GraphEmailService:
             to_addresses: List of TO recipient email addresses
             subject: Email subject line
             html_body: HTML content for email body
+            audio_path: Optional path to MP3 file to attach
             cc_addresses: Optional list of CC recipients
             bcc_addresses: Optional list of BCC recipients
             save_to_sent: Whether to save email to Sent folder
@@ -120,6 +124,42 @@ class GraphEmailService:
                 {"emailAddress": {"address": addr}} for addr in bcc_addresses
             ]
 
+        # Attach audio MP3 if provided
+        if audio_path and audio_path.exists():
+            try:
+                audio_bytes = audio_path.read_bytes()
+                size_mb = len(audio_bytes) / 1_048_576
+
+                if size_mb > 3.0:
+                    # Graph API attachment limit — skip but log warning
+                    logger.warning(
+                        "audio_attachment_too_large",
+                        size_mb=round(size_mb, 2),
+                        path=str(audio_path),
+                        limit_mb=3.0,
+                    )
+                else:
+                    audio_base64 = base64.b64encode(audio_bytes).decode("utf-8")
+                    message_payload["message"]["attachments"] = [{
+                        "@odata.type": "#microsoft.graph.fileAttachment",
+                        "name": audio_path.name,
+                        "contentType": "audio/mpeg",
+                        "contentBytes": audio_base64,
+                        "isInline": False,
+                    }]
+                    logger.info(
+                        "audio_attachment_added",
+                        filename=audio_path.name,
+                        size_mb=round(size_mb, 2),
+                    )
+            except Exception as e:
+                # Attachment failure is a warning, NOT an error — email still sends
+                logger.warning(
+                    "audio_attachment_failed",
+                    path=str(audio_path),
+                    error=str(e),
+                )
+
         # Send via Graph API
         logger.info(
             "Sending email",
@@ -139,7 +179,10 @@ class GraphEmailService:
             )
 
             if response.status_code == 202:
-                logger.info("Email sent successfully")
+                logger.info(
+                    "Email sent successfully",
+                    has_audio=bool(message_payload["message"].get("attachments")),
+                )
                 return {
                     "status": "ok",
                     "recipients": len(to_addresses),
