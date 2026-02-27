@@ -17,8 +17,8 @@ Requirements for Audio Intelligence Briefings. Each maps to roadmap phases.
 ### Audio Generation
 
 - [x] **AUDIO-01**: System converts scripts to MP3 audio using Azure OpenAI TTS (tts-1-hd model) as primary provider
-- [ ] **AUDIO-02**: System falls back to ElevenLabs TTS when Azure TTS is unavailable or fails
-- [ ] **AUDIO-03**: TTS provider abstraction layer supports both Azure and ElevenLabs with consistent interface
+- [x] **AUDIO-02**: System falls back to ElevenLabs TTS when Azure TTS is unavailable or fails
+- [x] **AUDIO-03**: TTS provider abstraction layer supports both Azure and ElevenLabs with consistent interface
 - [x] **AUDIO-04**: All roles use one consistent professional voice for brand identity
 - [x] **AUDIO-05**: Each role's audio briefing is 2-5 minutes in duration
 
@@ -78,8 +78,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCRPT-03 | Phase 17 | Complete |
 | SCRPT-04 | Phase 17 | Complete |
 | AUDIO-01 | Phase 17 | Complete |
-| AUDIO-02 | Phase 18 | Pending |
-| AUDIO-03 | Phase 18 | Pending |
+| AUDIO-02 | Phase 18 | Complete |
+| AUDIO-03 | Phase 18 | Complete |
 | AUDIO-04 | Phase 17 | Complete |
 | AUDIO-05 | Phase 17 | Complete |
 | DLVR-01 | Phase 19 | Pending |
@@ -99,4 +99,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-27*
-*Last updated: 2026-02-27 after Phase 17 completion*
+*Last updated: 2026-02-27 after Phase 18 completion*
