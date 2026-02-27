@@ -73,29 +73,30 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCRPT-01 | TBD | Pending |
-| SCRPT-02 | TBD | Pending |
-| SCRPT-03 | TBD | Pending |
-| SCRPT-04 | TBD | Pending |
-| AUDIO-01 | TBD | Pending |
-| AUDIO-02 | TBD | Pending |
-| AUDIO-03 | TBD | Pending |
-| AUDIO-04 | TBD | Pending |
-| AUDIO-05 | TBD | Pending |
-| DLVR-01 | TBD | Pending |
-| DLVR-02 | TBD | Pending |
-| DLVR-03 | TBD | Pending |
-| DLVR-04 | TBD | Pending |
-| OPS-01 | TBD | Pending |
-| OPS-02 | TBD | Pending |
-| OPS-03 | TBD | Pending |
-| OPS-04 | TBD | Pending |
+| SCRPT-01 | Phase 17 | Pending |
+| SCRPT-02 | Phase 17 | Pending |
+| SCRPT-03 | Phase 17 | Pending |
+| SCRPT-04 | Phase 17 | Pending |
+| AUDIO-01 | Phase 17 | Pending |
+| AUDIO-02 | Phase 18 | Pending |
+| AUDIO-03 | Phase 18 | Pending |
+| AUDIO-04 | Phase 17 | Pending |
+| AUDIO-05 | Phase 17 | Pending |
+| DLVR-01 | Phase 19 | Pending |
+| DLVR-02 | Phase 19 | Pending |
+| DLVR-03 | Phase 20 | Pending |
+| DLVR-04 | Phase 20 | Pending |
+| OPS-01 | Phase 19 | Pending |
+| OPS-02 | Phase 19 | Pending |
+| OPS-03 | Phase 20 | Pending |
+| OPS-04 | Phase 20 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 16 total
-- Mapped to phases: 0
-- Unmapped: 16 (pending roadmap creation)
+- Mapped to phases: 16
+- Unmapped: 0
+- Coverage: 100% ✓
 
 ---
 *Requirements defined: 2026-02-27*
-*Last updated: 2026-02-27 after initial definition*
+*Last updated: 2026-02-27 after roadmap creation*
