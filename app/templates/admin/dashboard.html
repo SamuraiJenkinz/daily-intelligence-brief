@@ -256,16 +256,10 @@
                                             {% endif %}
                                         </td>
                                         <td>
-                                            {% if run.source_breakdown %}
-                                                {% if run.source_breakdown.get('Factiva') %}
-                                                    <span class="badge" style="background-color: #0077c8;">{{ run.source_breakdown['Factiva'] }} Factiva</span>
-                                                {% endif %}
-                                                {% if run.source_breakdown.get('Apify/RSS') %}
-                                                    <span class="badge bg-secondary">{{ run.source_breakdown['Apify/RSS'] }} Apify/RSS</span>
-                                                {% endif %}
-                                                {% if not run.source_breakdown.get('Factiva') and not run.source_breakdown.get('Apify/RSS') %}
-                                                    <span class="text-muted">-</span>
-                                                {% endif %}
+                                            {% if run.source_breakdown and run.source_breakdown.get('Factiva') %}
+                                                <span class="badge" style="background-color: #0077c8;">
+                                                    <i class="bi bi-newspaper me-1"></i>{{ run.source_breakdown['Factiva'] }} Factiva
+                                                </span>
                                             {% else %}
                                                 <span class="text-muted">-</span>
                                             {% endif %}
