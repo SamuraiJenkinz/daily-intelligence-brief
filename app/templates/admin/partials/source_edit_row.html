@@ -24,28 +24,6 @@
         {% endif %}
     </td>
     <td>
-        <select
-            class="form-select form-select-sm {% if errors and errors.source_type %}is-invalid{% endif %}"
-            name="source_type"
-            required
-        >
-            <option value="apify" {% if source.source_type.value == "apify" %}selected{% endif %}>Apify</option>
-            <option value="rss" {% if source.source_type.value == "rss" %}selected{% endif %}>RSS</option>
-        </select>
-        {% if errors and errors.source_type %}
-            <div class="invalid-feedback">{{ errors.source_type }}</div>
-        {% endif %}
-    </td>
-    <td>
-        <input
-            type="text"
-            class="form-control form-control-sm"
-            name="actor_id"
-            value="{{ source.actor_id or '' }}"
-            placeholder="Optional"
-        >
-    </td>
-    <td>
         <div class="form-check">
             <input
                 type="checkbox"

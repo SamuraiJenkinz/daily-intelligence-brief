@@ -34,38 +34,10 @@
                 <div class="invalid-feedback">{{ errors.url }}</div>
             {% endif %}
         </div>
+    </div>
 
-        <div class="col-md-4">
-            <label for="newSourceType" class="form-label">Source Type <span class="text-danger">*</span></label>
-            <select
-                class="form-select {% if errors and errors.source_type %}is-invalid{% endif %}"
-                id="newSourceType"
-                name="source_type"
-                required
-            >
-                <option value="" disabled {% if not form_data or not form_data.source_type %}selected{% endif %}>Choose...</option>
-                <option value="apify" {% if form_data and form_data.source_type == 'apify' %}selected{% endif %}>Apify</option>
-                <option value="rss" {% if form_data and form_data.source_type == 'rss' %}selected{% endif %}>RSS</option>
-            </select>
-            {% if errors and errors.source_type %}
-                <div class="invalid-feedback">{{ errors.source_type }}</div>
-            {% endif %}
-        </div>
-
-        <div class="col-md-4">
-            <label for="newSourceActorId" class="form-label">Actor ID <span class="text-muted">(optional)</span></label>
-            <input
-                type="text"
-                class="form-control"
-                id="newSourceActorId"
-                name="actor_id"
-                value="{{ form_data.actor_id if form_data else '' }}"
-                placeholder="e.g., apify/web-scraper"
-            >
-            <div class="form-text">Required for Apify sources</div>
-        </div>
-
-        <div class="col-md-4">
+    <div class="row g-3 mt-2">
+        <div class="col-md-6">
             <label class="form-label d-block">Status</label>
             <div class="form-check form-switch mt-2">
                 <input
