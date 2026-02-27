@@ -13,7 +13,7 @@ import structlog
 import re
 from typing import List, Dict, Optional
 from fastapi import APIRouter, Query, HTTPException, Request, Form
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, FileResponse
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
 from pydantic import BaseModel, EmailStr, ValidationError, field_validator
@@ -1080,6 +1080,82 @@ def get_archive_browser(
     return HTMLResponse(content=html)
 
 
+@router.get("/audio/{role}/{date}")
+async def stream_audio(role: str, date: str):
+    """
+    Stream MP3 audio file for a role's daily briefing.
+
+    Security:
+    - Validates role against whitelist
+    - Validates date format (YYYY-MM-DD)
+    - Uses Path.resolve() to prevent path traversal
+    - Verifies final path is within data/audio/
+
+    Args:
+        role: Role name (brokers, leadership, compliance, underwriting)
+        date: Date in YYYY-MM-DD format
+
+    Returns:
+        FileResponse with MP3 audio content (supports HTTP range requests for seeking)
+
+    Raises:
+        HTTPException: 404 if file not found, invalid role, or invalid path
+    """
+    # Valid roles (lowercase)
+    valid_roles = ["brokers", "leadership", "compliance", "underwriting"]
+
+    # SECURITY: Validate role
+    if role.lower() not in valid_roles:
+        logger.warning("audio_stream_invalid_role", role=role)
+        raise HTTPException(status_code=404, detail="Invalid role")
+
+    # SECURITY: Validate date format (YYYY-MM-DD)
+    if not re.match(r'^\d{4}-\d{2}-\d{2}$', date):
+        logger.warning("audio_stream_invalid_date", date=date)
+        raise HTTPException(status_code=404, detail="Invalid date format")
+
+    # Build audio path
+    audio_dir = Path(__file__).parent.parent.parent / "data" / "audio"
+    audio_path = audio_dir / date / f"{role.lower()}.mp3"
+
+    # SECURITY: Resolve path and verify it's within audio directory
+    try:
+        resolved_path = audio_path.resolve()
+        resolved_audio_dir = audio_dir.resolve()
+
+        # Check if resolved path is within audio directory
+        if not str(resolved_path).startswith(str(resolved_audio_dir)):
+            logger.warning(
+                "audio_stream_path_traversal_attempt",
+                role=role,
+                date=date,
+                attempted_path=str(resolved_path)
+            )
+            raise HTTPException(status_code=404, detail="Invalid path")
+
+        # Check if file exists
+        if not resolved_path.exists() or not resolved_path.is_file():
+            raise HTTPException(status_code=404, detail="Audio file not found")
+
+        # Log successful stream
+        logger.info("audio_stream_served", role=role, date=date)
+
+        # Return file with audio/mpeg MIME type
+        # FileResponse automatically handles HTTP range requests (Accept-Ranges header)
+        # which enables browser seeking in HTML5 audio player
+        return FileResponse(
+            path=str(resolved_path),
+            media_type="audio/mpeg",
+            filename=f"{role}_{date}.mp3"
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("audio_stream_error", role=role, date=date, error=str(e))
+        raise HTTPException(status_code=404, detail="Audio file not found")
+
+
 @router.get("/archive/{role}/{date}", response_class=HTMLResponse)
 def get_archived_report(role: str, date: str):
     """
@@ -1101,9 +1177,6 @@ def get_archived_report(role: str, date: str):
     Raises:
         HTTPException: 404 if file not found or invalid path
     """
-    import re
-    from fastapi.responses import FileResponse
-
     # Valid roles (lowercase)
     valid_roles = ["brokers", "leadership", "compliance", "underwriting"]
 
