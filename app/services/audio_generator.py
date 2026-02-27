@@ -3,26 +3,22 @@ Audio generator service for generating role-based audio briefings.
 
 Orchestrates the complete script-to-MP3 pipeline: script generation -> text
 preprocessing -> TTS conversion -> MP3 file storage. Includes idempotent
-generation, atomic file writes, and retry logic.
+generation, atomic file writes, and automatic provider failover.
 """
 import os
-import time
+import json
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict
 
 import structlog
-from openai import AzureOpenAI, OpenAI, APIError, RateLimitError, APIConnectionError, APITimeoutError
-from tenacity import (
-    retry,
-    stop_after_attempt,
-    wait_random_exponential,
-    retry_if_exception_type,
-)
 
 from app.config import get_settings
 from app.services.script_generator import ScriptGenerator
 from app.services.text_preprocessor import TextPreprocessor
+from app.services.tts import AzureTTSProvider, ElevenLabsTTSProvider, TTSError
+from app.models.api_event import ApiEvent, ApiEventType
+from app.database import SessionLocal
 
 
 logger = structlog.get_logger(__name__)
@@ -49,7 +45,7 @@ class AudioBriefingService:
     def __init__(self):
         """
         Initialize audio briefing service with script generator, text preprocessor,
-        and separate TTS client.
+        and TTS providers (primary + fallback).
         """
         settings = get_settings()
 
@@ -59,44 +55,24 @@ class AudioBriefingService:
         # Initialize text preprocessor (handles num2words normalization)
         self.text_preprocessor = TextPreprocessor()
 
-        # Initialize separate TTS client (may use different deployment than GPT-4o)
-        if settings.is_azure_openai_configured():
-            endpoint = settings.azure_openai_endpoint
-            if '/deployments/' in endpoint:
-                # Corporate proxy - endpoint is the full URL, use standard client
-                base_url = endpoint.rstrip('/')
-                if base_url.endswith('/chat/completions'):
-                    base_url = base_url[:-len('/chat/completions')]
-                # For TTS, we need to modify the base_url to use audio endpoint
-                # Corporate proxy pattern: keep base_url as-is, TTS uses different path
-                self.tts_client = OpenAI(base_url=base_url, api_key=settings.azure_openai_api_key)
-            else:
-                # Standard Azure OpenAI endpoint
-                self.tts_client = AzureOpenAI(
-                    azure_endpoint=endpoint,
-                    api_key=settings.azure_openai_api_key,
-                    api_version=settings.azure_openai_api_version
-                )
-        else:
-            self.tts_client = None
+        # Initialize TTS providers (primary + fallback)
+        try:
+            self.primary_provider = AzureTTSProvider()
+        except TTSError:
+            self.primary_provider = None
+            logger.warning("azure_tts_not_configured", msg="Primary TTS provider unavailable")
 
-        # TTS settings
-        self.model = "tts-1-hd"
-        self._voice = settings.company_name if hasattr(settings, 'tts_voice') else "nova"
-        self.response_format = "mp3"
-        self.speed = 1.0
+        if settings.is_elevenlabs_configured():
+            try:
+                self.fallback_provider = ElevenLabsTTSProvider()
+            except TTSError:
+                self.fallback_provider = None
+                logger.warning("elevenlabs_tts_not_configured", msg="Fallback TTS provider unavailable")
+        else:
+            self.fallback_provider = None
 
         # Create audio directory if doesn't exist
         os.makedirs(AUDIO_DIR, exist_ok=True)
-
-    @property
-    def voice(self) -> str:
-        """Get TTS voice setting (configurable, defaults to nova)."""
-        settings = get_settings()
-        # Check if tts_voice is configured in settings
-        if hasattr(settings, 'tts_voice') and settings.tts_voice:
-            return settings.tts_voice
-        return self._voice
 
     def generate_briefing(self, role: str, articles: List[dict], report_date: datetime) -> dict:
         """
@@ -199,90 +175,97 @@ class AudioBriefingService:
                 "reason": "generation_failed"
             }
 
-    @retry(
-        stop=stop_after_attempt(3),
-        wait=wait_random_exponential(multiplier=1, min=2, max=15),
-        retry=retry_if_exception_type((APIError, RateLimitError, APIConnectionError, APITimeoutError)),
-        reraise=True
-    )
     def _convert_to_audio(self, script: str, output_path: Path) -> dict:
         """
-        Convert preprocessed script to MP3 audio file via Azure OpenAI TTS.
+        Convert preprocessed script to MP3 audio with automatic provider failover.
 
-        Uses atomic file writes (temp file + rename) to prevent corruption.
+        Tries primary provider (Azure) first, then falls back to ElevenLabs on failure.
+        All TTS events are logged to api_events table for dashboard visibility.
 
         Args:
             script: Preprocessed script text (TTS-ready)
             output_path: Destination path for MP3 file
 
         Returns:
-            dict: File metadata (path, size_bytes, size_mb, voice, model)
+            dict: File metadata (path, size_bytes, size_mb, provider, voice, model)
 
         Raises:
-            RuntimeError: If Azure OpenAI TTS not configured
-            APIError, RateLimitError, APIConnectionError, APITimeoutError: API errors
+            RuntimeError: If no TTS providers are configured or all providers fail
         """
-        # Check TTS client is configured
-        if self.tts_client is None:
-            raise RuntimeError("Azure OpenAI TTS not configured")
+        if self.primary_provider is None and self.fallback_provider is None:
+            raise RuntimeError("No TTS providers configured")
 
-        # Create directory if doesn't exist
-        output_path.parent.mkdir(parents=True, exist_ok=True)
+        # Try primary provider (Azure)
+        if self.primary_provider is not None:
+            try:
+                logger.info("tts_attempting", provider=self.primary_provider.provider_name)
+                result = self.primary_provider.synthesize(script, output_path)
+                self._log_tts_event(
+                    event_type=ApiEventType.TTS_SUCCESS,
+                    provider=self.primary_provider.provider_name,
+                    success=True,
+                    detail={"size_mb": result["size_mb"]}
+                )
+                return result
+            except TTSError as e:
+                logger.warning(
+                    "tts_primary_failed",
+                    provider=self.primary_provider.provider_name,
+                    error=str(e),
+                    fallback=self.fallback_provider.provider_name if self.fallback_provider else "none"
+                )
 
-        # Prepare temp file path for atomic write
-        temp_path = output_path.with_suffix('.tmp')
+        # Try fallback provider (ElevenLabs)
+        if self.fallback_provider is not None:
+            try:
+                logger.info("tts_attempting_fallback", provider=self.fallback_provider.provider_name)
+                result = self.fallback_provider.synthesize(script, output_path)
+                self._log_tts_event(
+                    event_type=ApiEventType.TTS_FALLBACK,
+                    provider=self.fallback_provider.provider_name,
+                    success=True,
+                    detail={
+                        "size_mb": result["size_mb"],
+                        "reason": "primary_failed",
+                        "primary_provider": self.primary_provider.provider_name if self.primary_provider else "none"
+                    }
+                )
+                logger.warning(
+                    "tts_fallback_succeeded",
+                    provider=self.fallback_provider.provider_name,
+                    size_mb=result["size_mb"],
+                    msg="COST ALERT: ElevenLabs is 10x more expensive than Azure TTS"
+                )
+                return result
+            except TTSError as fallback_error:
+                logger.error(
+                    "tts_fallback_failed",
+                    provider=self.fallback_provider.provider_name,
+                    error=str(fallback_error)
+                )
+                raise RuntimeError(
+                    f"All TTS providers failed. Primary: {self.primary_provider.provider_name if self.primary_provider else 'none'}. "
+                    f"Fallback: {self.fallback_provider.provider_name}"
+                ) from fallback_error
 
-        logger.info(
-            "tts_conversion_started",
-            output_path=str(output_path),
-            script_length=len(script),
-            voice=self.voice,
-            model=self.model
-        )
+        # Only primary was configured and it failed
+        raise RuntimeError("Primary TTS provider failed and no fallback configured")
 
-        start_time = time.time()
-
+    def _log_tts_event(self, event_type: ApiEventType, provider: str, success: bool, detail: dict) -> None:
+        """Log TTS event to api_events table for dashboard visibility."""
         try:
-            # Call Azure OpenAI TTS
-            response = self.tts_client.audio.speech.create(
-                model=self.model,
-                voice=self.voice,
-                input=script,
-                response_format=self.response_format,
-                speed=self.speed
-            )
-
-            # Stream to temp file first
-            response.stream_to_file(str(temp_path))
-
-            # Atomic rename to final path
-            temp_path.rename(output_path)
-
-            # Get file metadata
-            file_size = output_path.stat().st_size
-            duration_ms = int((time.time() - start_time) * 1000)
-
-            logger.info(
-                "tts_conversion_complete",
-                output_path=str(output_path),
-                size_bytes=file_size,
-                size_mb=round(file_size / 1_048_576, 2),
-                duration_ms=duration_ms
-            )
-
-            return {
-                "path": str(output_path),
-                "size_bytes": file_size,
-                "size_mb": round(file_size / 1_048_576, 2),
-                "voice": self.voice,
-                "model": self.model
-            }
-
+            with SessionLocal() as session:
+                event = ApiEvent(
+                    event_type=event_type,
+                    api_name="tts",
+                    success=success,
+                    detail=json.dumps({"provider": provider, **detail})
+                )
+                session.add(event)
+                session.commit()
         except Exception as e:
-            # Clean up temp file if exists
-            if temp_path.exists():
-                temp_path.unlink()
-            raise
+            # Never let logging failure break audio generation
+            logger.error("tts_event_logging_failed", error=str(e))
 
     def _should_generate(self, role: str, date_str: str) -> bool:
         """
