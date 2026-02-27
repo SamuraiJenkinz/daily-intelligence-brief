@@ -12,8 +12,8 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 Milestone: v1.2 Factiva Knowledge Integration
 Phase: 16 of 16 (Dashboard Config Updates) — COMPLETE
 Plan: 03 of 03 — COMPLETE
-Status: Phase 16 complete (all 3 plans shipped), ready for phase verification
-Last activity: 2026-02-27 — Completed 16-03-PLAN.md
+Status: Phase 16 verified (21/21 must-haves passed), v1.2 milestone complete
+Last activity: 2026-02-27 — Phase 16 verified and complete
 
 Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [██████████] 100%
 
@@ -108,6 +108,6 @@ v1.2 considerations:
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 16-03-PLAN.md (Phase 16 complete)
+Stopped at: Phase 16 verified and complete — v1.2 milestone shipped
 Resume file: None
-Next: Run `/gsd:verify-phase 16` for final phase verification, then prepare v1.2 milestone completion
+Next: `/gsd:audit-milestone` or `/gsd:complete-milestone` to archive v1.2
