@@ -7,7 +7,7 @@ for email compatibility (via premailer).
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 from jinja2 import Environment, FileSystemLoader
 from premailer import transform
@@ -463,7 +463,8 @@ Generate 4-6 actionable forward-looking items."""
         self,
         articles: List[NewsArticle],
         report_date: datetime,
-        company_name: str = None
+        company_name: str = None,
+        audio_metadata: Optional[Dict[str, Optional[dict]]] = None
     ) -> Dict[str, str]:
         """
         Generate separate HTML emails for each role.
@@ -475,6 +476,9 @@ Generate 4-6 actionable forward-looking items."""
             articles: List of classified NewsArticle objects
             report_date: Date for the report
             company_name: Company name (defaults to settings)
+            audio_metadata: Optional dict mapping role name to audio result dict.
+                          Each audio result has 'path' and 'duration_seconds' keys.
+                          If None or role missing, no audio section for that role.
 
         Returns:
             Dict mapping role name to HTML email content (CSS inlined via premailer)
@@ -484,6 +488,9 @@ Generate 4-6 actionable forward-looking items."""
 
         # Prepare articles once (shared across roles)
         prepared_articles = self._prepare_articles(articles)
+
+        # Compute date string for audio URL construction
+        date_str = report_date.strftime("%Y-%m-%d")
 
         # Compute aggregation data once (shared across all role emails)
         sector_heatmap = ReportAggregator.aggregate_sector_heatmap(prepared_articles)
@@ -514,6 +521,15 @@ Generate 4-6 actionable forward-looking items."""
             # Generate executive summary for this role
             exec_summary = self._generate_executive_summary(role, prepared_articles, report_date)
 
+            # Build audio streaming URL if audio exists for this role
+            audio_url = None
+            if audio_metadata:
+                role_audio = audio_metadata.get(role)
+                if role_audio and role_audio.get("path"):
+                    # Construct streaming URL using admin endpoint
+                    # Format: /admin/audio/{role}/{date}
+                    audio_url = f"/admin/audio/{role.lower()}/{date_str}"
+
             # Load email template
             template = self.env.get_template('email/role_email.html')
 
@@ -529,6 +545,7 @@ Generate 4-6 actionable forward-looking items."""
                 'entity_tracker': entity_tracker,
                 'market_pulse': market_pulse,
                 'what_to_watch': what_to_watch_dict,
+                'audio_url': audio_url,  # None if no audio, URL string if audio exists
             }
             html = template.render(**context)
 
