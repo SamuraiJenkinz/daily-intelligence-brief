@@ -78,6 +78,13 @@ Plans:
 
 **Goal:** Audio briefings are generated automatically during daily pipeline execution and delivered via email attachment with streaming link, with email delivery guaranteed even when audio fails.
 
+**Plans:** 3 plans
+
+Plans:
+- [ ] 19-01-PLAN.md -- Parallel audio generation in pipeline (Step 5c) and admin streaming endpoint
+- [ ] 19-02-PLAN.md -- Email services accept optional MP3 audio attachment (Graph + Enterprise)
+- [ ] 19-03-PLAN.md -- Wire audio through pipeline to email delivery with template streaming links
+
 **Requirements:**
 - DLVR-01: MP3 audio file is attached to the existing role-based daily email
 - DLVR-02: Email includes a streaming link to play the audio in-browser from the admin dashboard
