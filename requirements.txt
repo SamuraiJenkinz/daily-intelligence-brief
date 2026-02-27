@@ -35,5 +35,8 @@ sentence-transformers>=5.0.0
 # Retry logic with exponential backoff
 tenacity
 
+# Number to words conversion (for TTS preprocessing)
+num2words>=0.5.13
+
 # Statistical analysis (drift detection)
 scipy
