@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 
 Milestone: v2.0 Audio Intelligence Briefings
 Phase: 19 - Pipeline Integration & Delivery (IN PROGRESS)
-Plan: 01 of ~4 estimated
-Status: Parallel audio generation and streaming endpoint complete
-Last activity: 2026-02-27 — Completed 19-01-PLAN.md (parallel audio & streaming)
+Plan: 03 of ~4 estimated
+Status: Audio wired through pipeline to email delivery with attachments and streaming links
+Last activity: 2026-02-27 — Completed 19-03-PLAN.md (audio-email integration)
 
-Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 100% | v2.0 [█████.....] 56%
+Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 100% | v2.0 [███████...] 75%
 
 ## Performance Metrics
 
@@ -39,10 +39,10 @@ Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 10
 
 **v2.0 Progress:**
 - Total phases: 4 (Phase 17-20)
-- Plans completed: 6 of ~16 estimated
+- Plans completed: 9 of ~16 estimated
 - Phase 17 progress: 3 of 3 plans complete (Phase 17 complete)
 - Phase 18 progress: 2 of 2 plans complete (Phase 18 complete)
-- Phase 19 progress: 1 of ~4 plans complete (Phase 19 in progress)
+- Phase 19 progress: 3 of ~4 plans complete (Phase 19 in progress)
 - Requirements mapped: 16/16
 - Coverage: 100%
 - Depth: Comprehensive (4-phase structure from research)
@@ -80,6 +80,11 @@ Recent v2.0 decisions:
 - return_exceptions=True for graceful audio generation degradation (19-01)
 - Audio endpoint before archive endpoint to avoid FastAPI route conflicts (19-01)
 - FileResponse automatic HTTP range support for browser audio seeking (19-01)
+- Base64-encoded MP3 attachments in both enterprise and graph email services (19-02)
+- 3MB audio file size limit with warning logs for oversized files (19-02)
+- Relative URLs for streaming links in email HTML (works in all environments) (19-03)
+- Conditional template rendering for graceful audio section omission (19-03)
+- HTML entities for emoji in email templates (maximum client compatibility) (19-03)
 
 ### Pending Todos
 
@@ -101,7 +106,7 @@ v2.0 blockers:
 
 ## Session Continuity
 
-Last session: 2026-02-27T18:42:58Z
-Stopped at: Completed 19-01-PLAN.md (parallel audio generation and streaming)
-Resume file: .planning/phases/19-pipeline-integration-delivery/19-01-SUMMARY.md
-Next: Continue Phase 19 with next plan (19-02, 19-03, or 19-04)
+Last session: 2026-02-27T18:53:17Z
+Stopped at: Completed 19-03-PLAN.md (audio-email integration)
+Resume file: .planning/phases/19-pipeline-integration-delivery/19-03-SUMMARY.md
+Next: Continue Phase 19 with final plan (19-04: Admin dashboard audio controls)
