@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 
 Milestone: v1.2 Factiva Knowledge Integration
 Phase: 16 of 16 (Dashboard Config Updates) — IN PROGRESS
-Plan: 01 of 01 — COMPLETE
-Status: Plan 16-01 complete (5/5 must-haves passed), phase 16 ready for verification
-Last activity: 2026-02-27 — Completed 16-01-PLAN.md
+Plan: 02 of 03 — COMPLETE
+Status: Plan 16-02 complete (2/2 tasks passed), ready for plan 16-03
+Last activity: 2026-02-27 — Completed 16-02-PLAN.md
 
-Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [█████████░] 90%
+Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [█████████░] 93%
 
 ## Performance Metrics
 
@@ -78,6 +78,10 @@ Phase 16-01 decisions:
 - exclude-news-fallback-events: Fallback event log excludes NEWS_FALLBACK to avoid querying non-existent events
 - factiva-default: New articles default to 'Factiva' collector_source in both model and migration SQL
 
+Phase 16-02 decisions:
+- template-badge-simplification: Replace conditional badge rendering with Factiva-only badges (reflects fresh DB reality)
+- source-ui-simplification: Remove type and actor_id fields from source management UI (legacy Apify concepts)
+
 ### Pending Todos
 
 None.
@@ -99,6 +103,6 @@ v1.2 considerations:
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 16-01-PLAN.md
+Stopped at: Completed 16-02-PLAN.md
 Resume file: None
-Next: `/gsd:verify-phase 16` for final phase verification before v1.2 milestone completion
+Next: Execute 16-03-PLAN.md (settings page cleanup), then `/gsd:verify-phase 16` for final phase verification
