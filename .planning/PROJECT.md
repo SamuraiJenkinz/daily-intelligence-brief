@@ -2,7 +2,7 @@
 
 ## What This Is
 
-AI-powered daily intelligence brief for the global insurance and reinsurance market, replacing Marsh's outsourced "Daily Insights" product. The system collects news from Factiva/Dow Jones via MMC Core API, uses GPT-4o to classify, prioritise, summarise, and route articles by audience role, enriches stories with inline equity price data for tracked companies, then generates and delivers tailored HTML briefs via MMC Core API enterprise email (with Graph API fallback) to Brokers, Leadership, Compliance, and Underwriting teams each morning before market open. Includes a full admin dashboard for source/recipient management, enterprise API health monitoring, credential configuration, and report archive.
+AI-powered daily intelligence brief for the global insurance and reinsurance market, replacing Marsh's outsourced "Daily Insights" product. The system collects news from Factiva/Dow Jones as its sole source via MMC Core API, uses GPT-4o to classify, prioritise, summarise, and route articles by audience role, enriches stories with inline equity price data for tracked companies, then generates and delivers tailored HTML briefs via MMC Core API enterprise email (with Graph API fallback) to Brokers, Leadership, Compliance, and Underwriting teams each morning before market open. Includes a full admin dashboard for source/recipient management, enterprise API health monitoring, credential configuration, and report archive.
 
 ## Core Value
 
@@ -36,20 +36,16 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 - ✓ Graceful fallback to Graph API when enterprise email is unavailable — v1.1
 - ✓ Entity-to-ticker mapping for automatic equity price enrichment — v1.1
 - ✓ Admin dashboard enterprise API health, credential config, source badges, fallback log — v1.1
+- ✓ BrasilIntel FactivaCollector port with 3 bug fixes and 2 improvements — v1.2
+- ✓ Factiva as sole news source (Apify collection layer and dependencies removed) — v1.2
+- ✓ Single-path pipeline orchestration with inline article storage — v1.2
+- ✓ English insurance/reinsurance Factiva query config with configurable date range — v1.2
+- ✓ Factiva-only dashboard: binary health status, Factiva badges, simplified source UI — v1.2
+- ✓ Dead code cleanup: 1,443 lines removed, 2 dependencies eliminated — v1.2
 
 ### Active
 
-#### Current Milestone: v1.2 Factiva Knowledge Integration
-
-**Goal:** Replace the Apify web scraping collection layer with BrasilIntel's proven FactivaCollector, making Factiva/Dow Jones the sole news source via MMC Core API.
-
-**Target features:**
-- Port BrasilIntel's mature FactivaCollector (pagination, body-fetch fallback, retry, event tracking)
-- Remove Apify collection layer and apify-client dependency
-- Simplify pipeline orchestration (single collection path, no Apify fallback)
-- Adapt Factiva query config for English insurance/reinsurance domain
-- Update dashboard and health monitoring for Factiva-only architecture
-- Clean up dead code, unused source implementations, and stale config
+(No active milestone — run `/gsd:new-milestone` to start next milestone)
 
 ### Out of Scope
 
@@ -63,28 +59,31 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 - coreapi-data — deferred to future milestone
 - Dedicated equity market data section — equity data shown inline with stories only
 - Historical stock quotes — Equity Price API provides current quotes only
+- Multiple collection sources / pluggable collector architecture — Factiva-only is sufficient
+- Apify web scraping — replaced by enterprise Factiva feed in v1.2
 
 ## Context
 
 **Business Context:**
 - v1.0 shipped Feb 2026, replacing the outsourced 27-page "Marsh Daily Insights" with an AI-powered system
 - v1.1 shipped Feb 2026, integrating MMC Core API platform for enterprise news, equity, and email
+- v1.2 shipped Feb 2026, porting BrasilIntel's proven FactivaCollector and removing Apify infrastructure
 - Prototype validated the concept with live data before development began
 - System is production-ready with admin dashboard, automated delivery, monitoring, and enterprise API integration
 
 **Sister Project:**
 - BrasilIntel (v1.0 shipped) monitors 897 Brazilian insurers. MDInsights reuses the same architectural patterns and tech stack.
-- BrasilIntel's FactivaCollector (456 lines) is the reference implementation for v1.2 — proven in production with pagination, body-fetch fallback, tenacity retry, and event tracking. Located at `C:\BrasilIntel\app\collectors\factiva.py`.
+- BrasilIntel's FactivaCollector was ported to MDInsights in v1.2 with 3 bug fixes and 2 improvements.
 
 **Technical Environment:**
 - Python 3.11+, FastAPI, SQLite, Jinja2
 - Azure OpenAI GPT-4o for classification and summarisation
-- Factiva/Dow Jones via MMC Core API (ported from BrasilIntel's mature FactivaCollector)
-- Microsoft Graph SDK for email delivery
+- Factiva/Dow Jones as sole news source via MMC Core API (ported from BrasilIntel)
+- MMC Core API enterprise email (with Graph API fallback)
 - Bootstrap 5.3.3 + HTMX 2.0.4 for admin dashboard
 - structlog for structured logging, tenacity for retry logic
 - Windows Server on AWS (production), Windows 11 (development)
-- ~14,200 lines of Python across 200+ files (v1.0: 9,769 + v1.1: ~4,400)
+- ~11,900 lines of Python across ~190 files (v1.0: 9,769 + v1.1: ~4,400 + v1.2: -1,338 net)
 
 **Enterprise API Access (staging access available):**
 - MMC Core API platform (Apigee) — staging credentials in hand
@@ -107,13 +106,14 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 
 ## Current State
 
-v1.0 MVP and v1.1 Enterprise API Integration both shipped. System is feature-complete for daily production use.
+v1.0 MVP, v1.1 Enterprise API Integration, and v1.2 Factiva Knowledge Integration all shipped. System is feature-complete for daily production use with Factiva as sole news source.
 
 **Shipped milestones:**
 - v1.0 MVP (Feb 2026) — AI-powered daily brief with 20+ sources, role-based delivery, admin dashboard
 - v1.1 Enterprise API Integration (Feb 2026) — Factiva primary, equity enrichment, enterprise email, API health dashboard
+- v1.2 Factiva Knowledge Integration (Feb 2026) — BrasilIntel FactivaCollector port, Apify removal, pipeline simplification
 
-**Known tech debt:** 6 items from v1.1 audit (0 critical, 1 medium: admin trigger missing TokenManager)
+**Known tech debt:** 3 intentional DB compatibility items (SourceType.APIFY enum, collector_source default, NEWS_FALLBACK enum) + TD-01 (admin trigger missing TokenManager, medium severity)
 
 **Deployment validation needed:** Staging API credentials required to validate Factiva industry codes, equity API paths, and enterprise email payload fields on deployment machine.
 
@@ -151,6 +151,13 @@ v1.0 MVP and v1.1 Enterprise API Integration both shipped. System is feature-com
 | ApiEventType enum with all 9 types upfront | Schema stability — avoids Alembic migration for new enum values | ✓ Good |
 | Sync httpx for Factiva/Equity, async for Email | Matches each caller's execution context (sync pipeline vs async email) | ✓ Good |
 | Transient ORM attributes for equity data | _equity_data on SQLAlchemy objects in-memory, never persisted — clean separation | ✓ Good |
+| Port BrasilIntel FactivaCollector as foundation | Proven 456-line collector with pagination, retry, event tracking — avoid reinventing | ✓ Good |
+| 48h default date range | BrasilIntel proven approach, admin-configurable, covers weekend gaps | ✓ Good |
+| Correct API param names from BrasilIntel | BrasilIntel production validated: industry, company, query (not industryCodes etc.) | ✓ Good |
+| Inline article storage in pipeline | Extract from ApifyCollector before deletion — pipeline owns full collection-to-storage | ✓ Good |
+| Preserve DB schema compatibility | Keep SourceType.APIFY enum and defaults — removing breaks existing rows | ✓ Good |
+| Binary news health status | No degraded state since no fallback exists — honest healthy/offline only | ✓ Good |
+| Honest disable warning in FactivaConfig | "Stops all collection" not "fallback to Apify/RSS" — admins deserve truth | ✓ Good |
 
 ---
-*Last updated: 2026-02-26 after v1.2 milestone start*
+*Last updated: 2026-02-27 after v1.2 milestone completion*
