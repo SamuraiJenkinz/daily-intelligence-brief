@@ -10,12 +10,12 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 ## Current Position
 
 Milestone: v2.0 Audio Intelligence Briefings
-Phase: 18 - TTS Provider Resilience (COMPLETE)
-Plan: All 2 plans complete, verified (8/8 must-haves passed)
-Status: Phase 18 complete, ready for Phase 19
-Last activity: 2026-02-27 — Phase 18 verified and complete
+Phase: 19 - Pipeline Integration & Delivery (IN PROGRESS)
+Plan: 02 of ~4 estimated
+Status: Email audio attachment support complete
+Last activity: 2026-02-27 — Completed 19-02-PLAN.md (email audio attachments)
 
-Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 100% | v2.0 [█████.....] 50%
+Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 100% | v2.0 [██████....] 60%
 
 ## Performance Metrics
 
@@ -39,9 +39,10 @@ Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 10
 
 **v2.0 Progress:**
 - Total phases: 4 (Phase 17-20)
-- Plans completed: 5 of ~16 estimated
+- Plans completed: 7 of ~16 estimated
 - Phase 17 progress: 3 of 3 plans complete (Phase 17 complete)
 - Phase 18 progress: 2 of 2 plans complete (Phase 18 complete)
+- Phase 19 progress: 2 of ~4 plans complete (Phase 19 in progress)
 - Requirements mapped: 16/16
 - Coverage: 100%
 - Depth: Comprehensive (4-phase structure from research)
@@ -74,6 +75,10 @@ Recent v2.0 decisions:
 - Cost alert on ElevenLabs fallback success — 20x more expensive than Azure (18-02)
 - SessionLocal pattern for api_events logging — matches factiva.py/equity.py pattern (18-02)
 - Never propagate logging errors — database failures should not break audio generation (18-02)
+- 3MB attachment size limit for both email services matching Graph API constraints (19-02)
+- Attachment failure never blocks email delivery — audio is enhancement, not requirement (19-02)
+- Base64 encoding used for email attachments in both Graph and Enterprise APIs (19-02)
+- FIELD_ATTACHMENTS follows existing INFERRED field pattern for Enterprise API (19-02)
 
 ### Pending Todos
 
@@ -95,7 +100,7 @@ v2.0 blockers:
 
 ## Session Continuity
 
-Last session: 2026-02-27
-Stopped at: Phase 18 complete and verified
-Resume file: .planning/ROADMAP.md
-Next: `/gsd:discuss-phase 19` or `/gsd:plan-phase 19` to begin Pipeline Integration & Delivery phase
+Last session: 2026-02-27T18:42:58Z
+Stopped at: Completed 19-02-PLAN.md (email audio attachment support)
+Resume file: .planning/phases/19-pipeline-integration-delivery/19-02-SUMMARY.md
+Next: Continue Phase 19 with 19-03 (pipeline orchestration) or 19-04 (admin dashboard streaming)
