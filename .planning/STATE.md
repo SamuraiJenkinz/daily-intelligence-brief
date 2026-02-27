@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 
 Milestone: v2.0 Audio Intelligence Briefings
 Phase: 17 - Audio Generation Foundation
-Plan: 01 of 3 complete
+Plan: 02 of 3 complete
 Status: In progress
-Last activity: 2026-02-27 — Completed 17-01-PLAN.md (text preprocessing & script generation)
+Last activity: 2026-02-27 — Completed 17-02-PLAN.md (audio generator service & CLI runner)
 
-Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 100% | v2.0 [█.........] 6%
+Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 100% | v2.0 [██........] 12%
 
 ## Performance Metrics
 
@@ -39,8 +39,8 @@ Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 10
 
 **v2.0 Progress:**
 - Total phases: 4 (Phase 17-20)
-- Plans completed: 1 of ~16 estimated
-- Phase 17 progress: 1 of 3 plans complete
+- Plans completed: 2 of ~16 estimated
+- Phase 17 progress: 2 of 3 plans complete
 - Phase 17 estimated completion: Plan 17-03
 - Requirements mapped: 16/16
 - Coverage: 100%
@@ -62,6 +62,9 @@ Recent v2.0 decisions:
 - All pronunciation control via text preprocessing — OpenAI TTS does not support SSML (17-01)
 - Role-specific tone via GPT-4o prompts, not TTS voice changes — one voice for all roles (17-01)
 - Articles reuse reporter.py dict structure for seamless pipeline integration (17-01)
+- TTS client separate from GPT-4o client for independent deployment/scaling (17-02)
+- Idempotent generation with 100KB file size validation prevents duplicate API costs (17-02)
+- Atomic file writes (temp + rename) prevent corruption from interrupted generation (17-02)
 
 ### Pending Todos
 
@@ -80,6 +83,6 @@ Carried across milestones:
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 17-01-PLAN.md (text preprocessing & script generation)
-Resume file: .planning/phases/17-audio-generation-foundation/17-01-SUMMARY.md
-Next: `/gsd:plan-phase 17` to create plan 17-02 (TTS conversion with Azure OpenAI)
+Stopped at: Completed 17-02-PLAN.md (audio generator service & CLI runner)
+Resume file: .planning/phases/17-audio-generation-foundation/17-02-SUMMARY.md
+Next: `/gsd:plan-phase 17` to create plan 17-03 (final Phase 17 plan)
