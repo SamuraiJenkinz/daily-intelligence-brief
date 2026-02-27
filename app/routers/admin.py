@@ -33,6 +33,7 @@ from app.schemas.admin import SourceCreate, SourceUpdate
 from datetime import datetime, date
 from sqlalchemy import func
 import math
+from datetime import timedelta
 
 
 logger = structlog.get_logger(__name__)
@@ -1078,6 +1079,128 @@ def get_archive_browser(
         )
 
     return HTMLResponse(content=html)
+
+
+@router.get("/tts-costs", response_class=HTMLResponse)
+async def tts_costs(request: Request, days: int = Query(default=30, description="Time period in days")):
+    """TTS cost monitoring dashboard with character usage aggregation."""
+    db = SessionLocal()
+    try:
+        cutoff = datetime.utcnow() - timedelta(days=days)
+
+        # Query TTS events (both SUCCESS and FALLBACK)
+        events = (
+            db.query(ApiEvent)
+            .filter(
+                ApiEvent.event_type.in_([ApiEventType.TTS_SUCCESS, ApiEventType.TTS_FALLBACK]),
+                ApiEvent.api_name == "tts",
+                ApiEvent.timestamp >= cutoff,
+            )
+            .order_by(ApiEvent.timestamp.desc())
+            .all()
+        )
+
+        # Parse and aggregate
+        daily_data = {}  # {date_str: {role: {chars: N, cost: X, provider: str}}}
+        role_totals = {}  # {role: {chars: N, cost: X}}
+        total_chars = 0
+        total_cost = 0.0
+        provider_counts = {"azure": 0, "elevenlabs": 0}
+
+        for event in events:
+            try:
+                detail = json.loads(event.detail) if event.detail else {}
+                role = detail.get("role", "Unknown")
+                chars = detail.get("character_count", 0)
+                provider = detail.get("provider", "azure")
+                date_str = event.timestamp.strftime("%Y-%m-%d")
+
+                # Provider-based pricing
+                if provider == "elevenlabs":
+                    cost = (chars / 1_000_000) * 30.0
+                else:
+                    cost = (chars / 1_000_000) * 15.0
+
+                # Daily aggregation
+                if date_str not in daily_data:
+                    daily_data[date_str] = {}
+                if role not in daily_data[date_str]:
+                    daily_data[date_str][role] = {"chars": 0, "cost": 0.0, "events": 0}
+                daily_data[date_str][role]["chars"] += chars
+                daily_data[date_str][role]["cost"] += cost
+                daily_data[date_str][role]["events"] += 1
+
+                # Role totals
+                if role not in role_totals:
+                    role_totals[role] = {"chars": 0, "cost": 0.0}
+                role_totals[role]["chars"] += chars
+                role_totals[role]["cost"] += cost
+
+                total_chars += chars
+                total_cost += cost
+                provider_counts[provider] = provider_counts.get(provider, 0) + 1
+
+            except (json.JSONDecodeError, KeyError, TypeError):
+                continue
+
+        # Sort daily data by date descending
+        sorted_daily = sorted(daily_data.items(), key=lambda x: x[0], reverse=True)
+
+        # Budget alert: compare current period to previous period
+        budget_alert = None
+        if days <= 30:
+            prev_cutoff = cutoff - timedelta(days=days)
+            prev_events = (
+                db.query(ApiEvent)
+                .filter(
+                    ApiEvent.event_type.in_([ApiEventType.TTS_SUCCESS, ApiEventType.TTS_FALLBACK]),
+                    ApiEvent.api_name == "tts",
+                    ApiEvent.timestamp >= prev_cutoff,
+                    ApiEvent.timestamp < cutoff,
+                )
+                .all()
+            )
+            prev_cost = 0.0
+            for event in prev_events:
+                try:
+                    detail = json.loads(event.detail) if event.detail else {}
+                    chars = detail.get("character_count", 0)
+                    provider = detail.get("provider", "azure")
+                    if provider == "elevenlabs":
+                        prev_cost += (chars / 1_000_000) * 30.0
+                    else:
+                        prev_cost += (chars / 1_000_000) * 15.0
+                except (json.JSONDecodeError, KeyError, TypeError):
+                    continue
+
+            if prev_cost > 0 and total_cost > prev_cost * 0.8:
+                budget_alert = {
+                    "current": round(total_cost, 2),
+                    "previous": round(prev_cost, 2),
+                    "percentage": round((total_cost / prev_cost) * 100, 1) if prev_cost > 0 else 0,
+                }
+
+        context = {
+            "active_nav": "tts_costs",
+            "daily_data": sorted_daily,
+            "role_totals": {r: {"chars": d["chars"], "cost": round(d["cost"], 4)} for r, d in role_totals.items()},
+            "total_chars": total_chars,
+            "total_cost": round(total_cost, 2),
+            "provider_counts": provider_counts,
+            "budget_alert": budget_alert,
+            "selected_days": days,
+            "event_count": len(events),
+        }
+
+        # HTMX partial response
+        if request.headers.get("HX-Request"):
+            template = jinja_env.get_template("admin/partials/tts_cost_chart.html")
+            return HTMLResponse(template.render(**context))
+
+        template = jinja_env.get_template("admin/tts_costs.html")
+        return HTMLResponse(template.render(**context))
+    finally:
+        db.close()
 
 
 @router.get("/audio-archive", response_class=HTMLResponse)

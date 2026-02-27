@@ -1,0 +1,83 @@
+<!-- Role Breakdown Card -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-pie-chart"></i>
+                Cost by Role
+            </div>
+            <div class="card-body">
+                {% if role_totals %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Role</th>
+                                <th>Characters</th>
+                                <th>Cost (USD)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for role, data in role_totals.items() %}
+                            <tr>
+                                <td><strong>{{ role }}</strong></td>
+                                <td>{{ "{:,}".format(data['chars']) }}</td>
+                                <td>${{ "{:.4f}".format(data['cost']) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No TTS events recorded for this period.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Daily Breakdown Card -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-calendar3"></i>
+                Daily Breakdown
+            </div>
+            <div class="card-body">
+                {% if daily_data %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Role</th>
+                                <th>Characters</th>
+                                <th>Cost (USD)</th>
+                                <th>Events</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for date_str, roles in daily_data %}
+                            {% for role, data in roles.items() %}
+                            <tr>
+                                {% if loop.first %}
+                                <td rowspan="{{ roles|length }}" class="align-middle"><strong>{{ date_str }}</strong></td>
+                                {% endif %}
+                                <td>{{ role }}</td>
+                                <td>{{ "{:,}".format(data['chars']) }}</td>
+                                <td>${{ "{:.4f}".format(data['cost']) }}</td>
+                                <td>{{ data['events'] }}</td>
+                            </tr>
+                            {% endfor %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No TTS events recorded for this period.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

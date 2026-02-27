@@ -1,0 +1,158 @@
+{% extends "admin/base.html" %}
+
+{% block title %}TTS Costs{% endblock %}
+
+{% block extra_head %}
+<style>
+    .cost-card {
+        border-left: 4px solid var(--marsh-light-blue);
+    }
+    .budget-alert {
+        background-color: #fff3cd;
+        border-left: 4px solid #ffc107;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        border-radius: 0.25rem;
+    }
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 600;
+        color: var(--marsh-blue);
+    }
+    .stat-label {
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        color: #6c757d;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1 class="h2">
+                <i class="bi bi-currency-dollar text-primary"></i>
+                TTS Cost Monitoring
+            </h1>
+            <p class="text-muted">Track character usage and costs across TTS providers</p>
+        </div>
+    </div>
+
+    <!-- Budget Alert Banner -->
+    {% if budget_alert %}
+    <div class="budget-alert">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-exclamation-triangle-fill text-warning fs-4 me-3"></i>
+            <div>
+                <strong>Budget Alert:</strong> Spending at {{ budget_alert.percentage }}% of previous period
+                (${{ budget_alert.current }} vs ${{ budget_alert.previous }})
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <!-- Total Characters -->
+        <div class="col-md-3 mb-3">
+            <div class="card cost-card">
+                <div class="card-body">
+                    <div class="stat-label mb-2">Total Characters</div>
+                    <div class="stat-value">{{ "{:,}".format(total_chars) }}</div>
+                    <small class="text-muted">
+                        <i class="bi bi-file-text"></i>
+                        Across all roles
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Cost -->
+        <div class="col-md-3 mb-3">
+            <div class="card cost-card">
+                <div class="card-body">
+                    <div class="stat-label mb-2">Total Cost</div>
+                    <div class="stat-value">${{ "{:.2f}".format(total_cost) }}</div>
+                    <small class="text-muted">
+                        <i class="bi bi-cash-coin"></i>
+                        USD
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Events Tracked -->
+        <div class="col-md-3 mb-3">
+            <div class="card cost-card">
+                <div class="card-body">
+                    <div class="stat-label mb-2">Events Tracked</div>
+                    <div class="stat-value">{{ event_count }}</div>
+                    <small class="text-muted">
+                        <i class="bi bi-activity"></i>
+                        TTS operations
+                    </small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Primary Provider -->
+        <div class="col-md-3 mb-3">
+            <div class="card cost-card">
+                <div class="card-body">
+                    <div class="stat-label mb-2">Primary Provider</div>
+                    <div class="stat-value">
+                        {% if provider_counts['azure'] > provider_counts['elevenlabs'] %}
+                            Azure
+                        {% elif provider_counts['elevenlabs'] > provider_counts['azure'] %}
+                            ElevenLabs
+                        {% else %}
+                            Mixed
+                        {% endif %}
+                    </div>
+                    <small class="text-muted">
+                        <i class="bi bi-cloud"></i>
+                        Azure: {{ provider_counts['azure'] }}, ElevenLabs: {{ provider_counts['elevenlabs'] }}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Period Filter -->
+    <div class="row mb-3">
+        <div class="col">
+            <div class="btn-group" role="group" aria-label="Time period filter">
+                <button type="button"
+                        class="btn {% if selected_days == 7 %}btn-primary{% else %}btn-outline-primary{% endif %}"
+                        hx-get="/admin/tts-costs?days=7"
+                        hx-target="#cost-data"
+                        hx-trigger="click">
+                    7 Days
+                </button>
+                <button type="button"
+                        class="btn {% if selected_days == 30 %}btn-primary{% else %}btn-outline-primary{% endif %}"
+                        hx-get="/admin/tts-costs?days=30"
+                        hx-target="#cost-data"
+                        hx-trigger="click">
+                    30 Days
+                </button>
+                <button type="button"
+                        class="btn {% if selected_days == 90 %}btn-primary{% else %}btn-outline-primary{% endif %}"
+                        hx-get="/admin/tts-costs?days=90"
+                        hx-target="#cost-data"
+                        hx-trigger="click">
+                    90 Days
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cost Data (HTMX target) -->
+    <div id="cost-data">
+        {% include "admin/partials/tts_cost_chart.html" %}
+    </div>
+</div>
+{% endblock %}
