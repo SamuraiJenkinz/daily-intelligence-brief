@@ -5,17 +5,17 @@
 See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** Each audience at Marsh receives only the intelligence relevant to their decisions, priority-ranked and AI-summarised, delivered daily with zero manual effort.
-**Current focus:** Planning next milestone
+**Current focus:** v2.0 Audio Intelligence Briefings
 
 ## Current Position
 
-Milestone: v1.2 Factiva Knowledge Integration — COMPLETE
-Phase: 16 of 16 (Dashboard Config Updates) — COMPLETE
-Plan: 03 of 03 — COMPLETE
-Status: v1.2 milestone archived and tagged
-Last activity: 2026-02-27 — v1.2 milestone completion
+Milestone: v2.0 Audio Intelligence Briefings
+Phase: Not started (defining requirements)
+Plan: --
+Status: Defining requirements
+Last activity: 2026-02-27 — Milestone v2.0 started
 
-Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 100%
+Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 100% | v2.0 [..........] 0%
 
 ## Performance Metrics
 
@@ -36,8 +36,6 @@ Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 10
 - Must-haves verified: 43/43
 - Requirements satisfied: 20/20
 - Net lines: -1,338 (major cleanup)
-
-*Updated after v1.2 milestone completion*
 
 ## Accumulated Context
 
@@ -62,6 +60,6 @@ Carried across milestones:
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: v1.2 milestone completed, archived, and tagged
+Stopped at: v2.0 milestone started, defining requirements
 Resume file: None
-Next: `/gsd:new-milestone` to start next milestone (questioning → research → requirements → roadmap)
+Next: Define requirements → create roadmap → `/gsd:plan-phase [N]`

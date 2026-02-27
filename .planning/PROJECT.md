@@ -45,7 +45,19 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 
 ### Active
 
-(No active milestone — run `/gsd:new-milestone` to start next milestone)
+**Current Milestone: v2.0 Audio Intelligence Briefings**
+
+**Goal:** Add per-role podcast-style audio briefings to the daily intelligence pipeline, delivered as MP3 attachments and streaming links alongside existing HTML emails.
+
+**Target features:**
+- AI podcast script generation from classified articles (GPT-4o) — natural narration style, 2-5 min per role
+- Azure OpenAI TTS conversion of scripts to MP3 audio
+- Per-role audio briefings (Brokers, Leadership, Compliance, Underwriting)
+- Branded intro ("Good morning, this is your Marsh [Role] intelligence brief...") + sign-off
+- MP3 file attachment on existing role-based emails
+- Streaming link in email to play audio in-browser
+- Audio archive and playback endpoint on admin dashboard
+- Pipeline integration — audio generation runs after brief generation in daily pipeline
 
 ### Out of Scope
 
@@ -106,12 +118,14 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 
 ## Current State
 
-v1.0 MVP, v1.1 Enterprise API Integration, and v1.2 Factiva Knowledge Integration all shipped. System is feature-complete for daily production use with Factiva as sole news source.
+v1.0 MVP, v1.1 Enterprise API Integration, and v1.2 Factiva Knowledge Integration all shipped. v2.0 Audio Intelligence Briefings in progress — adding podcast-style audio to the daily pipeline.
 
 **Shipped milestones:**
 - v1.0 MVP (Feb 2026) — AI-powered daily brief with 20+ sources, role-based delivery, admin dashboard
 - v1.1 Enterprise API Integration (Feb 2026) — Factiva primary, equity enrichment, enterprise email, API health dashboard
 - v1.2 Factiva Knowledge Integration (Feb 2026) — BrasilIntel FactivaCollector port, Apify removal, pipeline simplification
+
+**Active milestone:** v2.0 Audio Intelligence Briefings
 
 **Known tech debt:** 3 intentional DB compatibility items (SourceType.APIFY enum, collector_source default, NEWS_FALLBACK enum) + TD-01 (admin trigger missing TokenManager, medium severity)
 
@@ -159,5 +173,9 @@ v1.0 MVP, v1.1 Enterprise API Integration, and v1.2 Factiva Knowledge Integratio
 | Binary news health status | No degraded state since no fallback exists — honest healthy/offline only | ✓ Good |
 | Honest disable warning in FactivaConfig | "Stops all collection" not "fallback to Apify/RSS" — admins deserve truth | ✓ Good |
 
+| Azure OpenAI TTS for audio | Same Azure stack as GPT-4o, no new vendor relationship needed | -- Pending |
+| Per-role audio (not combined) | Matches core value — each audience hears only their intelligence | -- Pending |
+| Admin dashboard serves streaming audio | Existing FastAPI server, no additional infrastructure | -- Pending |
+
 ---
-*Last updated: 2026-02-27 after v1.2 milestone completion*
+*Last updated: 2026-02-27 after v2.0 milestone start*
