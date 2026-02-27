@@ -26,15 +26,15 @@ Requirements for Audio Intelligence Briefings. Each maps to roadmap phases.
 
 - [x] **DLVR-01**: MP3 audio file is attached to the existing role-based daily email
 - [x] **DLVR-02**: Email includes a streaming link to play the audio in-browser from the admin dashboard
-- [ ] **DLVR-03**: Admin dashboard includes an audio archive for browsing past audio briefings
-- [ ] **DLVR-04**: Admin dashboard includes an HTML5 audio player widget for playback
+- [x] **DLVR-03**: Admin dashboard includes an audio archive for browsing past audio briefings
+- [x] **DLVR-04**: Admin dashboard includes an HTML5 audio player widget for playback
 
 ### Operations
 
 - [x] **OPS-01**: Audio generation failure never blocks HTML email delivery (graceful degradation)
 - [x] **OPS-02**: Audio generation runs in parallel for all 4 roles within the existing delivery window
-- [ ] **OPS-03**: System tracks TTS API character usage per role per day for cost monitoring
-- [ ] **OPS-04**: Audio files are automatically cleaned up after a configurable retention period
+- [x] **OPS-03**: System tracks TTS API character usage per role per day for cost monitoring
+- [x] **OPS-04**: Audio files are automatically cleaned up after a configurable retention period
 
 ## Future Requirements
 
@@ -84,12 +84,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUDIO-05 | Phase 17 | Complete |
 | DLVR-01 | Phase 19 | Complete |
 | DLVR-02 | Phase 19 | Complete |
-| DLVR-03 | Phase 20 | Pending |
-| DLVR-04 | Phase 20 | Pending |
+| DLVR-03 | Phase 20 | Complete |
+| DLVR-04 | Phase 20 | Complete |
 | OPS-01 | Phase 19 | Complete |
 | OPS-02 | Phase 19 | Complete |
-| OPS-03 | Phase 20 | Pending |
-| OPS-04 | Phase 20 | Pending |
+| OPS-03 | Phase 20 | Complete |
+| OPS-04 | Phase 20 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 16 total
@@ -99,4 +99,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-27*
-*Last updated: 2026-02-27 after Phase 19 completion*
+*Last updated: 2026-02-27 after Phase 20 completion*
