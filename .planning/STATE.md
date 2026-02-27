@@ -10,12 +10,12 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 Milestone: v1.2 Factiva Knowledge Integration
-Phase: 16 of 16 (Dashboard Config Updates) — IN PROGRESS
-Plan: 02 of 03 — COMPLETE
-Status: Plan 16-02 complete (2/2 tasks passed), ready for plan 16-03
-Last activity: 2026-02-27 — Completed 16-02-PLAN.md
+Phase: 16 of 16 (Dashboard Config Updates) — COMPLETE
+Plan: 03 of 03 — COMPLETE
+Status: Phase 16 complete (all 3 plans shipped), ready for phase verification
+Last activity: 2026-02-27 — Completed 16-03-PLAN.md
 
-Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [█████████░] 93%
+Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [██████████] 100%
 
 ## Performance Metrics
 
@@ -82,6 +82,11 @@ Phase 16-02 decisions:
 - template-badge-simplification: Replace conditional badge rendering with Factiva-only badges (reflects fresh DB reality)
 - source-ui-simplification: Remove type and actor_id fields from source management UI (legacy Apify concepts)
 
+Phase 16-03 decisions:
+- rss-default-type: Use SourceType.RSS as default for new sources (DB NOT NULL constraint, RSS is safe non-Apify option)
+- preserve-existing-values: Preserve existing source_type and actor_id values on update (don't overwrite DB data)
+- honest-disable-warning: Replace misleading 'fallback to Apify/RSS' hint with honest 'stops all collection' warning
+
 ### Pending Todos
 
 None.
@@ -103,6 +108,6 @@ v1.2 considerations:
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 16-02-PLAN.md
+Stopped at: Completed 16-03-PLAN.md (Phase 16 complete)
 Resume file: None
-Next: Execute 16-03-PLAN.md (settings page cleanup), then `/gsd:verify-phase 16` for final phase verification
+Next: Run `/gsd:verify-phase 16` for final phase verification, then prepare v1.2 milestone completion
