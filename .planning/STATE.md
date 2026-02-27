@@ -10,12 +10,12 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 ## Current Position
 
 Milestone: v2.0 Audio Intelligence Briefings
-Phase: 17 - Audio Generation Foundation (COMPLETE)
-Plan: All 3 plans complete, verified (human_needed — approved with deferred audio testing)
-Status: Phase 17 complete, ready for Phase 18
-Last activity: 2026-02-27 — Phase 17 verified and approved
+Phase: 18 - TTS Provider Resilience (IN PROGRESS)
+Plan: 1 of ~3 plans complete (18-01 complete)
+Status: Phase 18 in progress
+Last activity: 2026-02-27 — Completed 18-01-PLAN.md (TTS provider abstraction layer)
 
-Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 100% | v2.0 [███.......] 25%
+Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 100% | v2.0 [████......] 31%
 
 ## Performance Metrics
 
@@ -39,9 +39,9 @@ Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 10
 
 **v2.0 Progress:**
 - Total phases: 4 (Phase 17-20)
-- Plans completed: 3 of ~16 estimated
+- Plans completed: 4 of ~16 estimated
 - Phase 17 progress: 3 of 3 plans complete (Phase 17 complete)
-- Phase 18 progress: Not started
+- Phase 18 progress: 1 of ~3 plans complete (18-01 complete)
 - Requirements mapped: 16/16
 - Coverage: 100%
 - Depth: Comprehensive (4-phase structure from research)
@@ -66,6 +66,10 @@ Recent v2.0 decisions:
 - Idempotent generation with 100KB file size validation prevents duplicate API costs (17-02)
 - Atomic file writes (temp + rename) prevent corruption from interrupted generation (17-02)
 - Validation script created for programmatic audio checks; human verification deferred (17-03)
+- Strategy pattern with TTSProvider ABC for transparent provider swapping (18-01)
+- Common TTSError exception for unified failover exception handling (18-01)
+- ElevenLabs SDK over custom HTTP client for faster implementation and fewer bugs (18-01)
+- Atomic file writes preserved in both Azure and ElevenLabs providers (18-01)
 
 ### Pending Todos
 
@@ -83,10 +87,11 @@ Carried across milestones:
 
 v2.0 blockers:
 - **Azure OpenAI TTS credentials needed for audio generation end-to-end testing** — Phase 17 services complete but human audio quality verification deferred until credentials configured (see 17-03-SUMMARY.md)
+- **ElevenLabs credentials needed for failover testing** — Phase 18-01 complete but ElevenLabs provider untested until ELEVENLABS_API_KEY and ELEVENLABS_VOICE_ID configured (see 18-01-SUMMARY.md user setup section)
 
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Phase 17 complete and verified
-Resume file: .planning/ROADMAP.md
-Next: `/gsd:discuss-phase 18` or `/gsd:plan-phase 18` to begin TTS Provider Resilience phase
+Stopped at: Completed 18-01-PLAN.md (TTS provider abstraction layer)
+Resume file: .planning/phases/18-tts-provider-resilience/18-01-SUMMARY.md
+Next: `/gsd:execute-plan 18-02` to integrate TTS providers into AudioBriefingService with automatic failover
