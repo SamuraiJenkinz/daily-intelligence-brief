@@ -20,6 +20,13 @@
 
 **Goal:** System generates 2-5 minute per-role podcast-style audio briefings from classified articles with natural narration and proper pronunciation.
 
+**Plans:** 3 plans
+
+Plans:
+- [ ] 17-01-PLAN.md -- Text preprocessor and script generator services
+- [ ] 17-02-PLAN.md -- Audio generator service with TTS conversion and CLI runner
+- [ ] 17-03-PLAN.md -- End-to-end verification and human audio quality check
+
 **Requirements:**
 - SCRPT-01: System generates a podcast-style narration script per role from the day's classified articles using GPT-4o
 - SCRPT-02: Each script opens with a branded intro ("Good morning, this is your Marsh [Role] intelligence brief for [date]...") and closes with a sign-off
@@ -120,25 +127,25 @@
 | OPS-03 | 20 | System tracks TTS API character usage per role per day for cost monitoring |
 | OPS-04 | 20 | Audio files are automatically cleaned up after a configurable retention period |
 
-**Coverage:** 16/16 requirements mapped ✓
+**Coverage:** 16/16 requirements mapped
 
 ## Phase Dependencies
 
 ```
 Phase 17 (Audio Generation Foundation)
-   ↓
+   |
 Phase 18 (TTS Provider Resilience)
-   ↓
+   |
 Phase 19 (Pipeline Integration & Delivery)
-   ↓
+   |
 Phase 20 (Archive & Operations)
 ```
 
 **Dependency Rationale:**
 
-- **Phase 17 → 18:** Must have working Azure TTS implementation before building provider abstraction layer and fallback logic
-- **Phase 18 → 19:** Must have resilient TTS with fallback before integrating into production pipeline (prevents cascading failures)
-- **Phase 19 → 20:** Must have pipeline-generated audio files and streaming endpoints working before building archive browser and cost monitoring
+- **Phase 17 -> 18:** Must have working Azure TTS implementation before building provider abstraction layer and fallback logic
+- **Phase 18 -> 19:** Must have resilient TTS with fallback before integrating into production pipeline (prevents cascading failures)
+- **Phase 19 -> 20:** Must have pipeline-generated audio files and streaming endpoints working before building archive browser and cost monitoring
 
 ---
 
