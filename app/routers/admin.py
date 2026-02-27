@@ -537,8 +537,6 @@ def get_sources(
 def create_source(
     name: str = Form(...),
     url: str = Form(...),
-    source_type: str = Form(...),
-    actor_id: Optional[str] = Form(None),
     enabled: bool = Form(True)
 ):
     """
@@ -547,8 +545,6 @@ def create_source(
     Args:
         name: Source name
         url: Source URL
-        source_type: Type of source (apify or rss)
-        actor_id: Optional Apify actor ID
         enabled: Whether source is enabled
 
     Returns:
@@ -562,8 +558,6 @@ def create_source(
             source_data = SourceCreate(
                 name=name,
                 url=url,
-                source_type=source_type,
-                actor_id=actor_id if actor_id else None,
                 enabled=enabled
             )
         except ValidationError as e:
@@ -573,8 +567,6 @@ def create_source(
             html = template.render(errors=errors, form_data={
                 "name": name,
                 "url": url,
-                "source_type": source_type,
-                "actor_id": actor_id,
                 "enabled": enabled
             })
             return HTMLResponse(content=html, status_code=422)
@@ -587,18 +579,17 @@ def create_source(
             html = template.render(errors=errors, form_data={
                 "name": name,
                 "url": url,
-                "source_type": source_type,
-                "actor_id": actor_id,
                 "enabled": enabled
             })
             return HTMLResponse(content=html, status_code=422)
 
         # Create new source
+        # Use RSS as default source_type (DB column is NOT NULL, RSS is safe default)
         new_source = Source(
             name=source_data.name,
             url=source_data.url,
-            source_type=SourceType(source_data.source_type),
-            actor_id=source_data.actor_id,
+            source_type=SourceType.RSS,
+            actor_id=None,
             enabled=source_data.enabled
         )
 
@@ -651,8 +642,6 @@ def update_source(
     source_id: int,
     name: str = Form(...),
     url: str = Form(...),
-    source_type: str = Form(...),
-    actor_id: Optional[str] = Form(None),
     enabled: bool = Form(False)
 ):
     """
@@ -662,8 +651,6 @@ def update_source(
         source_id: Source ID
         name: Source name
         url: Source URL
-        source_type: Type of source (apify or rss)
-        actor_id: Optional Apify actor ID
         enabled: Whether source is enabled
 
     Returns:
@@ -681,8 +668,6 @@ def update_source(
             source_data = SourceUpdate(
                 name=name,
                 url=url,
-                source_type=source_type,
-                actor_id=actor_id if actor_id else None,
                 enabled=enabled
             )
         except ValidationError as e:
@@ -703,11 +688,9 @@ def update_source(
             html = template.render(source=source, errors=errors)
             return HTMLResponse(content=html, status_code=422)
 
-        # Update source
+        # Update source (preserve existing source_type and actor_id)
         source.name = source_data.name
         source.url = source_data.url
-        source.source_type = SourceType(source_data.source_type)
-        source.actor_id = source_data.actor_id
         source.enabled = source_data.enabled
 
         db.commit()
