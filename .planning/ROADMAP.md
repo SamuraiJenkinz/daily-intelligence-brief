@@ -53,6 +53,12 @@ Plans:
 
 **Goal:** System maintains audio generation reliability through provider abstraction and automatic failover when primary TTS provider fails.
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 18-01-PLAN.md -- TTS provider abstraction layer with Azure and ElevenLabs implementations
+- [ ] 18-02-PLAN.md -- AudioBriefingService failover integration with api_events logging and test script
+
 **Requirements:**
 - AUDIO-02: System falls back to ElevenLabs TTS when Azure TTS is unavailable or fails
 - AUDIO-03: TTS provider abstraction layer supports both Azure and ElevenLabs with consistent interface
