@@ -134,10 +134,8 @@
                                         <div style="font-size: 12px; color: #6c757d; margin-bottom: 8px;">
                                             {{ article.source_name or 'Unknown Source' }}
                                             {% if article.published_at %} &bull; {{ article.published_at.strftime('%d %b %Y') }}{% endif %}
-                                            {% if article.collector_source == 'Factiva' %}
+                                            {% if article.collector_source %}
                                             <span style="display: inline-block; background-color: #0077c8; color: #ffffff; font-size: 10px; padding: 1px 6px; border-radius: 8px; margin-left: 6px; font-weight: 600;">via Factiva</span>
-                                            {% else %}
-                                            <span style="display: inline-block; background-color: #6c757d; color: #ffffff; font-size: 10px; padding: 1px 6px; border-radius: 8px; margin-left: 6px; font-weight: 600;">via Apify/RSS</span>
                                             {% endif %}
                                         </div>
                                         {% if article.summary %}

@@ -737,10 +737,8 @@
                                     &bull; {{ article.published_at.strftime('%d %b %Y') }}
                                     {% endif %}
                                 </span>
-                                {% if article.collector_source == 'Factiva' %}
+                                {% if article.collector_source %}
                                 <span style="display: inline-block; background-color: #0077c8; color: white; font-size: 0.7em; padding: 2px 8px; border-radius: 10px; margin-left: 8px; font-weight: 600;">via Factiva</span>
-                                {% else %}
-                                <span style="display: inline-block; background-color: #6c757d; color: white; font-size: 0.7em; padding: 2px 8px; border-radius: 10px; margin-left: 8px; font-weight: 600;">via Apify/RSS</span>
                                 {% endif %}
                                 <span class="priority-badge badge-{{ priority|lower }}">{{ priority }}</span>
                             </div>

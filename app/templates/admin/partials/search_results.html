@@ -32,13 +32,9 @@
                 <i class="bi bi-globe me-1"></i>
                 {{ article.source_name or 'Unknown source' }}
             </span>
-            {% if article.collector_source == 'Factiva' %}
+            {% if article.collector_source %}
             <span class="badge me-3" style="background-color: #0077c8; font-size: 0.7rem;">
                 <i class="bi bi-newspaper me-1"></i>Factiva
-            </span>
-            {% elif article.collector_source %}
-            <span class="badge bg-secondary me-3" style="font-size: 0.7rem;">
-                <i class="bi bi-rss me-1"></i>{{ article.collector_source }}
             </span>
             {% endif %}
             {% if article.priority %}
