@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 
 Milestone: v2.0 Audio Intelligence Briefings
 Phase: 18 - TTS Provider Resilience (IN PROGRESS)
-Plan: 1 of ~3 plans complete (18-01 complete)
+Plan: 2 of ~3 plans complete (18-01, 18-02 complete)
 Status: Phase 18 in progress
-Last activity: 2026-02-27 — Completed 18-01-PLAN.md (TTS provider abstraction layer)
+Last activity: 2026-02-27 — Completed 18-02-PLAN.md (TTS provider failover integration)
 
-Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 100% | v2.0 [████......] 31%
+Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 100% | v2.0 [█████.....] 38%
 
 ## Performance Metrics
 
@@ -39,9 +39,9 @@ Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 10
 
 **v2.0 Progress:**
 - Total phases: 4 (Phase 17-20)
-- Plans completed: 4 of ~16 estimated
+- Plans completed: 5 of ~16 estimated
 - Phase 17 progress: 3 of 3 plans complete (Phase 17 complete)
-- Phase 18 progress: 1 of ~3 plans complete (18-01 complete)
+- Phase 18 progress: 2 of ~3 plans complete (18-01, 18-02 complete)
 - Requirements mapped: 16/16
 - Coverage: 100%
 - Depth: Comprehensive (4-phase structure from research)
@@ -70,6 +70,10 @@ Recent v2.0 decisions:
 - Common TTSError exception for unified failover exception handling (18-01)
 - ElevenLabs SDK over custom HTTP client for faster implementation and fewer bugs (18-01)
 - Atomic file writes preserved in both Azure and ElevenLabs providers (18-01)
+- Automatic failover without retry on primary provider — providers handle their own retries (18-02)
+- Cost alert on ElevenLabs fallback success — 20x more expensive than Azure (18-02)
+- SessionLocal pattern for api_events logging — matches factiva.py/equity.py pattern (18-02)
+- Never propagate logging errors — database failures should not break audio generation (18-02)
 
 ### Pending Todos
 
@@ -92,6 +96,6 @@ v2.0 blockers:
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 18-01-PLAN.md (TTS provider abstraction layer)
-Resume file: .planning/phases/18-tts-provider-resilience/18-01-SUMMARY.md
-Next: `/gsd:execute-plan 18-02` to integrate TTS providers into AudioBriefingService with automatic failover
+Stopped at: Completed 18-02-PLAN.md (TTS provider failover integration)
+Resume file: .planning/phases/18-tts-provider-resilience/18-02-SUMMARY.md
+Next: Review Phase 18 RESEARCH.md to determine if 18-03 needed, or proceed to Phase 19 (Admin Dashboard)
