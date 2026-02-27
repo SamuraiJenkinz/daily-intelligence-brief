@@ -497,7 +497,11 @@ class PipelineOrchestrator:
             "degraded_auth": True,
             "collection_source": "Factiva",
             "status": "failed",
-            "error": None
+            "error": None,
+            "audio_generated": 0,
+            "audio_failed": 0,
+            "audio_skipped": 0,
+            "audio_results": {}
         }
 
         try:
@@ -814,6 +818,39 @@ class PipelineOrchestrator:
                 duration_seconds=round(step_duration, 2)
             )
 
+            # Step 5c: Generate audio briefings for all roles in parallel
+            step_start = datetime.utcnow()
+            self.logger.info("step_5c_audio_generation_started")
+            audio_results = await self._generate_audio_parallel(classified_articles, report_date)
+
+            # Count audio results
+            audio_generated = sum(
+                1 for result in audio_results.values()
+                if result and result.get("generated") is True
+            )
+            audio_skipped = sum(
+                1 for result in audio_results.values()
+                if result and result.get("reason") == "already_exists"
+            )
+            audio_failed = sum(
+                1 for result in audio_results.values()
+                if result is None or result.get("reason") == "generation_failed"
+            )
+
+            result["audio_generated"] = audio_generated
+            result["audio_skipped"] = audio_skipped
+            result["audio_failed"] = audio_failed
+            result["audio_results"] = audio_results
+
+            step_duration = (datetime.utcnow() - step_start).total_seconds()
+            self.logger.info(
+                "step_5c_audio_generation_completed",
+                audio_generated=audio_generated,
+                audio_skipped=audio_skipped,
+                audio_failed=audio_failed,
+                duration_seconds=round(step_duration, 2)
+            )
+
             # Step 6: Generate per-role emails
             step_start = datetime.utcnow()
             self.logger.info("step_6_email_generation_started")
@@ -1072,6 +1109,74 @@ class PipelineOrchestrator:
                 "admin_alert_send_failed",
                 error=str(e)
             )
+
+    async def _generate_audio_parallel(
+        self,
+        classified_articles,
+        report_date: datetime
+    ) -> Dict[str, Optional[dict]]:
+        """
+        Generate audio briefings for all 4 roles in parallel.
+
+        Runs audio generation for Brokers, Leadership, Compliance, and Underwriting
+        simultaneously using asyncio.gather. Audio generation failures are caught
+        and logged but never propagate exceptions to caller (graceful degradation).
+
+        Args:
+            classified_articles: List of NewsArticle ORM objects with role classifications
+            report_date: Date of the report
+
+        Returns:
+            Dict mapping role name to audio metadata dict (or None if generation failed)
+        """
+        from app.services.audio_generator import AudioBriefingService
+
+        # Initialize audio service
+        audio_service = AudioBriefingService()
+
+        # Prepare articles (converts ORM objects to dict format)
+        prepared_articles = self.reporter._prepare_articles(classified_articles)
+
+        # Define roles
+        roles = ["Brokers", "Leadership", "Compliance", "Underwriting"]
+
+        # Create parallel tasks for each role
+        tasks = []
+        for role in roles:
+            # Filter articles for this role
+            role_articles = [
+                article for article in prepared_articles
+                if role in article.get('roles', [])
+            ]
+
+            # Wrap sync generate_briefing in executor (it's synchronous, not async)
+            task = asyncio.get_event_loop().run_in_executor(
+                None,
+                audio_service.generate_briefing,
+                role,
+                role_articles,
+                report_date
+            )
+            tasks.append(task)
+
+        # Run all tasks in parallel with graceful error handling
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        # Map results back to role names
+        audio_results = {}
+        for role, result in zip(roles, results):
+            if isinstance(result, Exception):
+                # Log warning but don't propagate exception
+                self.logger.warning(
+                    "audio_generation_failed",
+                    role=role,
+                    error=str(result)
+                )
+                audio_results[role] = None
+            else:
+                audio_results[role] = result
+
+        return audio_results
 
     async def _send_with_fallback(
         self,
