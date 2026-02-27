@@ -108,6 +108,13 @@ Plans:
 
 **Goal:** Historical audio briefings are browsable and playable via admin dashboard with automated retention policies and cost monitoring for sustainable operations.
 
+**Plans:** 3 plans
+
+Plans:
+- [ ] 20-01-PLAN.md -- Cost tracking enhancement (character_count in TTS events) and audio retention cleanup in pipeline
+- [ ] 20-02-PLAN.md -- Audio archive browser page with inline HTML5 audio player
+- [ ] 20-03-PLAN.md -- TTS cost monitoring dashboard with budget alerts
+
 **Requirements:**
 - DLVR-03: Admin dashboard includes an audio archive for browsing past audio briefings
 - DLVR-04: Admin dashboard includes an HTML5 audio player widget for playback
