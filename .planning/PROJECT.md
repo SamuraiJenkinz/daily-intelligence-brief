@@ -42,22 +42,22 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 - ✓ English insurance/reinsurance Factiva query config with configurable date range — v1.2
 - ✓ Factiva-only dashboard: binary health status, Factiva badges, simplified source UI — v1.2
 - ✓ Dead code cleanup: 1,443 lines removed, 2 dependencies eliminated — v1.2
+- ✓ AI podcast script generation per role via GPT-4o with branded intro/sign-off — v2.0
+- ✓ Text preprocessing for TTS: currency, percentages, abbreviations, tickers, company names — v2.0
+- ✓ Azure OpenAI TTS (tts-1-hd) audio conversion with idempotent generation — v2.0
+- ✓ ElevenLabs TTS fallback with automatic failover and cost alerting — v2.0
+- ✓ TTS provider abstraction layer (Strategy pattern) with unified interface — v2.0
+- ✓ Parallel audio generation for all 4 roles (~5-8s total) — v2.0
+- ✓ MP3 email attachment with base64 encoding and 3MB size limit — v2.0
+- ✓ Streaming link in email to admin dashboard audio player — v2.0
+- ✓ Graceful degradation: audio failure never blocks email delivery — v2.0
+- ✓ Audio archive browser with date-first navigation and inline HTML5 player — v2.0
+- ✓ TTS cost monitoring dashboard with budget alerts — v2.0
+- ✓ Audio file retention cleanup (90-day configurable) — v2.0
 
 ### Active
 
-**Current Milestone: v2.0 Audio Intelligence Briefings**
-
-**Goal:** Add per-role podcast-style audio briefings to the daily intelligence pipeline, delivered as MP3 attachments and streaming links alongside existing HTML emails.
-
-**Target features:**
-- AI podcast script generation from classified articles (GPT-4o) — natural narration style, 2-5 min per role
-- Azure OpenAI TTS conversion of scripts to MP3 audio
-- Per-role audio briefings (Brokers, Leadership, Compliance, Underwriting)
-- Branded intro ("Good morning, this is your Marsh [Role] intelligence brief...") + sign-off
-- MP3 file attachment on existing role-based emails
-- Streaming link in email to play audio in-browser
-- Audio archive and playback endpoint on admin dashboard
-- Pipeline integration — audio generation runs after brief generation in daily pipeline
+(No active milestone — run `/gsd:new-milestone` to plan next)
 
 ### Out of Scope
 
@@ -95,7 +95,7 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 - Bootstrap 5.3.3 + HTMX 2.0.4 for admin dashboard
 - structlog for structured logging, tenacity for retry logic
 - Windows Server on AWS (production), Windows 11 (development)
-- ~11,900 lines of Python across ~190 files (v1.0: 9,769 + v1.1: ~4,400 + v1.2: -1,338 net)
+- ~15,300 lines of Python across ~210 files (v1.0: 9,769 + v1.1: ~4,400 + v1.2: -1,338 net + v2.0: +3,391)
 
 **Enterprise API Access (staging access available):**
 - MMC Core API platform (Apigee) — staging credentials in hand
@@ -118,18 +118,19 @@ Each audience at Marsh receives only the intelligence relevant to their decision
 
 ## Current State
 
-v1.0 MVP, v1.1 Enterprise API Integration, and v1.2 Factiva Knowledge Integration all shipped. v2.0 Audio Intelligence Briefings in progress — adding podcast-style audio to the daily pipeline.
+v1.0 MVP, v1.1 Enterprise API Integration, v1.2 Factiva Knowledge Integration, and v2.0 Audio Intelligence Briefings all shipped. System now delivers both HTML briefs and podcast-style audio briefings to all 4 audience roles.
 
 **Shipped milestones:**
 - v1.0 MVP (Feb 2026) — AI-powered daily brief with 20+ sources, role-based delivery, admin dashboard
 - v1.1 Enterprise API Integration (Feb 2026) — Factiva primary, equity enrichment, enterprise email, API health dashboard
 - v1.2 Factiva Knowledge Integration (Feb 2026) — BrasilIntel FactivaCollector port, Apify removal, pipeline simplification
+- v2.0 Audio Intelligence Briefings (Feb 2026) — Per-role podcast audio via TTS, email attachment + streaming, archive browser, cost monitoring
 
-**Active milestone:** v2.0 Audio Intelligence Briefings
+**Active milestone:** None — planning next
 
-**Known tech debt:** 3 intentional DB compatibility items (SourceType.APIFY enum, collector_source default, NEWS_FALLBACK enum) + TD-01 (admin trigger missing TokenManager, medium severity)
+**Known tech debt:** 3 intentional DB compatibility items (SourceType.APIFY enum, collector_source default, NEWS_FALLBACK enum) + TD-01 (admin trigger missing TokenManager, medium severity) + 8 v2.0 deferred items pending Azure OpenAI TTS credentials
 
-**Deployment validation needed:** Staging API credentials required to validate Factiva industry codes, equity API paths, and enterprise email payload fields on deployment machine.
+**Deployment validation needed:** Staging API credentials required to validate Factiva industry codes, equity API paths, enterprise email payload fields, and Azure OpenAI TTS deployment on deployment machine.
 
 ## Constraints
 
@@ -173,9 +174,16 @@ v1.0 MVP, v1.1 Enterprise API Integration, and v1.2 Factiva Knowledge Integratio
 | Binary news health status | No degraded state since no fallback exists — honest healthy/offline only | ✓ Good |
 | Honest disable warning in FactivaConfig | "Stops all collection" not "fallback to Apify/RSS" — admins deserve truth | ✓ Good |
 
-| Azure OpenAI TTS for audio | Same Azure stack as GPT-4o, no new vendor relationship needed | -- Pending |
-| Per-role audio (not combined) | Matches core value — each audience hears only their intelligence | -- Pending |
-| Admin dashboard serves streaming audio | Existing FastAPI server, no additional infrastructure | -- Pending |
+| Azure OpenAI TTS for audio | Same Azure stack as GPT-4o, no new vendor relationship needed | ✓ Good |
+| Per-role audio (not combined) | Matches core value — each audience hears only their intelligence | ✓ Good |
+| Admin dashboard serves streaming audio | Existing FastAPI server, no additional infrastructure | ✓ Good |
+| Strategy pattern TTS abstraction | TTSProvider ABC enables transparent provider swapping for failover | ✓ Good |
+| ElevenLabs as TTS fallback | 20x more expensive but provides resilience when Azure unavailable | ✓ Good |
+| Text preprocessing over SSML | OpenAI TTS does not support SSML; preprocessing handles all pronunciation | ✓ Good |
+| Parallel audio generation (asyncio.gather) | 4 roles in ~5-8s vs ~16-24s sequential; return_exceptions=True for isolation | ✓ Good |
+| Filesystem MP3 storage | Better streaming than DB BLOBs for 2-4 MB files; simple retention cleanup | ✓ Good |
+| 90-day audio retention default | Industry standard for audit/compliance logs; configurable via env var | ✓ Good |
+| Atomic file writes for TTS | Temp file + rename prevents corruption from interrupted generation | ✓ Good |
 
 ---
-*Last updated: 2026-02-27 after v2.0 milestone start*
+*Last updated: 2026-02-27 after v2.0 milestone*

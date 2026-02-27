@@ -1,5 +1,35 @@
 # Project Milestones: MDInsights
 
+## v2.0 Audio Intelligence Briefings (Shipped: 2026-02-27)
+
+**Delivered:** Added per-role podcast-style audio briefings to the daily intelligence pipeline — AI-generated scripts converted to MP3 via Azure OpenAI TTS with ElevenLabs failover, attached to emails with streaming links, and served through an admin archive with cost monitoring.
+
+**Phases completed:** 17-20 (11 plans total)
+
+**Key accomplishments:**
+
+- AI podcast script generation — GPT-4o generates 300-540 word podcast-style narration per role with branded intro/sign-off, priority-ordered content, and insurance terminology preprocessing for natural speech
+- Multi-provider TTS with automatic failover — Strategy pattern abstraction layer with Azure OpenAI TTS (primary) and ElevenLabs (fallback), automatic failover on provider failure with cost alerting
+- Parallel pipeline integration — Audio generation for all 4 roles runs in parallel (~5-8s total) via asyncio.gather with graceful degradation (audio failure never blocks email delivery)
+- MP3 email delivery with streaming — MP3 attached to role-based emails with streaming link to admin dashboard audio player, conditional rendering when audio unavailable
+- Audio archive & operations dashboard — Admin audio archive browser with inline HTML5 player, TTS cost monitoring with budget alerts, and 90-day retention cleanup
+
+**Stats:**
+
+- 24 code files changed (+3,391 lines)
+- ~15,300 lines of Python (up from ~11,900)
+- 4 phases, 11 plans, 16 requirements satisfied
+- 1 day (Feb 27, 2026)
+- 45 commits
+
+**Git range:** `a5472ed` → `34396a9`
+
+**Tech debt carried:** 8 v2.0 deferred items (all pending Azure OpenAI TTS credentials for human verification and end-to-end testing) + 4 legacy items from v1.x
+
+**What's next:** TBD — `/gsd:new-milestone` for next milestone planning
+
+---
+
 ## v1.2 Factiva Knowledge Integration (Shipped: 2026-02-27)
 
 **Delivered:** Replaced Apify web scraping with BrasilIntel's proven FactivaCollector, making Factiva/Dow Jones the sole news source — removing 1,443 lines of dead code and 2 dependencies while simplifying the pipeline, dashboard, and admin UI.
