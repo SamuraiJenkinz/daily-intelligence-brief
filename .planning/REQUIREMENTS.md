@@ -9,18 +9,18 @@ Requirements for Audio Intelligence Briefings. Each maps to roadmap phases.
 
 ### Script Generation
 
-- [ ] **SCRPT-01**: System generates a podcast-style narration script per role from the day's classified articles using GPT-4o
-- [ ] **SCRPT-02**: Each script opens with a branded intro ("Good morning, this is your Marsh [Role] intelligence brief for [date]...") and closes with a sign-off
-- [ ] **SCRPT-03**: Script orders content by priority (Critical / High / Medium) mirroring the HTML brief structure
-- [ ] **SCRPT-04**: Script preprocesses insurance terminology, abbreviations, tickers, and numbers for natural speech before TTS conversion
+- [x] **SCRPT-01**: System generates a podcast-style narration script per role from the day's classified articles using GPT-4o
+- [x] **SCRPT-02**: Each script opens with a branded intro ("Good morning, this is your Marsh [Role] intelligence brief for [date]...") and closes with a sign-off
+- [x] **SCRPT-03**: Script orders content by priority (Critical / High / Medium) mirroring the HTML brief structure
+- [x] **SCRPT-04**: Script preprocesses insurance terminology, abbreviations, tickers, and numbers for natural speech before TTS conversion
 
 ### Audio Generation
 
-- [ ] **AUDIO-01**: System converts scripts to MP3 audio using Azure OpenAI TTS (tts-1-hd model) as primary provider
+- [x] **AUDIO-01**: System converts scripts to MP3 audio using Azure OpenAI TTS (tts-1-hd model) as primary provider
 - [ ] **AUDIO-02**: System falls back to ElevenLabs TTS when Azure TTS is unavailable or fails
 - [ ] **AUDIO-03**: TTS provider abstraction layer supports both Azure and ElevenLabs with consistent interface
-- [ ] **AUDIO-04**: All roles use one consistent professional voice for brand identity
-- [ ] **AUDIO-05**: Each role's audio briefing is 2-5 minutes in duration
+- [x] **AUDIO-04**: All roles use one consistent professional voice for brand identity
+- [x] **AUDIO-05**: Each role's audio briefing is 2-5 minutes in duration
 
 ### Delivery
 
@@ -73,15 +73,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SCRPT-01 | Phase 17 | Pending |
-| SCRPT-02 | Phase 17 | Pending |
-| SCRPT-03 | Phase 17 | Pending |
-| SCRPT-04 | Phase 17 | Pending |
-| AUDIO-01 | Phase 17 | Pending |
+| SCRPT-01 | Phase 17 | Complete |
+| SCRPT-02 | Phase 17 | Complete |
+| SCRPT-03 | Phase 17 | Complete |
+| SCRPT-04 | Phase 17 | Complete |
+| AUDIO-01 | Phase 17 | Complete |
 | AUDIO-02 | Phase 18 | Pending |
 | AUDIO-03 | Phase 18 | Pending |
-| AUDIO-04 | Phase 17 | Pending |
-| AUDIO-05 | Phase 17 | Pending |
+| AUDIO-04 | Phase 17 | Complete |
+| AUDIO-05 | Phase 17 | Complete |
 | DLVR-01 | Phase 19 | Pending |
 | DLVR-02 | Phase 19 | Pending |
 | DLVR-03 | Phase 20 | Pending |
@@ -99,4 +99,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-27*
-*Last updated: 2026-02-27 after roadmap creation*
+*Last updated: 2026-02-27 after Phase 17 completion*

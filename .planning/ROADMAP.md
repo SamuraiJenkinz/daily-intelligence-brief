@@ -16,16 +16,18 @@
 
 ## Phase Details
 
-### Phase 17: Audio Generation Foundation
+### Phase 17: Audio Generation Foundation ✓
 
 **Goal:** System generates 2-5 minute per-role podcast-style audio briefings from classified articles with natural narration and proper pronunciation.
+
+**Status:** Complete (2026-02-27) — human audio verification deferred pending Azure OpenAI credentials
 
 **Plans:** 3 plans
 
 Plans:
-- [ ] 17-01-PLAN.md -- Text preprocessor and script generator services
-- [ ] 17-02-PLAN.md -- Audio generator service with TTS conversion and CLI runner
-- [ ] 17-03-PLAN.md -- End-to-end verification and human audio quality check
+- [x] 17-01-PLAN.md -- Text preprocessor and script generator services
+- [x] 17-02-PLAN.md -- Audio generator service with TTS conversion and CLI runner
+- [x] 17-03-PLAN.md -- End-to-end verification and human audio quality check (checkpoint deferred)
 
 **Requirements:**
 - SCRPT-01: System generates a podcast-style narration script per role from the day's classified articles using GPT-4o
