@@ -1267,6 +1267,7 @@ def update_factiva_config(
     company_codes: str = Form(""),
     keywords: str = Form(""),
     page_size: int = Form(25),
+    date_range_hours: int = Form(48),
     enabled: str = Form("false"),
 ):
     """
@@ -1284,6 +1285,7 @@ def update_factiva_config(
         company_codes: Comma-separated Factiva company codes (e.g. "MM")
         keywords: Free-text search keywords (e.g. "insurance reinsurance")
         page_size: Articles per search page (10, 25, 50, or 100)
+        date_range_hours: Hours to look back for articles (1-168, default 48)
         enabled: "true" or "false" string from hidden+checkbox field pair
 
     Returns:
@@ -1301,6 +1303,12 @@ def update_factiva_config(
         if page_size not in (10, 25, 50, 100):
             page_size = 25
 
+        # Validate date_range_hours (clamp to 1-168 hours)
+        if date_range_hours < 1:
+            date_range_hours = 1
+        elif date_range_hours > 168:
+            date_range_hours = 168
+
         # Clean comma-separated inputs — strip whitespace, remove empty entries
         config.industry_codes = ",".join(
             c.strip() for c in industry_codes.split(",") if c.strip()
@@ -1310,6 +1318,7 @@ def update_factiva_config(
         )
         config.keywords = keywords.strip()
         config.page_size = page_size
+        config.date_range_hours = date_range_hours
         # Convert string "true"/"false" from hidden+checkbox pair to bool
         config.enabled = enabled.lower() in ("true", "on", "1", "yes")
         config.updated_at = datetime.utcnow()
@@ -1323,6 +1332,7 @@ def update_factiva_config(
             company_codes=config.company_codes,
             keywords=config.keywords,
             page_size=config.page_size,
+            date_range_hours=config.date_range_hours,
             enabled=config.enabled,
         )
 

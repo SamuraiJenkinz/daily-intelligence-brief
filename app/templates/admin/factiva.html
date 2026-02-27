@@ -50,6 +50,10 @@
         <div class="col-12">
             <h3><i class="bi bi-newspaper"></i> Factiva News Collection</h3>
             <p class="text-muted mb-0">Configure Factiva API query parameters for insurance/reinsurance news collection.</p>
+            <div class="alert alert-info py-2 mb-0 mt-2">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Sole Collection Source:</strong> Factiva is the only news collection source for MDInsights. All articles are collected via the MMC Core API.
+            </div>
         </div>
     </div>
 
@@ -142,6 +146,23 @@
                     </div>
                 </div>
 
+                <div class="mb-3">
+                    <label for="date_range_hours" class="form-label fw-semibold">Date Range (Hours)</label>
+                    <input
+                        type="number"
+                        id="date_range_hours"
+                        name="date_range_hours"
+                        class="form-control"
+                        style="max-width: 200px;"
+                        value="{{ config.date_range_hours or 48 }}"
+                        min="1"
+                        max="168"
+                    >
+                    <div class="field-hint">
+                        How far back to look for articles each collection run. Default 48 hours provides overlap between runs to catch late-indexed articles.
+                    </div>
+                </div>
+
                 <div class="mb-4">
                     <div class="form-check">
                         <!-- Hidden field ensures a value is always submitted even when checkbox is unchecked -->
@@ -158,8 +179,9 @@
                             Enable Factiva Collection
                         </label>
                     </div>
-                    <div class="field-hint ms-4">
-                        When disabled, the pipeline automatically falls back to Apify/RSS collection.
+                    <div class="field-hint ms-4 text-danger">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                        <strong>Warning:</strong> Disabling Factiva will stop all news collection. No fallback source is available.
                     </div>
                 </div>
 
