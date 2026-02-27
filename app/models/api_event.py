@@ -34,6 +34,9 @@ class ApiEventType(str, enum.Enum):
     TTS events (Phase 18):
         TTS_SUCCESS     - TTS conversion succeeded (primary or fallback)
         TTS_FALLBACK    - Fell back from primary to fallback TTS provider
+
+    Cleanup events (Phase 20):
+        AUDIO_CLEANUP   - Audio file retention cleanup summary
     """
     TOKEN_ACQUIRED = "token_acquired"
     TOKEN_REFRESHED = "token_refreshed"
@@ -46,6 +49,7 @@ class ApiEventType(str, enum.Enum):
     EMAIL_FALLBACK = "email_fallback"
     TTS_SUCCESS = "tts_success"
     TTS_FALLBACK = "tts_fallback"
+    AUDIO_CLEANUP = "audio_cleanup"
 
 
 class ApiEvent(Base):

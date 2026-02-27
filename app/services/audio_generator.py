@@ -125,6 +125,7 @@ class AudioBriefingService:
             # Step 3: Preprocess text for TTS
             logger.info("preprocessing_script", role=role, original_length=len(script))
             preprocessed_script = self.text_preprocessor.preprocess(script)
+            character_count = len(preprocessed_script)
 
             # Step 4: Validate word count
             word_count = len(preprocessed_script.split())
@@ -138,7 +139,7 @@ class AudioBriefingService:
 
             # Step 5: Convert to audio
             output_path = Path(AUDIO_DIR) / date_str / f"{role.lower()}.mp3"
-            audio_metadata = self._convert_to_audio(preprocessed_script, output_path)
+            audio_metadata = self._convert_to_audio(preprocessed_script, output_path, role=role, character_count=character_count)
 
             # Step 6: Return complete metadata
             result = {
@@ -175,7 +176,7 @@ class AudioBriefingService:
                 "reason": "generation_failed"
             }
 
-    def _convert_to_audio(self, script: str, output_path: Path) -> dict:
+    def _convert_to_audio(self, script: str, output_path: Path, role: str = "", character_count: int = 0) -> dict:
         """
         Convert preprocessed script to MP3 audio with automatic provider failover.
 
@@ -185,6 +186,8 @@ class AudioBriefingService:
         Args:
             script: Preprocessed script text (TTS-ready)
             output_path: Destination path for MP3 file
+            role: Role name for logging (default: "")
+            character_count: Number of characters in script for cost tracking (default: 0)
 
         Returns:
             dict: File metadata (path, size_bytes, size_mb, provider, voice, model)
@@ -204,7 +207,7 @@ class AudioBriefingService:
                     event_type=ApiEventType.TTS_SUCCESS,
                     provider=self.primary_provider.provider_name,
                     success=True,
-                    detail={"size_mb": result["size_mb"]}
+                    detail={"size_mb": result["size_mb"], "character_count": character_count, "role": role}
                 )
                 return result
             except TTSError as e:
@@ -227,7 +230,9 @@ class AudioBriefingService:
                     detail={
                         "size_mb": result["size_mb"],
                         "reason": "primary_failed",
-                        "primary_provider": self.primary_provider.provider_name if self.primary_provider else "none"
+                        "primary_provider": self.primary_provider.provider_name if self.primary_provider else "none",
+                        "character_count": character_count,
+                        "role": role
                     }
                 )
                 logger.warning(
