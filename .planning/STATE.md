@@ -10,12 +10,12 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 ## Current Position
 
 Milestone: v2.0 Audio Intelligence Briefings
-Phase: 19 - Pipeline Integration & Delivery (COMPLETE)
-Plan: All 3 plans complete, verified (5/5 must-haves passed)
-Status: Phase 19 complete, ready for Phase 20
-Last activity: 2026-02-27 — Phase 19 verified and complete
+Phase: 20 - Archive & Operations (IN PROGRESS)
+Plan: 1 of 3 complete (20-01 complete)
+Status: Phase 20 in progress
+Last activity: 2026-02-27 — Completed 20-01-PLAN.md
 
-Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 100% | v2.0 [███████▌..] 75%
+Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 100% | v2.0 [████████..] 80%
 
 ## Performance Metrics
 
@@ -39,12 +39,13 @@ Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [##########] 10
 
 **v2.0 Progress:**
 - Total phases: 4 (Phase 17-20)
-- Plans completed: 8 of ~11 estimated
+- Plans completed: 9 of ~11 estimated
 - Phase 17 progress: 3 of 3 plans complete (Phase 17 complete)
 - Phase 18 progress: 2 of 2 plans complete (Phase 18 complete)
 - Phase 19 progress: 3 of 3 plans complete (Phase 19 complete)
+- Phase 20 progress: 1 of 3 plans complete (20-01 complete)
 - Requirements mapped: 16/16
-- Requirements satisfied: 13/16 (DLVR-03, DLVR-04, OPS-03, OPS-04 remain for Phase 20)
+- Requirements satisfied: 15/16 (OPS-03 and OPS-04 satisfied in 20-01; DLVR-03, DLVR-04 remain for 20-02/20-03)
 - Coverage: 100%
 - Depth: Comprehensive (4-phase structure from research)
 
@@ -86,6 +87,10 @@ Recent v2.0 decisions:
 - Relative URLs for streaming links in email HTML (works in all environments) (19-03)
 - Conditional template rendering for graceful audio section omission (19-03)
 - HTML entities for emoji in email templates (maximum client compatibility) (19-03)
+- AUDIO_RETENTION_DAYS default 90 matches industry standard for audit logs (20-01)
+- Cleanup runs as Step 10 in production pipeline only (not run_sync) (20-01)
+- Cleanup failures never crash pipeline (wrapped in try/except with silent return) (20-01)
+- Per-file deletion logging to structlog, summary to api_events (20-01)
 
 ### Pending Todos
 
@@ -108,6 +113,6 @@ v2.0 blockers:
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Phase 19 complete and verified
-Resume file: .planning/ROADMAP.md
-Next: `/gsd:discuss-phase 20` or `/gsd:plan-phase 20` to begin Archive & Operations phase
+Stopped at: Completed 20-01-PLAN.md
+Resume file: None
+Next: Continue with 20-02 or 20-03 plans
