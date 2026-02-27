@@ -6,6 +6,7 @@ comprehensive error handling and progress tracking.
 """
 from datetime import datetime
 from typing import Dict, Optional
+from pathlib import Path
 import asyncio
 import json
 import os
@@ -851,12 +852,13 @@ class PipelineOrchestrator:
                 duration_seconds=round(step_duration, 2)
             )
 
-            # Step 6: Generate per-role emails
+            # Step 6: Generate per-role emails (with audio streaming links if available)
             step_start = datetime.utcnow()
             self.logger.info("step_6_email_generation_started")
             role_emails = self.reporter.generate_role_emails(
                 articles=classified_articles,
-                report_date=report_date
+                report_date=report_date,
+                audio_metadata=audio_results if audio_results else None,
             )
             result["role_emails_generated"] = len(role_emails)
             step_duration = (datetime.utcnow() - step_start).total_seconds()
@@ -922,10 +924,18 @@ class PipelineOrchestrator:
                     result["emails_sent"][role] = {"status": "skipped", "path": "skipped", "message": "No recipients configured"}
                     continue
 
+                # Extract audio file path for this role (if audio generation succeeded)
+                audio_path = None
+                role_audio = audio_results.get(role)
+                if role_audio and role_audio.get("path"):
+                    candidate = Path(role_audio["path"])
+                    if candidate.exists():
+                        audio_path = candidate
+
                 # Build subject ONCE — same for both delivery paths
                 subject = f"[{settings.company_name}] {role} Intelligence Brief - {report_date.strftime('%d %B %Y')}"
 
-                # Deliver with fallback
+                # Deliver with fallback (now with audio attachment)
                 delivery_result = await self._send_with_fallback(
                     role=role,
                     subject=subject,
@@ -936,6 +946,7 @@ class PipelineOrchestrator:
                     graph_service=graph_service,
                     token=token,
                     run_id=run.id,
+                    audio_path=audio_path,  # NEW: audio file path (or None)
                 )
 
                 result["emails_sent"][role] = delivery_result
@@ -959,6 +970,10 @@ class PipelineOrchestrator:
             graph_fallback_count = len([r for r in result["emails_sent"].values() if r.get("path") == "graph_fallback"])
             graph_primary_count = len([r for r in result["emails_sent"].values() if r.get("path") == "graph_primary"])
             skipped_count = len([r for r in result["emails_sent"].values() if r.get("path") == "skipped"])
+            audio_attached = len([
+                r for r in result["audio_results"].values()
+                if r and r.get("path") and Path(r["path"]).exists()
+            ])
 
             self.logger.info(
                 "step_8_email_delivery_completed",
@@ -967,6 +982,7 @@ class PipelineOrchestrator:
                 graph_primary_sent=graph_primary_count,
                 skipped=skipped_count,
                 delivery_failures=delivery_failure_count,
+                audio_attached=audio_attached,
                 duration_seconds=round(step_duration, 2),
             )
 
@@ -1009,7 +1025,10 @@ class PipelineOrchestrator:
                 enterprise_sent=enterprise_count,
                 graph_fallback_sent=graph_fallback_count,
                 graph_primary_sent=graph_primary_count,
-                reports_archived_count=len(result["reports_archived"])
+                reports_archived_count=len(result["reports_archived"]),
+                audio_generated=result.get("audio_generated", 0),
+                audio_failed=result.get("audio_failed", 0),
+                audio_attached=audio_attached,
             )
 
             return result
@@ -1189,6 +1208,7 @@ class PipelineOrchestrator:
         graph_service: GraphEmailService,
         token: Optional[str],
         run_id: int,
+        audio_path: Optional[Path] = None,
     ) -> dict:
         """
         Attempt enterprise email delivery, fall back to Graph API on failure.
@@ -1213,6 +1233,7 @@ class PipelineOrchestrator:
             graph_service: GraphEmailService instance (fallback)
             token: JWT token string (may be None if degraded_auth)
             run_id: Pipeline run ID for ApiEvent attribution
+            audio_path: Optional Path to MP3 audio file for attachment (None if no audio)
 
         Returns:
             Dict with keys: status, path, and optionally recipients, message
@@ -1228,6 +1249,7 @@ class PipelineOrchestrator:
                 html_body=html,
                 cc_addresses=recipients.cc or None,
                 run_id=run_id,
+                audio_path=audio_path,
             )
             if enterprise_result.get("status") == "ok":
                 return {**enterprise_result, "path": "enterprise"}
@@ -1256,6 +1278,7 @@ class PipelineOrchestrator:
                 html_body=html,
                 cc_addresses=recipients.cc or None,
                 bcc_addresses=recipients.bcc or None,
+                audio_path=audio_path,
             )
 
             path = "graph_fallback" if enterprise_attempted else "graph_primary"
