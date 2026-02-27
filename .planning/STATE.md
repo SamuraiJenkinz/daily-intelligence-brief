@@ -10,12 +10,12 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 Milestone: v1.2 Factiva Knowledge Integration
-Phase: 15 of 16 (Pipeline Simplification & Cleanup) — COMPLETE
-Plan: 03 of 03 — COMPLETE
-Status: Phase 15 verified (15/15 must-haves passed), ready for Phase 16
-Last activity: 2026-02-26 — Phase 15 verified and complete
+Phase: 16 of 16 (Dashboard Config Updates) — IN PROGRESS
+Plan: 01 of 01 — COMPLETE
+Status: Plan 16-01 complete (5/5 must-haves passed), phase 16 ready for verification
+Last activity: 2026-02-27 — Completed 16-01-PLAN.md
 
-Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [███████░░░] 70%
+Progress: v1.0 [##########] 100% | v1.1 [##########] 100% | v1.2 [█████████░] 90%
 
 ## Performance Metrics
 
@@ -73,6 +73,11 @@ Phase 15-03 decisions:
 - preserve-migration-sql: Keep historical migration code unchanged (documents schema evolution)
 - update-fallback-default: Change reporter fallback to 'Factiva' (reflects current reality as sole source)
 
+Phase 16-01 decisions:
+- binary-news-status: News API shows healthy/offline only (no degraded state since no fallback exists)
+- exclude-news-fallback-events: Fallback event log excludes NEWS_FALLBACK to avoid querying non-existent events
+- factiva-default: New articles default to 'Factiva' collector_source in both model and migration SQL
+
 ### Pending Todos
 
 None.
@@ -93,7 +98,7 @@ v1.2 considerations:
 
 ## Session Continuity
 
-Last session: 2026-02-26
-Stopped at: Phase 15 verified and complete
+Last session: 2026-02-27
+Stopped at: Completed 16-01-PLAN.md
 Resume file: None
-Next: `/gsd:discuss-phase 16` or `/gsd:plan-phase 16` for Dashboard & Config Updates
+Next: `/gsd:verify-phase 16` for final phase verification before v1.2 milestone completion
