@@ -526,9 +526,13 @@ Generate 4-6 actionable forward-looking items."""
             if audio_metadata:
                 role_audio = audio_metadata.get(role)
                 if role_audio and role_audio.get("path"):
-                    # Construct streaming URL using admin endpoint
-                    # Format: /admin/audio/{role}/{date}
-                    audio_url = f"/admin/audio/{role.lower()}/{date_str}"
+                    # Construct absolute streaming URL for email clients
+                    settings = get_settings()
+                    base_url = f"http://{settings.host}:{settings.port}"
+                    if settings.host == "0.0.0.0":
+                        import socket
+                        base_url = f"http://{socket.gethostname()}:{settings.port}"
+                    audio_url = f"{base_url}/admin/audio/{role.lower()}/{date_str}"
 
             # Load email template
             template = self.env.get_template('email/role_email.html')
